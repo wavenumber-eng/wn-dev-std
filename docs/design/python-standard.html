@@ -22,10 +22,25 @@
     </p>
   </section>
 
+  <section data-interface="wn_dev_std.ProfileName">
+    <h2>ProfileName</h2>
+    <p>
+      Enumerates the supported standard profile names.
+    </p>
+  </section>
+
   <section data-interface="wn_dev_std.default_python_standard">
     <h2>default_python_standard</h2>
     <p>
       Returns the current strict Python package profile.
+    </p>
+  </section>
+
+  <section data-interface="wn_dev_std.default_standard">
+    <h2>default_standard</h2>
+    <p>
+      Returns the current profile by name. The default profile is
+      <code>python-package</code>.
     </p>
   </section>
 
@@ -35,6 +50,22 @@
       Renders the current profile for human or machine use.
     </p>
   </section>
+
+  <section data-interface="wn_dev_std.render_standard">
+    <h2>render_standard</h2>
+    <p>
+      Renders a named profile for human or machine use.
+    </p>
+  </section>
+
+  <h2>Profiles</h2>
+  <p>
+    <code>python-package</code> is the pure Python baseline. Native-backed
+    projects use the <code>python-native-wasm</code> profile documented in
+    <a href="mixed-mode.html">Mixed Mode Standard</a>. Native C++ projects use
+    the <code>cpp-library</code> profile documented in
+    <a href="cpp-standard.html">C++ Standard</a>.
+  </p>
 
   <h2>Schema Versioning</h2>
   <p>

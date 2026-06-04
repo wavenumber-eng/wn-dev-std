@@ -42,7 +42,21 @@ uv run twine check dist/*</code></pre>
     Pure Python packages treat <code>dist/</code> as transient build output.
     Native or binary-backed projects may stage artifacts under grouped paths
     such as <code>dist/native/windows-x64/</code> and
-    <code>dist/wasm/browser/</code>.
+    <code>dist/wasm/browser/</code>. Projects using this policy must document
+    each artifact role, regeneration command, and release inclusion rule.
+  </p>
+  <p>
+    Mixed-mode projects should run native validation before wheel validation,
+    then install the built wheel in a clean environment and smoke the public
+    Python API plus the bundled command-line executable.
+  </p>
+
+  <h2>C++ Tooling</h2>
+  <p>
+    C++ projects use CMake, CTest, Ninja, clang-format, and clang-tidy. The
+    reference formatter and clang-tidy starter files live under
+    <code>docs/templates/cpp/</code>. CMake presets must enable
+    <code>CMAKE_EXPORT_COMPILE_COMMANDS=ON</code>.
   </p>
 </body>
 </html>

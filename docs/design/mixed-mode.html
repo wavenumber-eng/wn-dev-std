@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Mixed Mode Standard</title>
+</head>
+<body data-design="mixed-mode" data-profile="python-native-wasm">
+  <h1>Mixed Mode Standard</h1>
+  <p>
+    The <code>python-native-wasm</code> profile covers packages that combine a
+    Python distribution, native C or C++ build outputs, and optional WASM
+    runtime artifacts. Geometer is the reference shape for this profile. This
+    profile inherits the native tooling expectations from the
+    <a href="cpp-standard.html">C++ Standard</a>.
+  </p>
+
+  <section data-interface="wn_dev_std.default_mixed_mode_standard">
+    <h2>default_mixed_mode_standard</h2>
+    <p>
+      Returns the current mixed-mode profile for Python packages with native
+      and WASM runtime artifacts.
+    </p>
+  </section>
+
+  <section data-interface="wn_dev_std.render_mixed_mode_standard">
+    <h2>render_mixed_mode_standard</h2>
+    <p>
+      Renders the mixed-mode profile as text or JSON.
+    </p>
+  </section>
+
+  <h2>Repository Shape</h2>
+  <ul>
+    <li><code>CMakeLists.txt</code> owns the native build graph.</li>
+    <li><code>CMakePresets.json</code> defines portable native configure presets.</li>
+    <li><code>python/&lt;package&gt;/</code> or <code>src/&lt;package&gt;/</code> owns Python APIs.</li>
+    <li><code>tests/cpp/</code>, <code>tests/python/</code>, and <code>tests/wasm/</code> cover runtime surfaces.</li>
+    <li><code>scripts/validate_native.py</code> builds and smokes the native artifacts.</li>
+    <li><code>scripts/validate_python_package.py</code> builds a wheel and tests an installed copy.</li>
+  </ul>
+
+  <h2>Build Backend</h2>
+  <p>
+    Pure Python packages use Hatchling. Mixed-mode packages may use a custom
+    <code>setuptools.build_meta</code> path when the wheel must bundle platform
+    executables or libraries. The custom hook must be documented and covered by
+    installed-wheel validation. Native configure presets use Ninja by default
+    and enable <code>CMAKE_EXPORT_COMPILE_COMMANDS=ON</code>.
+  </p>
+
+  <h2>Artifact Policy</h2>
+  <p>
+    Mixed-mode packages may commit distributable runtime artifacts only under
+    grouped paths such as <code>dist/native/windows-x64/</code>,
+    <code>dist/native/linux-x64/</code>, <code>dist/native/macos-arm64/</code>,
+    and <code>dist/wasm/browser/</code>. Root-level files in
+    <code>dist/</code> are limited to documentation or manifests.
+  </p>
+  <p>
+    Local build state remains ignored. Examples include <code>build/</code>,
+    <code>build-*/</code>, <code>build-wasm/</code>, <code>.deps/</code>,
+    <code>out/</code>, <code>.venv/</code>, and test result folders.
+  </p>
+
+  <h2>Release Signoff</h2>
+  <p>
+    Release signoff must prove that the native CLI, Python source wrapper,
+    installed wheel, and WASM targets still work. The release gate should run
+    Ruff, Pyright, clang-format, CTest, native validation, package validation,
+    and a stale artifact policy check.
+  </p>
+
+  <h2>Version Contract</h2>
+  <p>
+    Version identity must be synchronized across Python package metadata,
+    CMake project metadata, CLI <code>--version</code>, native runtime version
+    APIs, and ABI generation fields. Date-based public versions remain the
+    default; ABI dates change only when the native ABI generation changes.
+  </p>
+
+  <h2>CI Shape</h2>
+  <p>
+    CI should keep separate lanes for Python signoff, native build and CTest,
+    platform wheel build and installed-wheel smoke tests, WASM build and smoke
+    tests, and final release validation from a GitHub Release published event.
+  </p>
+</body>
+</html>

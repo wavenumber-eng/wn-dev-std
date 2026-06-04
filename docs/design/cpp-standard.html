@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>C++ Standard</title>
+</head>
+<body data-design="cpp-standard" data-profile="cpp-library">
+  <h1>C++ Standard</h1>
+  <p>
+    The <code>cpp-library</code> profile covers native C++ libraries, command
+    line tools, and C ABI surfaces. It is also inherited by mixed-mode packages
+    that combine Python, C++, and WASM.
+  </p>
+
+  <section data-interface="wn_dev_std.default_cpp_standard">
+    <h2>default_cpp_standard</h2>
+    <p>
+      Returns the current C++ native-library profile.
+    </p>
+  </section>
+
+  <section data-interface="wn_dev_std.render_cpp_standard">
+    <h2>render_cpp_standard</h2>
+    <p>
+      Renders the C++ profile as text or JSON.
+    </p>
+  </section>
+
+  <h2>Formatter</h2>
+  <p>
+    Owned C++ source uses a committed <code>.clang-format</code> at the repo
+    root. The baseline follows the current Geometer and
+    <code>altium_monkey_cpp</code> convention: LLVM base style, Allman braces,
+    4-space indentation, 100-column line limit, left pointer alignment, sorted
+    includes, and preserved include blocks.
+  </p>
+  <pre><code>BasedOnStyle: LLVM
+BreakBeforeBraces: Allman
+IndentWidth: 4
+ColumnLimit: 100
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Empty
+PointerAlignment: Left
+SortIncludes: true
+IncludeBlocks: Preserve
+SpaceAfterCStyleCast: false
+SpaceBeforeParens: ControlStatements</code></pre>
+
+  <h2>Static Analysis</h2>
+  <p>
+    New native projects commit <code>.clang-tidy</code> and run clang-tidy from
+    a CMake-generated <code>compile_commands.json</code>. Existing projects may
+    document temporary suppressions, but new warnings should not be added.
+  </p>
+
+  <h2>CMake</h2>
+  <p>
+    CMake and CTest are required. <code>CMakePresets.json</code> is required.
+    Ninja is the default generator. Presets must set
+    <code>CMAKE_EXPORT_COMPILE_COMMANDS=ON</code> so clang-tidy, editors, and
+    agent tooling use the same compiler arguments as the build.
+  </p>
+
+  <h2>Warnings</h2>
+  <p>
+    Owned C++ code should compile with MSVC <code>/W4</code> and Clang/GCC
+    <code>-Wall -Wextra -Wpedantic</code>. Release-facing CI should treat
+    warnings in owned code as errors. Third-party code is isolated from these
+    warning policies unless explicitly patched and owned.
+  </p>
+
+  <h2>Native Tests</h2>
+  <p>
+    Register native tests with CTest and expose them through Rack strata. A
+    typical native sequence is L0 compile/foundation, L1 algorithm tests, L2
+    CLI or public API integration, optional slow corpus/performance lanes, and
+    L99 release signoff.
+  </p>
+
+  <h2>Boundaries</h2>
+  <p>
+    Public headers live behind an intentional include boundary. Private headers
+    stay under an internal or private source tree. C ABI boundaries must be
+    versioned, must report errors without throwing C++ exceptions across the
+    boundary, and must document ownership of allocated memory.
+  </p>
+</body>
+</html>

@@ -14,16 +14,58 @@
       "description": "Python standard value object."
     },
     {
+      "name": "wn_dev_std.ProfileName",
+      "design_doc": "docs/design/python-standard.html",
+      "data_interface": "wn_dev_std.ProfileName",
+      "description": "Supported standard profile name type."
+    },
+    {
       "name": "wn_dev_std.default_python_standard",
       "design_doc": "docs/design/python-standard.html",
       "data_interface": "wn_dev_std.default_python_standard",
       "description": "Factory for the current Python standard."
     },
     {
+      "name": "wn_dev_std.default_mixed_mode_standard",
+      "design_doc": "docs/design/mixed-mode.html",
+      "data_interface": "wn_dev_std.default_mixed_mode_standard",
+      "description": "Factory for the Python/native/WASM mixed-mode standard."
+    },
+    {
+      "name": "wn_dev_std.default_cpp_standard",
+      "design_doc": "docs/design/cpp-standard.html",
+      "data_interface": "wn_dev_std.default_cpp_standard",
+      "description": "Factory for the C++ native-library standard."
+    },
+    {
+      "name": "wn_dev_std.default_standard",
+      "design_doc": "docs/design/python-standard.html",
+      "data_interface": "wn_dev_std.default_standard",
+      "description": "Factory for a named standard profile."
+    },
+    {
       "name": "wn_dev_std.render_python_standard",
       "design_doc": "docs/design/python-standard.html",
       "data_interface": "wn_dev_std.render_python_standard",
       "description": "Render helper for the current Python standard."
+    },
+    {
+      "name": "wn_dev_std.render_mixed_mode_standard",
+      "design_doc": "docs/design/mixed-mode.html",
+      "data_interface": "wn_dev_std.render_mixed_mode_standard",
+      "description": "Render helper for the Python/native/WASM mixed-mode standard."
+    },
+    {
+      "name": "wn_dev_std.render_cpp_standard",
+      "design_doc": "docs/design/cpp-standard.html",
+      "data_interface": "wn_dev_std.render_cpp_standard",
+      "description": "Render helper for the C++ native-library standard."
+    },
+    {
+      "name": "wn_dev_std.render_standard",
+      "design_doc": "docs/design/python-standard.html",
+      "data_interface": "wn_dev_std.render_standard",
+      "description": "Render helper for a named standard profile."
     }
   ]
 }

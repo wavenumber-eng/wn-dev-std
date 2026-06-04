@@ -29,8 +29,12 @@
 
   <h2>Future Profiles</h2>
   <p>
-    The base rules will be extended with C, C++, C#, JavaScript, Rust, native
-    binary, WASM, and Zephyr profiles. Zephyr profiles must respect Zephyr
+    The first extension profiles are <code>cpp-library</code> and
+    <code>python-native-wasm</code>. The C++ profile captures the native CMake,
+    Ninja, clang-format, clang-tidy, CTest, and ABI rules. The mixed-mode
+    profile builds on that for Geometer-style packages that combine Python,
+    CMake/C++, platform wheels, and WASM outputs. Future profiles will add C,
+    C#, JavaScript, Rust, and Zephyr. Zephyr profiles must respect Zephyr
     layout and test tools such as west, twister, and ztest.
   </p>
 </body>

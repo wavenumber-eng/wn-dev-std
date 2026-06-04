@@ -64,6 +64,7 @@ profile = "python-package"
 distribution = "none"
 languages = ["python"]
 strict = true
+artifact_policy = "transient-dist"
 
 [tool.uv]
 package = true

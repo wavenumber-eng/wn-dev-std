@@ -49,3 +49,17 @@ def test_standard_json_command_is_machine_readable() -> None:
     result = run_cli("standard", "--format", "json")
     assert result.returncode == 0
     assert '"name": "python-package"' in result.stdout
+
+
+def test_standard_profile_can_render_mixed_mode_json() -> None:
+    result = run_cli("standard", "--profile", "python-native-wasm", "--format", "json")
+    assert result.returncode == 0
+    assert '"name": "python-native-wasm"' in result.stdout
+    assert "dist/native/<platform>/" in result.stdout
+
+
+def test_standard_profile_can_render_cpp_json() -> None:
+    result = run_cli("standard", "--profile", "cpp-library", "--format", "json")
+    assert result.returncode == 0
+    assert '"name": "cpp-library"' in result.stdout
+    assert '"value": "ninja"' in result.stdout

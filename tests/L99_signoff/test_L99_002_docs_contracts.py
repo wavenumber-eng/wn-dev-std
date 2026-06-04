@@ -45,10 +45,11 @@ def test_command_manifest_matches_cli_and_design_doc() -> None:
 def test_interface_manifest_matches_exports_and_design_doc() -> None:
     manifest = load_json_mapping(ROOT / "docs" / "contracts" / "interface_manifest.v0.json")
     interfaces = object_sequence(manifest["interfaces"])
-    design_doc = (ROOT / "docs" / "design" / "python-standard.html").read_text(encoding="utf-8")
 
     for item in interfaces:
         name = cast(str, item["name"])
+        design_doc_path = ROOT / cast(str, item["design_doc"])
+        design_doc = design_doc_path.read_text(encoding="utf-8")
         module_name, symbol_name = name.rsplit(".", 1)
         module = importlib.import_module(module_name)
         assert hasattr(module, symbol_name)

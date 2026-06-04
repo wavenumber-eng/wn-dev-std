@@ -7,7 +7,8 @@
   "properties": {
     "profile": {
       "type": "string",
-      "description": "Primary project profile such as python-package."
+      "enum": ["python-package", "python-native-wasm", "cpp-library"],
+      "description": "Primary project profile such as python-package, python-native-wasm, or cpp-library."
     },
     "distribution": {
       "type": "string",
@@ -22,6 +23,11 @@
     "strict": {
       "type": "boolean",
       "description": "Whether strict new-project rules apply."
+    },
+    "artifact_policy": {
+      "type": "string",
+      "enum": ["transient-dist", "committed-grouped-dist"],
+      "description": "Whether dist/ is transient packaging output or committed grouped runtime artifacts."
     }
   }
 }

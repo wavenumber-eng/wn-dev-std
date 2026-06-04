@@ -13,7 +13,7 @@
       "module": "wn_dev_std.cli.commands.standard",
       "design_doc": "docs/design/cli.html",
       "data_command": "standard",
-      "description": "Print the current Python standard summary."
+      "description": "Print a standard profile summary."
     },
     {
       "name": "version",

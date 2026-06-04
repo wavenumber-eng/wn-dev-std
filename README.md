@@ -59,6 +59,8 @@ Print the current Python standard summary:
 ```bash
 wn-dev-std standard
 wn-dev-std standard --format json
+wn-dev-std standard --profile cpp-library
+wn-dev-std standard --profile python-native-wasm
 ```
 
 Run the basic conformance checks against the current repo:
@@ -84,12 +86,50 @@ Pure Python packages use:
 - optional PyPI trusted publishing for projects that choose that distribution
 - CI on Ubuntu, Windows, and macOS
 
+## C++ Baseline
+
+The first native profile is `cpp-library`, modeled on the Geometer and
+`altium_monkey_cpp` C++ conventions.
+
+C++ projects use:
+
+- CMake, CTest, and `CMakePresets.json`
+- Ninja as the default generator
+- `CMAKE_EXPORT_COMPILE_COMMANDS=ON`
+- committed `.clang-format` and `.clang-tidy`
+- clang-format style based on LLVM, Allman braces, 4-space indentation, 100
+  columns, left pointer alignment, sorted includes, and preserved include
+  blocks
+- compiler warnings on owned code, with release-facing CI treating warnings as
+  errors where feasible
+- Rack strata for native foundation, algorithms, CLI/API integration, and L99
+  release signoff
+
+## Mixed-Mode Baseline
+
+The first mixed-mode profile is `python-native-wasm`, modeled on Geometer-style
+packages that combine Python wrappers, CMake/C++ native builds, platform wheels,
+and WASM runtime artifacts.
+
+Mixed-mode packages add:
+
+- CMake and CTest for native builds
+- grouped committed runtime artifacts under `dist/native/<platform>/` and
+  `dist/wasm/<target>/`
+- documented custom wheel hooks when platform wheels bundle executables
+- native validation before package validation
+- installed-wheel smoke tests that prove the bundled executable is used
+- separate CI lanes for Python, native, platform wheels, WASM, and release
+  validation
+
 ## Documentation
 
 - [Setup](docs/setup.html)
 - [Architecture](docs/architecture.html)
 - [CLI Design](docs/design/cli.html)
 - [Python Standard Design](docs/design/python-standard.html)
+- [C++ Standard](docs/design/cpp-standard.html)
+- [Mixed Mode Standard](docs/design/mixed-mode.html)
 - [Release Notes](docs/releases/2026-06-04.md)
 
 ## License

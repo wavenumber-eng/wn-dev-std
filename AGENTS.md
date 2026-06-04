@@ -40,6 +40,8 @@ uv run rack run L99_signoff
 - Reusable standard data and checks live outside the CLI package.
 - `docs/design/*.html` and `docs/contracts/*` are source-of-truth public
   contracts, not generated scratch output.
+- C++ profile templates live under `docs/templates/cpp/`; keep them aligned
+  with `docs/design/cpp-standard.html` and the checker policy.
 
 ## Release Rules
 
@@ -58,6 +60,15 @@ uv run rack run L99_signoff
 Generated files must document their source of truth, regeneration command, and
 release inclusion policy. Do not commit local result directories such as
 `rack_results/`, `dist/`, or `.venv/`.
+
+Mixed-mode projects are the exception to the blanket `dist/` rule. They may
+commit grouped runtime artifacts such as `dist/native/<platform>/` and
+`dist/wasm/<target>/` when the artifact policy is documented and covered by
+release signoff. Root-level `dist/` files should remain limited to manifests or
+artifact documentation.
+
+C++ projects use Ninja as the default CMake generator, commit `.clang-format`
+and `.clang-tidy`, and enable `CMAKE_EXPORT_COMPILE_COMMANDS=ON` in presets.
 
 ## Exceptions
 

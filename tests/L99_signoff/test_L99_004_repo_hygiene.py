@@ -39,5 +39,30 @@ def test_sdist_excludes_temporary_plans_and_research() -> None:
 
 def test_binary_distribution_policy_is_documented() -> None:
     setup_doc = (ROOT / "docs" / "setup.html").read_text(encoding="utf-8")
+    mixed_mode_doc = (ROOT / "docs" / "design" / "mixed-mode.html").read_text(encoding="utf-8")
     assert "dist/native/windows-x64/" in setup_doc
     assert "dist/wasm/browser/" in setup_doc
+    assert "dist/native/windows-x64/" in mixed_mode_doc
+    assert "dist/wasm/browser/" in mixed_mode_doc
+    assert "installed-wheel validation" in mixed_mode_doc
+
+
+def test_cpp_tooling_policy_is_documented_and_templated() -> None:
+    cpp_doc = (ROOT / "docs" / "design" / "cpp-standard.html").read_text(encoding="utf-8")
+    clang_format = (ROOT / "docs" / "templates" / "cpp" / ".clang-format").read_text(
+        encoding="utf-8"
+    )
+    clang_tidy = (ROOT / "docs" / "templates" / "cpp" / ".clang-tidy").read_text(encoding="utf-8")
+    for expected in (
+        "BasedOnStyle: LLVM",
+        "BreakBeforeBraces: Allman",
+        "IndentWidth: 4",
+        "ColumnLimit: 100",
+        "PointerAlignment: Left",
+        "SortIncludes: true",
+        "IncludeBlocks: Preserve",
+    ):
+        assert expected in cpp_doc
+        assert expected in clang_format
+    assert "CMAKE_EXPORT_COMPILE_COMMANDS=ON" in cpp_doc
+    assert "clang-analyzer-*" in clang_tidy

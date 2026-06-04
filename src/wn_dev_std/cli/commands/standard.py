@@ -6,15 +6,21 @@ import argparse
 from typing import Literal, cast
 
 from wn_dev_std.cli.types import SubparserRegistry
-from wn_dev_std.standards import render_python_standard
+from wn_dev_std.standards import ProfileName, render_standard
 
 
 def register(subparsers: SubparserRegistry) -> None:
     """Register the command with the root parser."""
     parser = subparsers.add_parser(
         "standard",
-        help="Print the current Python standard summary",
-        description="Print the current Wavenumber Python package standard.",
+        help="Print a Wavenumber standard profile summary",
+        description="Print a Wavenumber project standard profile.",
+    )
+    parser.add_argument(
+        "--profile",
+        choices=("python-package", "python-native-wasm", "cpp-library"),
+        default="python-package",
+        help="Standard profile to render",
     )
     parser.add_argument(
         "--format",
@@ -28,8 +34,15 @@ def register(subparsers: SubparserRegistry) -> None:
 
 def run(args: argparse.Namespace) -> int:
     """Run the command."""
-    print(render_python_standard(_output_format(args)))
+    print(render_standard(_profile(args), _output_format(args)))
     return 0
+
+
+def _profile(args: argparse.Namespace) -> ProfileName:
+    value = cast(str, args.profile)
+    if value in ("python-package", "python-native-wasm", "cpp-library"):
+        return value
+    raise TypeError("expected profile to be a supported standard profile")
 
 
 def _output_format(args: argparse.Namespace) -> Literal["text", "json"]:

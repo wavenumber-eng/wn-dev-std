@@ -1,10 +1,12 @@
-"""Python standard data exposed by the reference package."""
+"""Standard profile data exposed by the reference package."""
 
 from __future__ import annotations
 
 import json
 from dataclasses import dataclass
 from typing import Literal
+
+ProfileName = Literal["python-package", "python-native-wasm", "cpp-library"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,7 +28,7 @@ class StrictRule:
 
 @dataclass(frozen=True, slots=True)
 class PythonStandard:
-    """Current strict Python package standard."""
+    """Current strict project standard profile."""
 
     name: str
     version: str
@@ -45,6 +47,165 @@ class PythonStandard:
             "required_files": list(self.required_files),
             "required_docs": list(self.required_docs),
         }
+
+
+MIXED_MODE_RULES = (
+    StrictRule("workflow.python", "uv", "Use one Python environment and lock workflow."),
+    StrictRule("workflow.native", "cmake + ctest", "Keep native builds portable."),
+    StrictRule("workflow.wasm", "pinned emsdk or equivalent", "Keep browser builds reproducible."),
+    StrictRule(
+        "inherits",
+        "cpp-library",
+        "Use the same formatter, preset, warning, and native signoff rules.",
+    ),
+    StrictRule("lockfile", "commit uv.lock", "Make Python installs reproducible."),
+    StrictRule(
+        "build-backend",
+        "documented native wheel backend",
+        "Bundled executable wheels need explicit build hooks.",
+    ),
+    StrictRule(
+        "native-artifacts",
+        "dist/native/<platform>/",
+        "Keep committed runtime binaries grouped by OS and architecture.",
+    ),
+    StrictRule(
+        "wasm-artifacts",
+        "dist/wasm/<target>/",
+        "Keep browser, worker, and test builds separated by runtime target.",
+    ),
+    StrictRule(
+        "artifact-manifest",
+        "dist/README.md or manifest",
+        "Document artifact roles, regeneration, and release policy.",
+    ),
+    StrictRule(
+        "version-sync",
+        "package, CMake, CLI, ABI",
+        "Prevent mismatched Python/native/runtime releases.",
+    ),
+    StrictRule("test-runner", "rack + pytest + ctest", "Cover Python and native strata."),
+    StrictRule("typing", "pyright strict", "Catch Python wrapper interface drift early."),
+    StrictRule("lint", "ruff + clang-format", "Keep Python and native style automated."),
+    StrictRule("static-analysis", "pyright + clang-tidy", "Catch wrapper and native drift early."),
+    StrictRule("ci.os", "ubuntu, windows, macos", "Build platform wheels on real targets."),
+    StrictRule("ci.wasm", "separate wasm lane", "Avoid hiding browser/toolchain failures."),
+    StrictRule("release", "GitHub Release published", "Allow final review before publish."),
+)
+
+MIXED_MODE_REQUIRED_FILES = (
+    ".clang-format",
+    ".clang-tidy",
+    ".gitattributes",
+    ".gitignore",
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "CMakeLists.txt",
+    "CMakePresets.json",
+    "CONTRIBUTING.md",
+    "LICENSE",
+    "README.md",
+    "pyproject.toml",
+    "setup.py",
+    "tests/rack.toml",
+)
+
+MIXED_MODE_REQUIRED_DOCS = (
+    "docs/setup.html",
+    "docs/architecture.html",
+    "docs/design/",
+    "docs/design/distribution.html",
+    "docs/design/native-interface.html",
+    "docs/design/python-package.html",
+    "docs/design/wasm.html",
+    "docs/contracts/",
+    "docs/releases/",
+)
+
+CPP_RULES = (
+    StrictRule("build-system", "cmake", "Keep native builds portable across toolchains."),
+    StrictRule("presets", "CMakePresets.json", "Make configure/build/test lanes repeatable."),
+    StrictRule("generator", "ninja", "Ninja is the default generator for native projects."),
+    StrictRule(
+        "compile-commands",
+        "CMAKE_EXPORT_COMPILE_COMMANDS=ON",
+        "Required for clang-tidy and editor tooling.",
+    ),
+    StrictRule("format", "clang-format", "All owned C++ must use the committed formatter."),
+    StrictRule(
+        "format.style",
+        "LLVM base, Allman, 4 spaces, 100 columns",
+        "Matches the current Geometer and altium_monkey_cpp convention.",
+    ),
+    StrictRule("static-analysis", "clang-tidy", "New native code starts with analysis enabled."),
+    StrictRule(
+        "warnings",
+        "MSVC /W4, Clang/GCC -Wall -Wextra -Wpedantic",
+        "Catch compiler-visible defects early.",
+    ),
+    StrictRule(
+        "warnings-as-errors",
+        "owned code in CI",
+        "Release-facing code should not accumulate warning debt.",
+    ),
+    StrictRule("test-runner", "ctest", "Register native tests with CTest."),
+    StrictRule("test-orchestration", "rack", "Expose native lanes and release gates explicitly."),
+    StrictRule(
+        "sanitizers",
+        "asan+ubsan where supported",
+        "Run memory and undefined-behavior checks outside MSVC-only lanes.",
+    ),
+    StrictRule(
+        "public-headers",
+        "deliberate include/ boundary",
+        "Keep public API surface reviewable and stable.",
+    ),
+    StrictRule(
+        "private-headers",
+        "internal/ or private source tree",
+        "Prevent accidental downstream dependency on internals.",
+    ),
+    StrictRule(
+        "c-abi",
+        "versioned when exposed",
+        "Never throw C++ exceptions across C, Python, or WASM boundaries.",
+    ),
+    StrictRule(
+        "third-party",
+        "pinned provenance and license",
+        "Vendored or fetched dependencies must be auditable.",
+    ),
+    StrictRule(
+        "generated-code",
+        "document generator and regeneration command",
+        "Generated native sources need a maintained source of truth.",
+    ),
+    StrictRule("ci.os", "ubuntu, windows, macos", "Catch compiler and platform differences early."),
+)
+
+CPP_REQUIRED_FILES = (
+    ".clang-format",
+    ".clang-tidy",
+    ".gitattributes",
+    ".gitignore",
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "CMakeLists.txt",
+    "CMakePresets.json",
+    "CONTRIBUTING.md",
+    "LICENSE",
+    "README.md",
+    "tests/rack.toml",
+)
+
+CPP_REQUIRED_DOCS = (
+    "docs/setup.html",
+    "docs/architecture.html",
+    "docs/design/",
+    "docs/design/cpp-standard.html",
+    "docs/contracts/",
+    "docs/releases/",
+)
 
 
 def default_python_standard() -> PythonStandard:
@@ -86,9 +247,62 @@ def default_python_standard() -> PythonStandard:
     )
 
 
+def default_mixed_mode_standard() -> PythonStandard:
+    """Return the current Python plus native/WASM mixed-mode standard."""
+    return PythonStandard(
+        name="python-native-wasm",
+        version="2026.6.4",
+        status="initial",
+        rules=MIXED_MODE_RULES,
+        required_files=MIXED_MODE_REQUIRED_FILES,
+        required_docs=MIXED_MODE_REQUIRED_DOCS,
+    )
+
+
+def default_cpp_standard() -> PythonStandard:
+    """Return the current C++ library and native executable standard."""
+    return PythonStandard(
+        name="cpp-library",
+        version="2026.6.4",
+        status="initial",
+        rules=CPP_RULES,
+        required_files=CPP_REQUIRED_FILES,
+        required_docs=CPP_REQUIRED_DOCS,
+    )
+
+
+def default_standard(profile: ProfileName = "python-package") -> PythonStandard:
+    """Return the current standard for a named profile."""
+    if profile == "python-package":
+        return default_python_standard()
+    if profile == "python-native-wasm":
+        return default_mixed_mode_standard()
+    if profile == "cpp-library":
+        return default_cpp_standard()
+    raise ValueError(f"unsupported profile: {profile}")
+
+
 def render_python_standard(output_format: Literal["text", "json"] = "text") -> str:
     """Render the current Python standard as text or JSON."""
-    standard = default_python_standard()
+    return render_standard("python-package", output_format)
+
+
+def render_mixed_mode_standard(output_format: Literal["text", "json"] = "text") -> str:
+    """Render the current mixed-mode standard as text or JSON."""
+    return render_standard("python-native-wasm", output_format)
+
+
+def render_cpp_standard(output_format: Literal["text", "json"] = "text") -> str:
+    """Render the current C++ standard as text or JSON."""
+    return render_standard("cpp-library", output_format)
+
+
+def render_standard(
+    profile: ProfileName = "python-package",
+    output_format: Literal["text", "json"] = "text",
+) -> str:
+    """Render a named standard profile as text or JSON."""
+    standard = default_standard(profile)
     if output_format == "json":
         return json.dumps(standard.to_dict(), indent=2, sort_keys=True)
 
