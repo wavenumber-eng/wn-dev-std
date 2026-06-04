@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/wavenumber-eng/wn-dev-std/docs/contracts/wn_dev_std_config.schema.v0.json",
+  "title": "wn-dev-std pyproject configuration",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "profile": {
+      "type": "string",
+      "description": "Primary project profile such as python-package."
+    },
+    "distribution": {
+      "type": "string",
+      "enum": ["pypi", "internal", "none"],
+      "description": "Distribution target for release workflows."
+    },
+    "languages": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Languages used by the project."
+    },
+    "strict": {
+      "type": "boolean",
+      "description": "Whether strict new-project rules apply."
+    }
+  }
+}

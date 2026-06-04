@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>wn-dev-std Architecture</title>
+</head>
+<body data-doc="architecture" data-package="wn_dev_std">
+  <h1>Architecture</h1>
+  <p>
+    <code>wn-dev-std</code> is a small installable Python package and the
+    reference example for Wavenumber standards.
+  </p>
+
+  <h2>Boundaries</h2>
+  <ul>
+    <li data-boundary="cli-entrypoint">
+      <code>wn_dev_std.cli.main</code> owns parser construction and dispatch.
+    </li>
+    <li data-boundary="command-files">
+      Each public command owns its implementation in a separate command file.
+    </li>
+    <li data-boundary="standard-data">
+      <code>wn_dev_std.standards</code> owns public standard data examples.
+    </li>
+    <li data-boundary="checks">
+      <code>wn_dev_std.checks</code> owns reusable conformance checks.
+    </li>
+  </ul>
+
+  <h2>Future Profiles</h2>
+  <p>
+    The base rules will be extended with C, C++, C#, JavaScript, Rust, native
+    binary, WASM, and Zephyr profiles. Zephyr profiles must respect Zephyr
+    layout and test tools such as west, twister, and ztest.
+  </p>
+</body>
+</html>

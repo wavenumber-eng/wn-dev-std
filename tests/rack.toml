@@ -1,0 +1,48 @@
+[rack]
+name = "wn-dev-std Public Tests"
+version = "1.0"
+description = "Rack suite for the Wavenumber development standards reference package"
+default_lane = "fast"
+
+[strata]
+order = [
+    "L0_foundation",
+    "L99_signoff",
+]
+default_enabled = [
+    "L0_foundation",
+    "L99_signoff",
+]
+
+[concerns.cli]
+description = "Installed CLI behavior and command registration"
+
+[concerns.docs]
+description = "Human-readable and machine-checkable documentation"
+
+[concerns.contracts]
+description = "Machine-readable public contracts"
+
+[concerns.release]
+description = "Release metadata, packaging, and publishing readiness"
+
+[concerns.signoff]
+description = "Strict final quality gates"
+
+[lanes.fast]
+description = "Default fast lane for routine development"
+
+[lanes.full]
+description = "Full local package validation lane"
+
+[lanes.strict]
+description = "Release signoff lane"
+
+[dependencies]
+python_packages = [
+    "pytest",
+    "pytest-json-report",
+    "pyright",
+    "ruff",
+    "wn-rack",
+]

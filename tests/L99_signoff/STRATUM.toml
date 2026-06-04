@@ -1,0 +1,57 @@
+name = "Release Signoff"
+order = 99
+description = "Strict final signoff for release metadata, docs, contracts, and source quality"
+enabled = true
+concerns = ["release", "contracts", "docs", "signoff"]
+
+objectives = [
+    "Release metadata matches the date-based version contract",
+    "CLI parser commands, command manifest, and HTML design docs stay synchronized",
+    "Public interfaces have matching design docs and manifest entries",
+    "Repository hygiene files and distribution exclusions are present",
+    "Source passes Ruff, Pyright, uv lock check, and strict Python hygiene",
+]
+
+[dependencies]
+strata = ["L0_foundation"]
+note = "L99 is intentionally lightweight in this reference package so it can run during normal development."
+
+[[subtests]]
+id = "L99_001"
+file = "test_L99_001_release_metadata.py"
+name = "Release Metadata"
+description = "Validate version, changelog, release notes, and release workflow"
+concerns = ["release"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L99_002"
+file = "test_L99_002_docs_contracts.py"
+name = "Docs And Contracts"
+description = "Validate public command and interface documentation coverage"
+concerns = ["docs", "contracts"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L99_003"
+file = "test_L99_003_quality_tools.py"
+name = "Quality Tools"
+description = "Run Ruff, Pyright, and uv lock freshness checks"
+concerns = ["signoff"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L99_004"
+file = "test_L99_004_repo_hygiene.py"
+name = "Repository Hygiene"
+description = "Validate open-source hygiene files and distribution exclusions"
+concerns = ["release", "signoff"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L99_005"
+file = "test_L99_005_python_signoff.py"
+name = "Python Signoff"
+description = "Run strict AST-based Python hygiene checks"
+concerns = ["signoff"]
+test_case_type = "audit_meta"

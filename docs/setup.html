@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>wn-dev-std Setup</title>
+</head>
+<body data-doc="setup" data-profile="python-package">
+  <h1>Setup</h1>
+  <p>
+    Wavenumber Python projects use uv for environment management, dependency
+    locking, builds, and tool execution.
+  </p>
+
+  <h2>Required Tools</h2>
+  <ul>
+    <li>Python 3.12</li>
+    <li>uv</li>
+    <li>Git</li>
+  </ul>
+
+  <h2>Development Commands</h2>
+  <pre><code>uv sync --all-extras
+uv run wn-dev-std check .
+uv run rack run --all
+uv run python -m build
+uv run twine check dist/*</code></pre>
+
+  <h2>Lockfile Policy</h2>
+  <p>
+    Commit <code>uv.lock</code>. Do not hand-edit it. CI must fail when the lock
+    is stale.
+  </p>
+
+  <h2>Distribution</h2>
+  <p>
+    <code>wn-dev-std</code> is model-only and is not published to PyPI. It still
+    builds wheels and sdists so the packaging path is exercised. Projects based
+    on this standard may opt into PyPI trusted publishing, internal publishing,
+    or no publishing.
+  </p>
+  <p>
+    Pure Python packages treat <code>dist/</code> as transient build output.
+    Native or binary-backed projects may stage artifacts under grouped paths
+    such as <code>dist/native/windows-x64/</code> and
+    <code>dist/wasm/browser/</code>.
+  </p>
+</body>
+</html>

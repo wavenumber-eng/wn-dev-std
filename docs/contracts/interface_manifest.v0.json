@@ -1,0 +1,29 @@
+{
+  "schema_version": "2026.6.4",
+  "interfaces": [
+    {
+      "name": "wn_dev_std.StrictRule",
+      "design_doc": "docs/design/python-standard.html",
+      "data_interface": "wn_dev_std.StrictRule",
+      "description": "Strict rule value object."
+    },
+    {
+      "name": "wn_dev_std.PythonStandard",
+      "design_doc": "docs/design/python-standard.html",
+      "data_interface": "wn_dev_std.PythonStandard",
+      "description": "Python standard value object."
+    },
+    {
+      "name": "wn_dev_std.default_python_standard",
+      "design_doc": "docs/design/python-standard.html",
+      "data_interface": "wn_dev_std.default_python_standard",
+      "description": "Factory for the current Python standard."
+    },
+    {
+      "name": "wn_dev_std.render_python_standard",
+      "design_doc": "docs/design/python-standard.html",
+      "data_interface": "wn_dev_std.render_python_standard",
+      "description": "Render helper for the current Python standard."
+    }
+  ]
+}

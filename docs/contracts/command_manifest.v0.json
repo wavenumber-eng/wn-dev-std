@@ -1,0 +1,26 @@
+{
+  "schema_version": "2026.6.4",
+  "commands": [
+    {
+      "name": "check",
+      "module": "wn_dev_std.cli.commands.check",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "check",
+      "description": "Run basic repository conformance checks."
+    },
+    {
+      "name": "standard",
+      "module": "wn_dev_std.cli.commands.standard",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "standard",
+      "description": "Print the current Python standard summary."
+    },
+    {
+      "name": "version",
+      "module": "wn_dev_std.cli.commands.version",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "version",
+      "description": "Print package and dependency versions."
+    }
+  ]
+}

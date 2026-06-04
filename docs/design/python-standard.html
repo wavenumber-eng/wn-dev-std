@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Python Standard Design</title>
+</head>
+<body data-design="python-standard">
+  <h1>Python Standard</h1>
+
+  <section data-interface="wn_dev_std.StrictRule">
+    <h2>StrictRule</h2>
+    <p>
+      Describes a single rule, its required value, and its rationale.
+    </p>
+  </section>
+
+  <section data-interface="wn_dev_std.PythonStandard">
+    <h2>PythonStandard</h2>
+    <p>
+      Collects the current Python profile, required files, required docs, and
+      strict rules.
+    </p>
+  </section>
+
+  <section data-interface="wn_dev_std.default_python_standard">
+    <h2>default_python_standard</h2>
+    <p>
+      Returns the current strict Python package profile.
+    </p>
+  </section>
+
+  <section data-interface="wn_dev_std.render_python_standard">
+    <h2>render_python_standard</h2>
+    <p>
+      Renders the current profile for human or machine use.
+    </p>
+  </section>
+
+  <h2>Schema Versioning</h2>
+  <p>
+    Contract versions may use dates, semantic identifiers, or hardware-style
+    stepping names such as A0, A1, B0, or B1. Each contract must document
+    compatibility rules. Optional additive fields are usually compatible when
+    old parsers ignore unknown fields. Required, renamed, removed, or semantic
+    changes are breaking.
+  </p>
+</body>
+</html>

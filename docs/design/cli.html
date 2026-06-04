@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>CLI Design</title>
+</head>
+<body data-design="cli">
+  <h1>CLI Design</h1>
+  <p>
+    The CLI demonstrates the standard command layout: a thin entry point, one
+    file per public command, command-level help, and version reporting.
+  </p>
+
+  <section data-command="check">
+    <h2>check</h2>
+    <p>
+      Runs basic repository conformance checks for required files, docs, Rack,
+      lockfile, secret hygiene, and Hatchling build backend.
+    </p>
+  </section>
+
+  <section data-command="standard">
+    <h2>standard</h2>
+    <p>
+      Prints the current Python standard summary as text or JSON.
+    </p>
+  </section>
+
+  <section data-command="version">
+    <h2>version</h2>
+    <p>
+      Reports the package version, Python version, and major Wavenumber
+      dependency versions.
+    </p>
+  </section>
+</body>
+</html>

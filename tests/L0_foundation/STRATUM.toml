@@ -1,0 +1,38 @@
+name = "Foundation"
+order = 0
+description = "Basic public package, CLI, and interface behavior"
+enabled = true
+concerns = ["cli", "contracts"]
+
+objectives = [
+    "The package exposes the expected public version string",
+    "The CLI supports version and help entry points",
+    "Public standard interfaces are importable and usable",
+]
+
+[dependencies]
+strata = []
+
+[[subtests]]
+id = "L0_001"
+file = "test_L0_001_cli_entrypoint.py"
+name = "CLI Entrypoint"
+description = "Validate root help, version, and command help behavior"
+concerns = ["cli"]
+test_case_type = "contract"
+test_cases = "../../docs/contracts/command_manifest.v0.json"
+
+[subtests.code_under_test]
+module = "wn_dev_std.cli.main"
+
+[[subtests]]
+id = "L0_002"
+file = "test_L0_002_public_interfaces.py"
+name = "Public Interfaces"
+description = "Validate public standard data helpers"
+concerns = ["contracts"]
+test_case_type = "contract"
+test_cases = "../../docs/contracts/interface_manifest.v0.json"
+
+[subtests.code_under_test]
+module = "wn_dev_std.standards"
