@@ -66,3 +66,25 @@ def test_cpp_tooling_policy_is_documented_and_templated() -> None:
         assert expected in clang_format
     assert "CMAKE_EXPORT_COMPILE_COMMANDS=ON" in cpp_doc
     assert "clang-analyzer-*" in clang_tidy
+
+
+def test_javascript_web_policy_is_documented() -> None:
+    web_doc = (ROOT / "docs" / "design" / "javascript-standard.html").read_text(encoding="utf-8")
+    for expected in (
+        "jsconfig.json",
+        "// @ts-check",
+        "JSDoc",
+        "node:test",
+        "node --test",
+        "CSS custom properties",
+        "Web Components",
+        "wn-*",
+        "Wasmer",
+        "Wasmtime",
+        "install",
+        "update",
+        "build",
+        "test",
+        "signoff",
+    ):
+        assert expected in web_doc

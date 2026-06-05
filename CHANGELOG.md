@@ -14,5 +14,8 @@
   host-plugin projects.
 - Add `javascript-web-app` and `python-js-app` profiles for no-build browser
   apps, CSS/JS hygiene ratchets, and FastAPI-style Python-served frontends.
+- Codify checked JavaScript/JSDoc, deterministic `node:test` coverage,
+  CSS custom-property tokens, owned `wn-*` Web Components, JS-to-WASM wrapper
+  tests, and simple command verbs for no-build web projects.
 - Add CI and model release-validation workflows for public Python packages,
   without publishing `wn-dev-std` itself to PyPI.

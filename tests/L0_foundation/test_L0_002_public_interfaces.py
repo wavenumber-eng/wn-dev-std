@@ -62,7 +62,13 @@ def test_default_javascript_web_standard_contains_no_build_rules() -> None:
     standard = default_javascript_web_standard()
     assert isinstance(standard, PythonStandard)
     assert any(rule.key == "workflow" and "no-build" in rule.value for rule in standard.rules)
+    assert any(rule.key == "typecheck.javascript" for rule in standard.rules)
+    assert any(rule.key == "test.javascript" for rule in standard.rules)
     assert any(rule.key == "css" for rule in standard.rules)
+    assert any(rule.key == "css.tokens" for rule in standard.rules)
+    assert any(rule.key == "web-components" for rule in standard.rules)
+    assert any(rule.key == "wasm.testing" for rule in standard.rules)
+    assert any(rule.key == "commands" for rule in standard.rules)
     assert "src" in standard.required_files
     assert "docs/design/javascript-standard.html" in standard.required_docs
 
@@ -296,13 +302,37 @@ def write_minimal_web_files(root: Path) -> None:
         "docs/design/javascript-standard.html",
         "scripts/js_hygiene.py",
         "scripts/css_hygiene.py",
+        "scripts/dev.py",
+        "jsconfig.json",
     ):
         write_file(root / relative_path, "placeholder\n")
     for relative_dir in ("docs/design", "docs/contracts", "docs/releases"):
         (root / relative_dir).mkdir(parents=True, exist_ok=True)
-    write_file(root / "src" / "static" / "app.js", "window.App = {};\n")
-    write_file(root / "src" / "static" / "style.css", "body { margin: 0; }\n")
+    write_file(root / "src" / "static" / "app.js", "// @ts-check\nwindow.App = {};\n")
+    write_file(
+        root / "src" / "static" / "style.css",
+        ":root { --wn-space-0: 0; }\nbody { margin: var(--wn-space-0); }\n",
+    )
     write_file(root / "src" / "static" / "vendor" / "dep.min.js", "/* vendor */\n")
+    write_file(
+        root / "scripts" / "dev.py",
+        "COMMANDS = ('install', 'update', 'build', 'test', 'signoff')\n",
+    )
+    write_file(
+        root / "jsconfig.json",
+        dedent(
+            """
+            {
+              "compilerOptions": {
+                "allowJs": true,
+                "checkJs": true,
+                "noEmit": true
+              },
+              "include": ["src/**/*.js"]
+            }
+            """
+        ).lstrip(),
+    )
 
 
 def write_minimal_javascript_web_project(root: Path) -> None:

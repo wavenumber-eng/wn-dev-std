@@ -287,6 +287,16 @@ JAVASCRIPT_WEB_RULES = (
         "Browser load order and global namespace ownership must be documented.",
     ),
     StrictRule(
+        "typecheck.javascript",
+        "checked JS with JSDoc or TypeScript",
+        "Use jsconfig/tsconfig and @ts-check before moving reusable code to TypeScript.",
+    ),
+    StrictRule(
+        "test.javascript",
+        "deterministic tests for non-DOM logic",
+        "Algorithmic, CAD, parsing, and state code needs known-input/known-output tests.",
+    ),
+    StrictRule(
         "vendor-js",
         "vendor/, lib/, _build/, or *.min.js isolated",
         "Third-party and generated browser assets must not be mixed with owned source.",
@@ -297,9 +307,19 @@ JAVASCRIPT_WEB_RULES = (
         "Keep styling reviewable and avoid implicit global sprawl.",
     ),
     StrictRule(
+        "css.tokens",
+        "CSS custom properties for design constants",
+        "Colors, spacing, z-index, radii, and typography values need named tokens.",
+    ),
+    StrictRule(
         "vendor-css",
         "vendor/, lib/, _build/, or *.min.css isolated",
         "Third-party and generated styles must not be mixed with owned source.",
+    ),
+    StrictRule(
+        "web-components",
+        "owned reusable UI primitives",
+        "Use wn-* custom elements for repeated stateful UI, not one-off page layout.",
     ),
     StrictRule(
         "hygiene.javascript",
@@ -322,9 +342,24 @@ JAVASCRIPT_WEB_RULES = (
         "Exercise browser behavior without relying only on manual clicking.",
     ),
     StrictRule(
+        "agent-visual",
+        "browser inspection for UI changes",
+        "Agents changing UI must inspect rendered output and keep core logic testable.",
+    ),
+    StrictRule(
         "contracts",
         "document browser data and event contracts",
         "Frontend state, URL, storage, and API payloads need reviewable contracts.",
+    ),
+    StrictRule(
+        "wasm.testing",
+        "test the JS-to-WASM boundary",
+        "Browser WASM needs wrapper tests; Wasmer or Wasmtime is optional for core WASM.",
+    ),
+    StrictRule(
+        "commands",
+        "install update build test signoff",
+        "Projects need a simple cross-platform command surface even when shells differ.",
     ),
     StrictRule(
         "ci.os",

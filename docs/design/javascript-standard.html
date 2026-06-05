@@ -63,6 +63,12 @@
     toolchain is introduced, <code>package.json</code> and its lockfile must be
     committed and CI must run the declared lint/test/build scripts.
   </p>
+  <p>
+    Import maps, direct ES modules, and modern CSS are preferred when they keep
+    source inspectable in the browser. Build tools are allowed when they remove
+    real complexity, such as package dependency resolution, reusable TypeScript
+    libraries, generated assets, or browser automation infrastructure.
+  </p>
 
   <h2>Source Boundaries</h2>
   <ul>
@@ -78,21 +84,147 @@
 
   <h2>JavaScript Rules</h2>
   <ul>
+    <li>
+      Checked JavaScript is the baseline: use <code>jsconfig.json</code> or
+      <code>tsconfig.json</code> with <code>allowJs</code>,
+      <code>checkJs</code>, and <code>noEmit</code>, or put
+      <code>// @ts-check</code> at the top of owned JavaScript modules.
+    </li>
+    <li>
+      Use JSDoc for public function shapes, domain data, event payloads, and API
+      responses. Prefer named typedefs for contracts that cross module or
+      Python/browser boundaries.
+    </li>
     <li>Use one module per concern.</li>
     <li>Avoid accidental globals; write through one documented namespace.</li>
     <li>Keep event wiring, state mutation, rendering, and transport separate.</li>
     <li>Gate new complexity, large files, nesting, and trailing whitespace.</li>
+    <li>
+      Move to TypeScript when reusable framework code, shared CAD state, or
+      cross-application libraries need exported types, refactoring safety, or
+      stronger module boundaries.
+    </li>
+  </ul>
+
+  <h2>JavaScript Tests</h2>
+  <ul>
+    <li>
+      Algorithmic JavaScript, parsers, CAD state machines, geometry adapters,
+      and data transforms require deterministic tests with known inputs and
+      known outputs.
+    </li>
+    <li>
+      Prefer the Node built-in <code>node:test</code> runner and
+      <code>node --test</code> for dependency-free module tests. Rack can
+      orchestrate those commands through a Python signoff stratum.
+    </li>
+    <li>
+      DOM-heavy code should be split so pure decisions are unit-tested and only
+      rendering, focus, pointer, keyboard, and browser integration remain in
+      browser smoke tests.
+    </li>
     <li>Prefer browser smoke tests for app startup, DOM wiring, and key flows.</li>
   </ul>
 
   <h2>CSS Rules</h2>
   <ul>
+    <li>
+      Define design constants as CSS custom properties. Colors, spacing,
+      z-index layers, radii, shadows, typography, and animation timings should
+      use named tokens instead of repeated hard-coded values.
+    </li>
     <li>Separate layout, component, state, and utility sections or files.</li>
+    <li>
+      Use cascade layers, custom properties, selectors, media queries, and
+      container queries directly before adding Sass, PostCSS, or a CSS build
+      step.
+    </li>
     <li>Avoid inline styles except for runtime geometry or deliberate dynamic values.</li>
+    <li>
+      HTML owns semantic structure and stable IDs or data attributes. CSS owns
+      layout and visual state. JavaScript toggles classes, attributes, and
+      custom properties instead of writing raw style strings except for runtime
+      geometry.
+    </li>
     <li>Use stable dimensions for controls, toolbars, panels, canvases, and tables.</li>
     <li>Keep generated and minified CSS isolated from owned styles.</li>
     <li>Gate trailing whitespace, oversized files, and invalid brace balance.</li>
   </ul>
+
+  <h2>Web Components</h2>
+  <p>
+    Web Components means the platform custom element, Shadow DOM, template, and
+    slot APIs. The standard is to build owned <code>wn-*</code> primitives when a
+    UI pattern is reused or needs lifecycle, accessibility, encapsulated DOM, or
+    a stable event contract.
+  </p>
+  <ul>
+    <li>
+      Use native HTML first, including <code>&lt;dialog&gt;</code> and the
+      Popover API where they fit. Wrap repeated patterns such as dialogs, toast
+      regions, property rows, toolbar buttons, inspectors, and panel shells.
+    </li>
+    <li>
+      Do not create custom elements for static layout, one-off business views,
+      or pure algorithm/state modules.
+    </li>
+    <li>
+      Prefer open shadow roots, slots for caller-owned content, CSS custom
+      properties for theme tokens, and <code>part</code> names for deliberate
+      styling hooks.
+    </li>
+    <li>
+      Public events must be documented and should normally set
+      <code>bubbles: true</code> and <code>composed: true</code> when consumers
+      outside the component need to observe them.
+    </li>
+    <li>
+      Third-party web components are dependencies, not a default UI strategy.
+      Vendor them only with the same review, lock, license, and update policy
+      used for other frontend dependencies.
+    </li>
+  </ul>
+
+  <h2>WASM</h2>
+  <ul>
+    <li>
+      Browser-facing WASM must be tested through the same JavaScript wrapper,
+      loading mode, and data marshalling path that the app uses.
+    </li>
+    <li>
+      Use Node or headless-browser tests for JS-to-WASM smoke and contract
+      checks. Pure WASI or core WASM runtimes such as Wasmer or Wasmtime are
+      optional when they give a faster ABI/kernel test, but they do not replace
+      browser-wrapper validation.
+    </li>
+    <li>
+      WASM artifacts need a manifest or docs that identify target runtime,
+      exported entry points, generation command, and release inclusion rule.
+    </li>
+  </ul>
+
+  <h2>Agent-Time Visual Verification</h2>
+  <p>
+    Agents changing UI must open the app in a browser, inspect the rendered
+    state, and use screenshots or DOM checks to verify that important controls,
+    canvas content, panels, dialogs, and responsive states are not broken. CI
+    should still test the underlying algorithms, contracts, and generated files
+    without depending on human visual judgment.
+  </p>
+
+  <h2>Command Surface</h2>
+  <p>
+    Repositories must expose simple verbs even when the underlying shell differs.
+    The required verbs are <code>install</code>, <code>update</code>,
+    <code>build</code>, <code>test</code>, and <code>signoff</code>. Optional
+    verbs include <code>clean</code>, <code>dev</code>, and <code>run</code>.
+  </p>
+  <p>
+    Existing repositories may keep PowerShell, shell, Make, package scripts, or
+    Python wrappers. New cross-platform repositories should prefer a small Python
+    or uv-backed orchestrator with thin platform wrappers when native shell
+    behavior diverges.
+  </p>
 
   <h2>Signoff</h2>
   <p>
@@ -100,6 +232,12 @@
     <code>scripts/js_hygiene.py</code> and <code>scripts/css_hygiene.py</code>
     ratchets, plus Rack L99 tests that call them. Projects with Node tooling may
     satisfy the same role through committed package scripts and lockfiles.
+  </p>
+  <p>
+    Web signoff should include type checking, CSS token hygiene, JS/CSS hygiene,
+    deterministic module tests for non-DOM logic, browser smoke where feasible,
+    Python API contract tests for served apps, and release validation for
+    generated standalone HTML bundles.
   </p>
 </body>
 </html>

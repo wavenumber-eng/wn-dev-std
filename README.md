@@ -135,6 +135,17 @@ Web apps use:
 - no-build HTML, CSS, and browser JavaScript by default
 - optional Node tooling only when dependencies, bundling, or browser test
   infrastructure justify it
+- checked JavaScript through `jsconfig.json`, `tsconfig.json`, JSDoc, or
+  per-file `// @ts-check`
+- deterministic `node:test` coverage for algorithmic JavaScript, parsers, CAD
+  state, and data transforms
+- CSS custom properties for design constants before hard-coded color, spacing,
+  z-index, radius, or typography values spread through files
+- owned `wn-*` Web Components for repeated stateful UI primitives such as
+  dialogs, toast regions, panels, toolbars, and property rows
+- JS-to-WASM wrapper tests for browser-facing WebAssembly, with Wasmer or
+  Wasmtime optional for core WASM checks when useful
+- standard command verbs: `install`, `update`, `build`, `test`, and `signoff`
 - explicit ES module or manifest-ordered IIFE ownership
 - isolated `vendor/`, `lib/`, `_build/`, `node_modules/`, and minified assets
 - JS and CSS hygiene ratchets for file size, complexity, nesting, generated

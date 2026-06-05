@@ -141,6 +141,7 @@ PYTHON_JS_REQUIRED_DOC_PATHS = (
 )
 
 JS_CSS_EXCLUDED_PARTS = {"vendor", "lib", "_build", "node_modules"}
+STANDARD_COMMAND_VERBS = ("install", "update", "build", "test", "signoff")
 
 CLANG_FORMAT_REQUIRED_SETTINGS = {
     "BasedOnStyle": "LLVM",
@@ -224,6 +225,9 @@ def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
                     JAVASCRIPT_WEB_REQUIRED_PATHS,
                 ),
                 _check_web_source_policy(resolved_root),
+                _check_web_typecheck_policy(resolved_root),
+                _check_web_css_token_policy(resolved_root),
+                _check_web_command_surface_policy(resolved_root),
                 _check_web_signoff_policy(resolved_root),
             ]
         )
@@ -535,6 +539,121 @@ def _check_web_source_policy(root: Path) -> CheckResult:
         True,
         f"{len(owned_js)} owned JS/TS and {len(owned_css)} owned CSS file(s) found",
     )
+
+
+def _check_web_typecheck_policy(root: Path) -> CheckResult:
+    owned_js = _owned_web_files(root, ("*.js", "*.mjs", "*.jsx"))
+    owned_ts = _owned_web_files(root, ("*.ts", "*.tsx"))
+    has_jsconfig = (root / "jsconfig.json").exists()
+    has_tsconfig = (root / "tsconfig.json").exists()
+    if owned_ts and not has_tsconfig:
+        return CheckResult("web typecheck", False, "TypeScript source requires tsconfig.json")
+    if has_jsconfig or has_tsconfig:
+        config = "tsconfig.json" if has_tsconfig else "jsconfig.json"
+        return CheckResult("web typecheck", True, f"{config} is present")
+
+    missing_ts_check = [
+        path.relative_to(root).as_posix() for path in owned_js if not _has_ts_check_comment(path)
+    ]
+    if missing_ts_check:
+        return CheckResult(
+            "web typecheck",
+            False,
+            "expected jsconfig.json, tsconfig.json, or // @ts-check in "
+            + ", ".join(missing_ts_check[:5]),
+        )
+    return CheckResult("web typecheck", True, "owned JavaScript files use // @ts-check")
+
+
+def _has_ts_check_comment(path: Path) -> bool:
+    first_lines = path.read_text(encoding="utf-8").splitlines()[:8]
+    return any(line.strip() == "// @ts-check" for line in first_lines)
+
+
+def _check_web_css_token_policy(root: Path) -> CheckResult:
+    owned_css = _owned_web_files(root, ("*.css",))
+    token_files = [
+        path.relative_to(root).as_posix() for path in owned_css if _css_uses_custom_properties(path)
+    ]
+    if token_files:
+        return CheckResult("web CSS tokens", True, "CSS custom properties are present")
+    return CheckResult(
+        "web CSS tokens",
+        False,
+        "owned CSS must define or consume CSS custom properties for design constants",
+    )
+
+
+def _css_uses_custom_properties(path: Path) -> bool:
+    text = path.read_text(encoding="utf-8")
+    if "var(--" in text:
+        return True
+    return any(line.lstrip().startswith("--") and ":" in line for line in text.splitlines())
+
+
+def _check_web_command_surface_policy(root: Path) -> CheckResult:
+    providers = {
+        "package.json scripts": _package_script_verbs(root),
+        "Makefile targets": _makefile_verbs(root),
+        "scripts/dev.py": _dev_py_verbs(root),
+        "root or scripts verb files": _script_file_verbs(root),
+    }
+    required = set(STANDARD_COMMAND_VERBS)
+    for provider, verbs in providers.items():
+        if required <= verbs:
+            return CheckResult("command surface", True, f"{provider} exposes standard verbs")
+    return CheckResult(
+        "command surface",
+        False,
+        "expected install, update, build, test, and signoff through package.json, Makefile, "
+        "scripts/dev.py, or verb-named scripts",
+    )
+
+
+def _package_script_verbs(root: Path) -> set[str]:
+    path = root / "package.json"
+    if not path.exists():
+        return set()
+    raw_data: object = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(raw_data, dict):
+        return set()
+    data = cast(Mapping[str, object], raw_data)
+    scripts = data.get("scripts")
+    if not isinstance(scripts, dict):
+        return set()
+    scripts_mapping = cast(Mapping[str, object], scripts)
+    return {key for key in scripts_mapping if key in STANDARD_COMMAND_VERBS}
+
+
+def _makefile_verbs(root: Path) -> set[str]:
+    verbs: set[str] = set()
+    for path in (root / "Makefile", root / "makefile"):
+        if not path.exists():
+            continue
+        for line in path.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            for verb in STANDARD_COMMAND_VERBS:
+                if stripped.startswith(f"{verb}:"):
+                    verbs.add(verb)
+    return verbs
+
+
+def _dev_py_verbs(root: Path) -> set[str]:
+    path = root / "scripts" / "dev.py"
+    if not path.exists():
+        return set()
+    text = path.read_text(encoding="utf-8")
+    return {verb for verb in STANDARD_COMMAND_VERBS if verb in text}
+
+
+def _script_file_verbs(root: Path) -> set[str]:
+    verbs: set[str] = set()
+    suffixes = (".ps1", ".sh", ".bat", ".cmd")
+    for verb in STANDARD_COMMAND_VERBS:
+        for directory in (root, root / "scripts"):
+            if any((directory / f"{verb}{suffix}").exists() for suffix in suffixes):
+                verbs.add(verb)
+    return verbs
 
 
 def _check_web_signoff_policy(root: Path) -> CheckResult:
