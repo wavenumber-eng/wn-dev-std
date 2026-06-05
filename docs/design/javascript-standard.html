@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>JavaScript Web App Standard</title>
+</head>
+<body data-design="javascript-standard" data-profile="javascript-web-app">
+  <h1>JavaScript Web App Standard</h1>
+  <p>
+    The <code>javascript-web-app</code> profile covers browser applications
+    built from owned HTML, CSS, and JavaScript. The default posture is no-build:
+    source files are served directly by a host app or static file server until a
+    package manager, bundler, or transpiler is clearly justified.
+  </p>
+
+  <h2>Profiles</h2>
+  <dl>
+    <dt><code>javascript-web-app</code></dt>
+    <dd>
+      Generic browser runtime profile for plain HTML, CSS, JavaScript, tests,
+      docs, contracts, and hygiene ratchets.
+    </dd>
+    <dt><code>python-js-app</code></dt>
+    <dd>
+      Python package or FastAPI-style application that serves a browser runtime.
+      It inherits the web rules and adds uv, Hatchling, Ruff, Pyright, and
+      Python-to-browser API contract expectations.
+    </dd>
+  </dl>
+
+  <section data-interface="wn_dev_std.default_javascript_web_standard">
+    <h2>default_javascript_web_standard</h2>
+    <p>
+      Returns the generic no-build browser JavaScript and CSS profile.
+    </p>
+  </section>
+
+  <section data-interface="wn_dev_std.default_python_js_standard">
+    <h2>default_python_js_standard</h2>
+    <p>
+      Returns the Python-served browser application profile.
+    </p>
+  </section>
+
+  <section data-interface="wn_dev_std.render_javascript_web_standard">
+    <h2>render_javascript_web_standard</h2>
+    <p>
+      Renders the generic browser profile for human or machine use.
+    </p>
+  </section>
+
+  <section data-interface="wn_dev_std.render_python_js_standard">
+    <h2>render_python_js_standard</h2>
+    <p>
+      Renders the Python-served browser app profile for human or machine use.
+    </p>
+  </section>
+
+  <h2>No-Build Default</h2>
+  <p>
+    A build step is optional. Projects may use native browser JavaScript,
+    explicit script load order, ES modules, or manifest-ordered IIFEs. If a Node
+    toolchain is introduced, <code>package.json</code> and its lockfile must be
+    committed and CI must run the declared lint/test/build scripts.
+  </p>
+
+  <h2>Source Boundaries</h2>
+  <ul>
+    <li>Owned source lives under <code>src/</code>.</li>
+    <li>
+      Third-party, generated, minified, and vendored assets live under
+      <code>vendor/</code>, <code>lib/</code>, <code>_build/</code>, or
+      <code>node_modules/</code>.
+    </li>
+    <li>Module order and global namespace ownership must be documented.</li>
+    <li>Python-served apps document static routes, JSON APIs, and WebSockets.</li>
+  </ul>
+
+  <h2>JavaScript Rules</h2>
+  <ul>
+    <li>Use one module per concern.</li>
+    <li>Avoid accidental globals; write through one documented namespace.</li>
+    <li>Keep event wiring, state mutation, rendering, and transport separate.</li>
+    <li>Gate new complexity, large files, nesting, and trailing whitespace.</li>
+    <li>Prefer browser smoke tests for app startup, DOM wiring, and key flows.</li>
+  </ul>
+
+  <h2>CSS Rules</h2>
+  <ul>
+    <li>Separate layout, component, state, and utility sections or files.</li>
+    <li>Avoid inline styles except for runtime geometry or deliberate dynamic values.</li>
+    <li>Use stable dimensions for controls, toolbars, panels, canvases, and tables.</li>
+    <li>Keep generated and minified CSS isolated from owned styles.</li>
+    <li>Gate trailing whitespace, oversized files, and invalid brace balance.</li>
+  </ul>
+
+  <h2>Signoff</h2>
+  <p>
+    No-build projects should provide dependency-free
+    <code>scripts/js_hygiene.py</code> and <code>scripts/css_hygiene.py</code>
+    ratchets, plus Rack L99 tests that call them. Projects with Node tooling may
+    satisfy the same role through committed package scripts and lockfiles.
+  </p>
+</body>
+</html>

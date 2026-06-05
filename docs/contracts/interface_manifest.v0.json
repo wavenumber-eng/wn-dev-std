@@ -44,6 +44,18 @@
       "description": "Factory for the C# application and plugin standard."
     },
     {
+      "name": "wn_dev_std.default_javascript_web_standard",
+      "design_doc": "docs/design/javascript-standard.html",
+      "data_interface": "wn_dev_std.default_javascript_web_standard",
+      "description": "Factory for the no-build browser JavaScript and CSS standard."
+    },
+    {
+      "name": "wn_dev_std.default_python_js_standard",
+      "design_doc": "docs/design/javascript-standard.html",
+      "data_interface": "wn_dev_std.default_python_js_standard",
+      "description": "Factory for the Python-served browser JavaScript and CSS app standard."
+    },
+    {
       "name": "wn_dev_std.default_standard",
       "design_doc": "docs/design/python-standard.html",
       "data_interface": "wn_dev_std.default_standard",
@@ -72,6 +84,18 @@
       "design_doc": "docs/design/csharp-standard.html",
       "data_interface": "wn_dev_std.render_csharp_standard",
       "description": "Render helper for the C# application and plugin standard."
+    },
+    {
+      "name": "wn_dev_std.render_javascript_web_standard",
+      "design_doc": "docs/design/javascript-standard.html",
+      "data_interface": "wn_dev_std.render_javascript_web_standard",
+      "description": "Render helper for the no-build browser JavaScript and CSS standard."
+    },
+    {
+      "name": "wn_dev_std.render_python_js_standard",
+      "design_doc": "docs/design/javascript-standard.html",
+      "data_interface": "wn_dev_std.render_python_js_standard",
+      "description": "Render helper for the Python-served browser JavaScript and CSS app standard."
     },
     {
       "name": "wn_dev_std.render_standard",

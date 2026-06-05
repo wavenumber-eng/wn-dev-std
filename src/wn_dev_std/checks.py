@@ -96,6 +96,52 @@ CSHARP_EDITORCONFIG_RULES = (
     "dotnet_diagnostic.CA1506.severity = error",
 )
 
+JAVASCRIPT_WEB_REQUIRED_PATHS = (
+    "src",
+    "tests/rack.toml",
+)
+
+JAVASCRIPT_WEB_REQUIRED_ROOT_FILES = (
+    ".gitattributes",
+    ".gitignore",
+    "AGENTS.md",
+    "README.md",
+    "src",
+    "tests",
+    "wn-dev-std.toml",
+)
+
+PYTHON_JS_REQUIRED_ROOT_FILES = (
+    ".gitattributes",
+    ".gitignore",
+    "AGENTS.md",
+    "README.md",
+    "pyproject.toml",
+    "src",
+    "tests",
+    "wn-dev-std.toml",
+)
+
+JAVASCRIPT_WEB_REQUIRED_DOC_PATHS = (
+    "docs/setup.html",
+    "docs/architecture.html",
+    "docs/design",
+    "docs/design/javascript-standard.html",
+    "docs/contracts",
+    "docs/releases",
+)
+
+PYTHON_JS_REQUIRED_DOC_PATHS = (
+    "docs/setup.html",
+    "docs/architecture.html",
+    "docs/design",
+    "docs/design/javascript-standard.html",
+    "docs/contracts",
+    "docs/releases",
+)
+
+JS_CSS_EXCLUDED_PARTS = {"vendor", "lib", "_build", "node_modules"}
+
 CLANG_FORMAT_REQUIRED_SETTINGS = {
     "BasedOnStyle": "LLVM",
     "BreakBeforeBraces": "Allman",
@@ -106,8 +152,22 @@ CLANG_FORMAT_REQUIRED_SETTINGS = {
     "IncludeBlocks": "Preserve",
 }
 
-ProfileName = Literal["python-package", "python-native-wasm", "cpp-library", "csharp-app"]
-SUPPORTED_PROFILES = ("python-package", "python-native-wasm", "cpp-library", "csharp-app")
+ProfileName = Literal[
+    "python-package",
+    "python-native-wasm",
+    "cpp-library",
+    "csharp-app",
+    "javascript-web-app",
+    "python-js-app",
+]
+SUPPORTED_PROFILES = (
+    "python-package",
+    "python-native-wasm",
+    "cpp-library",
+    "csharp-app",
+    "javascript-web-app",
+    "python-js-app",
+)
 
 
 def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
@@ -123,7 +183,7 @@ def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
     ]
     if profile != "csharp-app":
         checks.append(_check_required_paths(resolved_root, "rack suite", ("tests/rack.toml",)))
-    if profile not in {"cpp-library", "csharp-app"}:
+    if profile not in {"cpp-library", "csharp-app", "javascript-web-app"}:
         checks.extend(
             [
                 _check_uv_lock(resolved_root),
@@ -153,6 +213,18 @@ def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
                 _check_required_paths(resolved_root, "C# files", CSHARP_REQUIRED_PATHS),
                 _check_dotnet_project_policy(resolved_root),
                 _check_dotnet_analyzer_policy(resolved_root),
+            ]
+        )
+    if profile in {"javascript-web-app", "python-js-app"}:
+        checks.extend(
+            [
+                _check_required_paths(
+                    resolved_root,
+                    "web app files",
+                    JAVASCRIPT_WEB_REQUIRED_PATHS,
+                ),
+                _check_web_source_policy(resolved_root),
+                _check_web_signoff_policy(resolved_root),
             ]
         )
     return tuple(checks)
@@ -192,19 +264,37 @@ def _required_root_files(profile: ProfileName) -> tuple[str, ...]:
         return tuple(path for path in REQUIRED_ROOT_FILES if path != "pyproject.toml")
     if profile == "csharp-app":
         return CSHARP_REQUIRED_PATHS
+    if profile == "javascript-web-app":
+        return JAVASCRIPT_WEB_REQUIRED_ROOT_FILES
+    if profile == "python-js-app":
+        return PYTHON_JS_REQUIRED_ROOT_FILES
     return REQUIRED_ROOT_FILES
 
 
 def _required_doc_paths(profile: ProfileName) -> tuple[str, ...]:
     if profile == "csharp-app":
         return CSHARP_REQUIRED_DOC_PATHS
+    if profile in {"javascript-web-app", "python-js-app"}:
+        return PYTHON_JS_REQUIRED_DOC_PATHS
     return REQUIRED_DOC_PATHS
 
 
 def _check_uv_lock(root: Path) -> CheckResult:
-    if (root / "uv.lock").exists():
-        return CheckResult("uv lock", True, "uv.lock is committed")
-    return CheckResult("uv lock", False, "uv.lock is required for reproducible installs")
+    for candidate in (root, *root.parents):
+        if (candidate / "uv.lock").exists():
+            detail = (
+                "uv.lock is committed"
+                if candidate == root
+                else f"uv.lock is committed at workspace root {candidate}"
+            )
+            return CheckResult("uv lock", True, detail)
+        if (candidate / ".git").exists():
+            break
+    return CheckResult(
+        "uv lock",
+        False,
+        "uv.lock is required at the package or workspace root",
+    )
 
 
 def _load_pyproject(root: Path) -> Mapping[str, object] | None:
@@ -255,6 +345,10 @@ def _project_profile(config: Mapping[str, object] | None) -> ProfileName:
         return "cpp-library"
     if profile == "csharp-app":
         return "csharp-app"
+    if profile == "javascript-web-app":
+        return "javascript-web-app"
+    if profile == "python-js-app":
+        return "python-js-app"
     return "python-package"
 
 
@@ -382,6 +476,81 @@ def _check_dotnet_analyzer_policy(root: Path) -> CheckResult:
         "dotnet analyzer policy",
         True,
         "code style, analyzers, and complexity gates are configured",
+    )
+
+
+def _owned_web_files(root: Path, suffixes: tuple[str, ...]) -> list[Path]:
+    src = root / "src"
+    if not src.exists():
+        return []
+    files: list[Path] = []
+    for suffix in suffixes:
+        for path in src.rglob(suffix):
+            relative_parts = set(path.relative_to(root).parts)
+            if JS_CSS_EXCLUDED_PARTS & relative_parts:
+                continue
+            if path.name.endswith(".min.js") or path.name.endswith(".min.css"):
+                continue
+            files.append(path)
+    return sorted(files)
+
+
+def _stray_minified_web_files(root: Path) -> list[str]:
+    stray: list[str] = []
+    for suffix in ("*.min.js", "*.min.css"):
+        for path in root.rglob(suffix):
+            relative_parts = set(path.relative_to(root).parts)
+            if JS_CSS_EXCLUDED_PARTS & relative_parts:
+                continue
+            stray.append(path.relative_to(root).as_posix())
+    return sorted(stray)
+
+
+def _check_web_source_policy(root: Path) -> CheckResult:
+    owned_js = _owned_web_files(root, ("*.js", "*.mjs", "*.jsx", "*.ts", "*.tsx"))
+    owned_css = _owned_web_files(root, ("*.css",))
+    if not owned_js:
+        return CheckResult(
+            "web source",
+            False,
+            "at least one owned JS/TS source file is required under src/",
+        )
+    if not owned_css:
+        return CheckResult(
+            "web source",
+            False,
+            "at least one owned CSS source file is required under src/",
+        )
+
+    stray_minified = _stray_minified_web_files(root)
+    if stray_minified:
+        return CheckResult(
+            "web source",
+            False,
+            "minified/generated JS/CSS must live under vendor/, lib/, _build/, "
+            "or node_modules/: " + ", ".join(stray_minified[:5]),
+        )
+    return CheckResult(
+        "web source",
+        True,
+        f"{len(owned_js)} owned JS/TS and {len(owned_css)} owned CSS file(s) found",
+    )
+
+
+def _check_web_signoff_policy(root: Path) -> CheckResult:
+    missing_scripts = [
+        relative
+        for relative in ("scripts/js_hygiene.py", "scripts/css_hygiene.py")
+        if not (root / relative).exists()
+    ]
+    if not missing_scripts:
+        return CheckResult("web signoff", True, "JS and CSS hygiene scripts are present")
+    if (root / "package.json").exists():
+        return CheckResult("web signoff", True, "package.json is present for JS/CSS tooling")
+    return CheckResult(
+        "web signoff",
+        False,
+        "expected scripts/js_hygiene.py and scripts/css_hygiene.py, or package.json",
     )
 
 

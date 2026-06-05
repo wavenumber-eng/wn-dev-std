@@ -6,7 +6,14 @@ import json
 from dataclasses import dataclass
 from typing import Literal
 
-ProfileName = Literal["python-package", "python-native-wasm", "cpp-library", "csharp-app"]
+ProfileName = Literal[
+    "python-package",
+    "python-native-wasm",
+    "cpp-library",
+    "csharp-app",
+    "javascript-web-app",
+    "python-js-app",
+]
 
 
 @dataclass(frozen=True, slots=True)
@@ -263,6 +270,133 @@ CSHARP_REQUIRED_DOCS = (
     "docs/releases/",
 )
 
+JAVASCRIPT_WEB_RULES = (
+    StrictRule(
+        "workflow",
+        "no-build browser runtime first",
+        "Prefer plain HTML, CSS, and browser JavaScript until a build step pays for itself.",
+    ),
+    StrictRule(
+        "toolchain",
+        "optional package.json with lockfile",
+        "Use Node only when dependencies, bundling, or browser test tooling justify it.",
+    ),
+    StrictRule(
+        "modules",
+        "ES modules or manifest-ordered IIFEs",
+        "Browser load order and global namespace ownership must be documented.",
+    ),
+    StrictRule(
+        "vendor-js",
+        "vendor/, lib/, _build/, or *.min.js isolated",
+        "Third-party and generated browser assets must not be mixed with owned source.",
+    ),
+    StrictRule(
+        "css",
+        "owned CSS with explicit layout/component boundaries",
+        "Keep styling reviewable and avoid implicit global sprawl.",
+    ),
+    StrictRule(
+        "vendor-css",
+        "vendor/, lib/, _build/, or *.min.css isolated",
+        "Third-party and generated styles must not be mixed with owned source.",
+    ),
+    StrictRule(
+        "hygiene.javascript",
+        "js_hygiene or eslint/biome ratchet",
+        "Block new large files, complex functions, deep nesting, and whitespace drift.",
+    ),
+    StrictRule(
+        "hygiene.css",
+        "css_hygiene ratchet",
+        "Block new oversized stylesheets, trailing whitespace, and invalid CSS basics.",
+    ),
+    StrictRule(
+        "html",
+        "semantic landmarks and accessible controls",
+        "Browser apps need usable structure before visual polish.",
+    ),
+    StrictRule(
+        "browser-smoke",
+        "DOM/runtime smoke tests",
+        "Exercise browser behavior without relying only on manual clicking.",
+    ),
+    StrictRule(
+        "contracts",
+        "document browser data and event contracts",
+        "Frontend state, URL, storage, and API payloads need reviewable contracts.",
+    ),
+    StrictRule(
+        "ci.os",
+        "ubuntu, windows, macos",
+        "Catch filesystem and browser-runtime drift early.",
+    ),
+)
+
+JAVASCRIPT_WEB_REQUIRED_FILES = (
+    ".gitattributes",
+    ".gitignore",
+    "AGENTS.md",
+    "README.md",
+    "src",
+    "tests/rack.toml",
+    "wn-dev-std.toml",
+)
+
+JAVASCRIPT_WEB_REQUIRED_DOCS = (
+    "docs/setup.html",
+    "docs/architecture.html",
+    "docs/design/",
+    "docs/design/javascript-standard.html",
+    "docs/contracts/",
+    "docs/releases/",
+)
+
+PYTHON_JS_RULES = (
+    StrictRule("inherits", "javascript-web-app", "Use the no-build JS/CSS browser standard."),
+    StrictRule("workflow.python", "uv", "Use one Python environment and lock workflow."),
+    StrictRule("lockfile", "commit uv.lock", "Make Python installs reproducible."),
+    StrictRule("build-backend", "hatchling", "Use modern pyproject-native builds."),
+    StrictRule(
+        "test-runner",
+        "rack + pytest",
+        "Keep backend, API, and browser smoke strata explicit.",
+    ),
+    StrictRule("typing", "pyright strict or documented ratchet", "Catch Python API drift early."),
+    StrictRule("lint.python", "ruff", "Keep Python style and common bug checks automated."),
+    StrictRule(
+        "server",
+        "FastAPI or documented server boundary",
+        "Keep browser static serving, JSON APIs, and WebSocket endpoints explicit.",
+    ),
+    StrictRule(
+        "contracts",
+        "document Python-to-browser JSON/WebSocket APIs",
+        "Frontend state and API payloads need reviewable contracts.",
+    ),
+)
+
+PYTHON_JS_REQUIRED_FILES = (
+    ".gitattributes",
+    ".gitignore",
+    "AGENTS.md",
+    "README.md",
+    "pyproject.toml",
+    "src",
+    "tests",
+    "tests/rack.toml",
+    "wn-dev-std.toml",
+)
+
+PYTHON_JS_REQUIRED_DOCS = (
+    "docs/setup.html",
+    "docs/architecture.html",
+    "docs/design/",
+    "docs/design/javascript-standard.html",
+    "docs/contracts/",
+    "docs/releases/",
+)
+
 
 def default_python_standard() -> PythonStandard:
     """Return the current strict Python package standard."""
@@ -339,6 +473,30 @@ def default_csharp_standard() -> PythonStandard:
     )
 
 
+def default_javascript_web_standard() -> PythonStandard:
+    """Return the current no-build browser JavaScript and CSS standard."""
+    return PythonStandard(
+        name="javascript-web-app",
+        version="2026.6.4",
+        status="initial",
+        rules=JAVASCRIPT_WEB_RULES,
+        required_files=JAVASCRIPT_WEB_REQUIRED_FILES,
+        required_docs=JAVASCRIPT_WEB_REQUIRED_DOCS,
+    )
+
+
+def default_python_js_standard() -> PythonStandard:
+    """Return the current Python plus browser JavaScript app standard."""
+    return PythonStandard(
+        name="python-js-app",
+        version="2026.6.4",
+        status="initial",
+        rules=PYTHON_JS_RULES,
+        required_files=PYTHON_JS_REQUIRED_FILES,
+        required_docs=PYTHON_JS_REQUIRED_DOCS,
+    )
+
+
 def default_standard(profile: ProfileName = "python-package") -> PythonStandard:
     """Return the current standard for a named profile."""
     if profile == "python-package":
@@ -349,6 +507,10 @@ def default_standard(profile: ProfileName = "python-package") -> PythonStandard:
         return default_cpp_standard()
     if profile == "csharp-app":
         return default_csharp_standard()
+    if profile == "javascript-web-app":
+        return default_javascript_web_standard()
+    if profile == "python-js-app":
+        return default_python_js_standard()
     raise ValueError(f"unsupported profile: {profile}")
 
 
@@ -370,6 +532,16 @@ def render_cpp_standard(output_format: Literal["text", "json"] = "text") -> str:
 def render_csharp_standard(output_format: Literal["text", "json"] = "text") -> str:
     """Render the current C# standard as text or JSON."""
     return render_standard("csharp-app", output_format)
+
+
+def render_javascript_web_standard(output_format: Literal["text", "json"] = "text") -> str:
+    """Render the current no-build browser JavaScript and CSS standard as text or JSON."""
+    return render_standard("javascript-web-app", output_format)
+
+
+def render_python_js_standard(output_format: Literal["text", "json"] = "text") -> str:
+    """Render the current Python plus browser JavaScript standard as text or JSON."""
+    return render_standard("python-js-app", output_format)
 
 
 def render_standard(

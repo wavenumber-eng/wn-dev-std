@@ -12,5 +12,7 @@
   for packages with CMake/C++, platform wheels, and WASM artifacts.
 - Add the initial `csharp-app` profile for SDK-style C# application and
   host-plugin projects.
+- Add `javascript-web-app` and `python-js-app` profiles for no-build browser
+  apps, CSS/JS hygiene ratchets, and FastAPI-style Python-served frontends.
 - Add CI and model release-validation workflows for public Python packages,
   without publishing `wn-dev-std` itself to PyPI.

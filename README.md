@@ -11,8 +11,8 @@ kept in sync by Rack signoff.
 ## Status
 
 Initial Python support. This repository is a model/reference package and is not
-published to PyPI. C, C++, C#, JavaScript, Rust, and Zephyr profiles will reuse
-the same base rules as they are added.
+published to PyPI. C++, C#, and JavaScript profiles are present; C, Rust, and
+Zephyr profiles will reuse the same base rules as they are added.
 
 ## Install
 
@@ -62,6 +62,8 @@ wn-dev-std standard --format json
 wn-dev-std standard --profile cpp-library
 wn-dev-std standard --profile python-native-wasm
 wn-dev-std standard --profile csharp-app
+wn-dev-std standard --profile javascript-web-app
+wn-dev-std standard --profile python-js-app
 ```
 
 Run the basic conformance checks against the current repo:
@@ -123,6 +125,22 @@ Mixed-mode packages add:
 - separate CI lanes for Python, native, platform wheels, WASM, and release
   validation
 
+## JavaScript Web Baseline
+
+The first browser profile is `javascript-web-app`, with `python-js-app` for
+FastAPI-style packages that serve the browser runtime.
+
+Web apps use:
+
+- no-build HTML, CSS, and browser JavaScript by default
+- optional Node tooling only when dependencies, bundling, or browser test
+  infrastructure justify it
+- explicit ES module or manifest-ordered IIFE ownership
+- isolated `vendor/`, `lib/`, `_build/`, `node_modules/`, and minified assets
+- JS and CSS hygiene ratchets for file size, complexity, nesting, generated
+  asset placement, and whitespace
+- Rack signoff for browser smoke tests and Python-to-browser API contracts
+
 ## Documentation
 
 - [Setup](docs/setup.html)
@@ -131,6 +149,7 @@ Mixed-mode packages add:
 - [Python Standard Design](docs/design/python-standard.html)
 - [C++ Standard](docs/design/cpp-standard.html)
 - [Mixed Mode Standard](docs/design/mixed-mode.html)
+- [JavaScript Web App Standard](docs/design/javascript-standard.html)
 - [Release Notes](docs/releases/2026-06-04.md)
 
 ## License

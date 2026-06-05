@@ -70,3 +70,17 @@ def test_standard_profile_can_render_csharp_json() -> None:
     assert result.returncode == 0
     assert '"name": "csharp-app"' in result.stdout
     assert "CA1502/CA1505/CA1506" in result.stdout
+
+
+def test_standard_profile_can_render_javascript_web_json() -> None:
+    result = run_cli("standard", "--profile", "javascript-web-app", "--format", "json")
+    assert result.returncode == 0
+    assert '"name": "javascript-web-app"' in result.stdout
+    assert "no-build browser runtime first" in result.stdout
+
+
+def test_standard_profile_can_render_python_js_json() -> None:
+    result = run_cli("standard", "--profile", "python-js-app", "--format", "json")
+    assert result.returncode == 0
+    assert '"name": "python-js-app"' in result.stdout
+    assert "javascript-web-app" in result.stdout

@@ -7,8 +7,15 @@
   "properties": {
     "profile": {
       "type": "string",
-      "enum": ["python-package", "python-native-wasm", "cpp-library", "csharp-app"],
-      "description": "Primary project profile such as python-package, python-native-wasm, cpp-library, or csharp-app."
+      "enum": [
+        "python-package",
+        "python-native-wasm",
+        "cpp-library",
+        "csharp-app",
+        "javascript-web-app",
+        "python-js-app"
+      ],
+      "description": "Primary project profile such as python-package, python-native-wasm, cpp-library, csharp-app, javascript-web-app, or python-js-app."
     },
     "distribution": {
       "type": "string",

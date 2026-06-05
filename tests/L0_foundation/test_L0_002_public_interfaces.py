@@ -9,11 +9,13 @@ from wn_dev_std import (
     StrictRule,
     default_cpp_standard,
     default_csharp_standard,
+    default_javascript_web_standard,
     default_mixed_mode_standard,
     default_python_standard,
     default_standard,
     render_cpp_standard,
     render_csharp_standard,
+    render_javascript_web_standard,
     render_mixed_mode_standard,
     render_python_standard,
     render_standard,
@@ -56,11 +58,32 @@ def test_default_csharp_standard_contains_dotnet_analyzer_rules() -> None:
     assert "Directory.Build.props" in standard.required_files
 
 
+def test_default_javascript_web_standard_contains_no_build_rules() -> None:
+    standard = default_javascript_web_standard()
+    assert isinstance(standard, PythonStandard)
+    assert any(rule.key == "workflow" and "no-build" in rule.value for rule in standard.rules)
+    assert any(rule.key == "css" for rule in standard.rules)
+    assert "src" in standard.required_files
+    assert "docs/design/javascript-standard.html" in standard.required_docs
+
+
+def test_default_python_js_standard_contains_web_and_python_rules() -> None:
+    standard = default_standard("python-js-app")
+    assert isinstance(standard, PythonStandard)
+    assert any(
+        rule.key == "inherits" and rule.value == "javascript-web-app" for rule in standard.rules
+    )
+    assert any(rule.key == "server" for rule in standard.rules)
+    assert "pyproject.toml" in standard.required_files
+
+
 def test_default_standard_selects_profiles() -> None:
     assert default_standard("python-package").name == "python-package"
     assert default_standard("python-native-wasm").name == "python-native-wasm"
     assert default_standard("cpp-library").name == "cpp-library"
     assert default_standard("csharp-app").name == "csharp-app"
+    assert default_standard("javascript-web-app").name == "javascript-web-app"
+    assert default_standard("python-js-app").name == "python-js-app"
 
 
 def test_strict_rule_serializes_to_json_ready_dict() -> None:
@@ -100,10 +123,17 @@ def test_render_csharp_standard_json_round_trips() -> None:
     assert parsed["version"] == "2026.6.4"
 
 
-def test_render_standard_json_round_trips_for_named_profile() -> None:
-    rendered = render_standard("csharp-app", "json")
+def test_render_javascript_web_standard_json_round_trips() -> None:
+    rendered = render_javascript_web_standard("json")
     parsed = json.loads(rendered)
-    assert parsed["name"] == "csharp-app"
+    assert parsed["name"] == "javascript-web-app"
+    assert parsed["version"] == "2026.6.4"
+
+
+def test_render_standard_json_round_trips_for_named_profile() -> None:
+    rendered = render_standard("python-js-app", "json")
+    parsed = json.loads(rendered)
+    assert parsed["name"] == "python-js-app"
 
 
 def test_cpp_profile_basic_checks_pass_for_minimal_repo(tmp_path: Path) -> None:
@@ -114,6 +144,18 @@ def test_cpp_profile_basic_checks_pass_for_minimal_repo(tmp_path: Path) -> None:
 
 def test_csharp_profile_basic_checks_pass_for_minimal_nested_project(tmp_path: Path) -> None:
     write_minimal_csharp_project(tmp_path)
+    results = run_basic_checks(tmp_path)
+    assert all(result.passed for result in results), [result.to_dict() for result in results]
+
+
+def test_javascript_web_profile_basic_checks_pass_for_minimal_repo(tmp_path: Path) -> None:
+    write_minimal_javascript_web_project(tmp_path)
+    results = run_basic_checks(tmp_path)
+    assert all(result.passed for result in results), [result.to_dict() for result in results]
+
+
+def test_python_js_profile_basic_checks_pass_for_minimal_repo(tmp_path: Path) -> None:
+    write_minimal_python_js_project(tmp_path)
     results = run_basic_checks(tmp_path)
     assert all(result.passed for result in results), [result.to_dict() for result in results]
 
@@ -239,6 +281,77 @@ def write_minimal_csharp_project(root: Path) -> None:
     write_file(
         root / "tests" / "app.tests" / "app.tests.csproj",
         '<Project Sdk="Microsoft.NET.Sdk" />\n',
+    )
+
+
+def write_minimal_web_files(root: Path) -> None:
+    for relative_path in (
+        ".gitattributes",
+        ".gitignore",
+        "AGENTS.md",
+        "README.md",
+        "tests/rack.toml",
+        "docs/setup.html",
+        "docs/architecture.html",
+        "docs/design/javascript-standard.html",
+        "scripts/js_hygiene.py",
+        "scripts/css_hygiene.py",
+    ):
+        write_file(root / relative_path, "placeholder\n")
+    for relative_dir in ("docs/design", "docs/contracts", "docs/releases"):
+        (root / relative_dir).mkdir(parents=True, exist_ok=True)
+    write_file(root / "src" / "static" / "app.js", "window.App = {};\n")
+    write_file(root / "src" / "static" / "style.css", "body { margin: 0; }\n")
+    write_file(root / "src" / "static" / "vendor" / "dep.min.js", "/* vendor */\n")
+
+
+def write_minimal_javascript_web_project(root: Path) -> None:
+    write_minimal_web_files(root)
+    write_file(
+        root / "wn-dev-std.toml",
+        dedent(
+            """
+            profile = "javascript-web-app"
+            distribution = "internal"
+            languages = ["javascript", "css", "html"]
+            strict = true
+            artifact_policy = "transient-dist"
+            """
+        ).lstrip(),
+    )
+
+
+def write_minimal_python_js_project(root: Path) -> None:
+    write_minimal_web_files(root)
+    write_file(root / "CHANGELOG.md", "placeholder\n")
+    write_file(root / "CONTRIBUTING.md", "placeholder\n")
+    write_file(root / "LICENSE", "placeholder\n")
+    write_file(root / "uv.lock", "placeholder\n")
+    write_file(
+        root / "wn-dev-std.toml",
+        dedent(
+            """
+            profile = "python-js-app"
+            distribution = "internal"
+            languages = ["python", "javascript", "css", "html"]
+            strict = true
+            artifact_policy = "transient-dist"
+            """
+        ).lstrip(),
+    )
+    write_file(
+        root / "pyproject.toml",
+        dedent(
+            """
+            [project]
+            name = "example"
+            version = "0.1.0"
+
+            [build-system]
+            requires = ["hatchling"]
+            build-backend = "hatchling.build"
+            """
+        ).lstrip(),
     )
 
 
