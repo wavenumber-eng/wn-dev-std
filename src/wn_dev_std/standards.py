@@ -56,6 +56,12 @@ class PythonStandard:
         }
 
 
+COMPATIBILITY_PRUNING_RULE = StrictRule(
+    "compatibility-pruning",
+    "configured forbidden legacy surface",
+    "Old compatibility shims, environment variables, and aliases need a signoff gate.",
+)
+
 MIXED_MODE_RULES = (
     StrictRule("workflow.python", "uv", "Use one Python environment and lock workflow."),
     StrictRule("workflow.native", "cmake + ctest", "Keep native builds portable."),
@@ -95,6 +101,7 @@ MIXED_MODE_RULES = (
     StrictRule("typing", "pyright strict", "Catch Python wrapper interface drift early."),
     StrictRule("lint", "ruff + clang-format", "Keep Python and native style automated."),
     StrictRule("static-analysis", "pyright + clang-tidy", "Catch wrapper and native drift early."),
+    COMPATIBILITY_PRUNING_RULE,
     StrictRule("ci.os", "ubuntu, windows, macos", "Build platform wheels on real targets."),
     StrictRule("ci.wasm", "separate wasm lane", "Avoid hiding browser/toolchain failures."),
     StrictRule("release", "GitHub Release published", "Allow final review before publish."),
@@ -187,6 +194,7 @@ CPP_RULES = (
         "document generator and regeneration command",
         "Generated native sources need a maintained source of truth.",
     ),
+    COMPATIBILITY_PRUNING_RULE,
     StrictRule("ci.os", "ubuntu, windows, macos", "Catch compiler and platform differences early."),
 )
 
@@ -244,6 +252,7 @@ CSHARP_RULES = (
         "document dist/ or installer output",
         "Separate committed runtime packages from local build scratch.",
     ),
+    COMPATIBILITY_PRUNING_RULE,
     StrictRule(
         "ci.os", "windows plus portable helper tests", "Catch .NET and host differences early."
     ),
@@ -361,6 +370,7 @@ JAVASCRIPT_WEB_RULES = (
         "install update build test signoff",
         "Projects need a simple cross-platform command surface even when shells differ.",
     ),
+    COMPATIBILITY_PRUNING_RULE,
     StrictRule(
         "ci.os",
         "ubuntu, windows, macos",
@@ -409,6 +419,7 @@ PYTHON_JS_RULES = (
         "document Python-to-browser JSON/WebSocket APIs",
         "Frontend state and API payloads need reviewable contracts.",
     ),
+    COMPATIBILITY_PRUNING_RULE,
 )
 
 PYTHON_JS_REQUIRED_FILES = (
@@ -449,6 +460,7 @@ def default_python_standard() -> PythonStandard:
             StrictRule("complexity.production", "<= 8", "Favor simple, reviewable functions."),
             StrictRule("complexity.tests", "<= 10", "Tests may orchestrate more setup."),
             StrictRule("docs.design", "HTML", "Keep docs human-readable and machine-checkable."),
+            COMPATIBILITY_PRUNING_RULE,
             StrictRule("release", "GitHub Release published", "Allow final review before publish."),
             StrictRule("ci.os", "ubuntu, windows, macos", "Catch platform differences early."),
         ),

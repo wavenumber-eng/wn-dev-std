@@ -88,3 +88,12 @@ def test_javascript_web_policy_is_documented() -> None:
         "signoff",
     ):
         assert expected in web_doc
+
+
+def test_compatibility_pruning_policy_is_documented() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    python_doc = (ROOT / "docs" / "design" / "python-standard.html").read_text(encoding="utf-8")
+    for text in (readme, python_doc):
+        assert "compatibility_pruning" in text
+        assert "forbidden_patterns" in text
+        assert "excluded_parts" in text

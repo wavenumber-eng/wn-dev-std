@@ -152,6 +152,25 @@ Web apps use:
   asset placement, and whitespace
 - Rack signoff for browser smoke tests and Python-to-browser API contracts
 
+## Compatibility Pruning
+
+Projects that are retiring old names, environment variables, setup shims, or
+compatibility aliases can opt into a repository scan in `wn-dev-std.toml`:
+
+```toml
+[compatibility_pruning]
+root = ".."
+forbidden_patterns = [
+  "\\bWN_LIBZ_ROOT\\b",
+  "\\bwn_pcb\\b",
+]
+excluded_parts = ["test_cases", "fixtures"]
+```
+
+The check is intentionally configurable because legacy cleanup is project
+specific. It should be part of L99 signoff when a repo has known old surfaces to
+prune, with generated files and captured fixtures excluded explicitly.
+
 ## Documentation
 
 - [Setup](docs/setup.html)

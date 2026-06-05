@@ -80,5 +80,26 @@
     old parsers ignore unknown fields. Required, renamed, removed, or semantic
     changes are breaking.
   </p>
+
+  <h2>Compatibility Pruning</h2>
+  <p>
+    Repositories with known legacy names, environment variables, setup shims, or
+    compatibility aliases should declare a <code>[compatibility_pruning]</code>
+    table in <code>wn-dev-std.toml</code>. The check scans the configured root
+    for <code>forbidden_patterns</code> and reports file and line locations when
+    old surfaces return.
+  </p>
+  <pre><code>[compatibility_pruning]
+root = ".."
+forbidden_patterns = [
+  "\\bWN_LIBZ_ROOT\\b",
+  "\\bwn_pcb\\b",
+]
+excluded_parts = ["test_cases", "fixtures"]</code></pre>
+  <p>
+    Captured fixtures, generated outputs, and tool caches should be excluded
+    deliberately. New compatibility shims need an explicit design reason and a
+    signoff ratchet so they do not become permanent hidden API surface.
+  </p>
 </body>
 </html>

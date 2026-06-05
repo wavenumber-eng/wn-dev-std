@@ -166,6 +166,32 @@ def test_python_js_profile_basic_checks_pass_for_minimal_repo(tmp_path: Path) ->
     assert all(result.passed for result in results), [result.to_dict() for result in results]
 
 
+def test_compatibility_pruning_check_passes_for_clean_configured_repo(tmp_path: Path) -> None:
+    write_minimal_python_js_project(tmp_path)
+    add_compatibility_pruning_config(tmp_path)
+
+    results = run_basic_checks(tmp_path)
+    pruning = next(result for result in results if result.name == "compatibility pruning")
+
+    assert pruning.passed
+
+
+def test_compatibility_pruning_check_fails_on_forbidden_reference(tmp_path: Path) -> None:
+    write_minimal_python_js_project(tmp_path)
+    add_compatibility_pruning_config(tmp_path)
+    write_file(
+        tmp_path / "src" / "static" / "app.js",
+        '// @ts-check\nconst root = "WN_LIBZ_ROOT";\nwindow.App = { root };\n',
+    )
+
+    results = run_basic_checks(tmp_path)
+    pruning = next(result for result in results if result.name == "compatibility pruning")
+
+    assert not pruning.passed
+    assert "src/static/app.js:2" in pruning.detail
+    assert "WN_LIBZ_ROOT" in pruning.detail
+
+
 def write_minimal_cpp_repo(root: Path) -> None:
     for relative_path in (
         ".gitattributes",
@@ -380,6 +406,29 @@ def write_minimal_python_js_project(root: Path) -> None:
             [build-system]
             requires = ["hatchling"]
             build-backend = "hatchling.build"
+            """
+        ).lstrip(),
+    )
+
+
+def add_compatibility_pruning_config(root: Path) -> None:
+    write_file(
+        root / "wn-dev-std.toml",
+        dedent(
+            r"""
+            profile = "python-js-app"
+            distribution = "internal"
+            languages = ["python", "javascript", "css", "html"]
+            strict = true
+            artifact_policy = "transient-dist"
+
+            [compatibility_pruning]
+            root = "."
+            forbidden_patterns = [
+              "\\bWN_LIBZ_ROOT\\b",
+              "\\bwn_pcb\\b",
+            ]
+            excluded_parts = ["test_cases"]
             """
         ).lstrip(),
     )

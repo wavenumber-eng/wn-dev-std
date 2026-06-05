@@ -10,6 +10,8 @@ from pathlib import Path
 from typing import Literal, cast
 from xml.etree import ElementTree
 
+from wn_dev_std.compatibility_pruning import check_compatibility_pruning_policy
+
 
 @dataclass(frozen=True, slots=True)
 class CheckResult:
@@ -231,6 +233,12 @@ def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
                 _check_web_signoff_policy(resolved_root),
             ]
         )
+    pruning_config = _compatibility_pruning_config(config)
+    if pruning_config is not None:
+        pruning_result = check_compatibility_pruning_policy(resolved_root, pruning_config)
+        checks.append(
+            CheckResult("compatibility pruning", pruning_result.passed, pruning_result.detail)
+        )
     return tuple(checks)
 
 
@@ -354,6 +362,12 @@ def _project_profile(config: Mapping[str, object] | None) -> ProfileName:
     if profile == "python-js-app":
         return "python-js-app"
     return "python-package"
+
+
+def _compatibility_pruning_config(config: Mapping[str, object] | None) -> object | None:
+    if config is None:
+        return None
+    return config.get("compatibility_pruning")
 
 
 def _check_pyproject_backend(
