@@ -38,6 +38,12 @@
       "description": "Factory for the C++ native-library standard."
     },
     {
+      "name": "wn_dev_std.default_csharp_standard",
+      "design_doc": "docs/design/csharp-standard.html",
+      "data_interface": "wn_dev_std.default_csharp_standard",
+      "description": "Factory for the C# application and plugin standard."
+    },
+    {
       "name": "wn_dev_std.default_standard",
       "design_doc": "docs/design/python-standard.html",
       "data_interface": "wn_dev_std.default_standard",
@@ -60,6 +66,12 @@
       "design_doc": "docs/design/cpp-standard.html",
       "data_interface": "wn_dev_std.render_cpp_standard",
       "description": "Render helper for the C++ native-library standard."
+    },
+    {
+      "name": "wn_dev_std.render_csharp_standard",
+      "design_doc": "docs/design/csharp-standard.html",
+      "data_interface": "wn_dev_std.render_csharp_standard",
+      "description": "Render helper for the C# application and plugin standard."
     },
     {
       "name": "wn_dev_std.render_standard",

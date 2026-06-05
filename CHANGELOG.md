@@ -10,5 +10,7 @@
   clang-tidy, CTest, warnings, sanitizer, ABI, and public/private header rules.
 - Add the initial `python-native-wasm` mixed-mode profile modeled on Geometer
   for packages with CMake/C++, platform wheels, and WASM artifacts.
+- Add the initial `csharp-app` profile for SDK-style C# application and
+  host-plugin projects.
 - Add CI and model release-validation workflows for public Python packages,
   without publishing `wn-dev-std` itself to PyPI.

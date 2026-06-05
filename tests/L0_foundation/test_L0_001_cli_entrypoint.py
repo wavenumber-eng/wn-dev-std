@@ -63,3 +63,10 @@ def test_standard_profile_can_render_cpp_json() -> None:
     assert result.returncode == 0
     assert '"name": "cpp-library"' in result.stdout
     assert '"value": "ninja"' in result.stdout
+
+
+def test_standard_profile_can_render_csharp_json() -> None:
+    result = run_cli("standard", "--profile", "csharp-app", "--format", "json")
+    assert result.returncode == 0
+    assert '"name": "csharp-app"' in result.stdout
+    assert "CA1502/CA1505/CA1506" in result.stdout

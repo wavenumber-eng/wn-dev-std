@@ -8,6 +8,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, cast
+from xml.etree import ElementTree
 
 
 @dataclass(frozen=True, slots=True)
@@ -63,6 +64,38 @@ CPP_REQUIRED_PATHS = (
     "CMakePresets.json",
 )
 
+CSHARP_REQUIRED_PATHS = (
+    ".editorconfig",
+    ".gitattributes",
+    ".gitignore",
+    "AGENTS.md",
+    "Directory.Build.props",
+    "README.md",
+    "build.ps1",
+    "src",
+    "tests",
+    "wn-dev-std.toml",
+)
+
+CSHARP_REQUIRED_DOC_PATHS = (
+    "docs/setup.html",
+    "docs/architecture.html",
+    "docs/design",
+    "docs/contracts",
+    "docs/releases",
+)
+
+CSHARP_ANALYZER_PROPS = (
+    ("EnforceCodeStyleInBuild", "true"),
+    ("EnableNETAnalyzers", "true"),
+)
+
+CSHARP_EDITORCONFIG_RULES = (
+    "dotnet_diagnostic.CA1502.severity = error",
+    "dotnet_diagnostic.CA1505.severity = error",
+    "dotnet_diagnostic.CA1506.severity = error",
+)
+
 CLANG_FORMAT_REQUIRED_SETTINGS = {
     "BasedOnStyle": "LLVM",
     "BreakBeforeBraces": "Allman",
@@ -73,22 +106,24 @@ CLANG_FORMAT_REQUIRED_SETTINGS = {
     "IncludeBlocks": "Preserve",
 }
 
-ProfileName = Literal["python-package", "python-native-wasm", "cpp-library"]
-SUPPORTED_PROFILES = ("python-package", "python-native-wasm", "cpp-library")
+ProfileName = Literal["python-package", "python-native-wasm", "cpp-library", "csharp-app"]
+SUPPORTED_PROFILES = ("python-package", "python-native-wasm", "cpp-library", "csharp-app")
 
 
 def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
     """Run lightweight repository checks for a Python standards project."""
     resolved_root = root.resolve()
     pyproject = _load_pyproject(resolved_root)
-    profile = _project_profile(pyproject)
+    config = _load_standard_config(resolved_root, pyproject)
+    profile = _project_profile(config)
     checks = [
         _check_required_paths(resolved_root, "root files", _required_root_files(profile)),
-        _check_required_paths(resolved_root, "documentation", REQUIRED_DOC_PATHS),
-        _check_required_paths(resolved_root, "rack suite", ("tests/rack.toml",)),
+        _check_required_paths(resolved_root, "documentation", _required_doc_paths(profile)),
         _check_no_env_file(resolved_root),
     ]
-    if profile != "cpp-library":
+    if profile != "csharp-app":
+        checks.append(_check_required_paths(resolved_root, "rack suite", ("tests/rack.toml",)))
+    if profile not in {"cpp-library", "csharp-app"}:
         checks.extend(
             [
                 _check_uv_lock(resolved_root),
@@ -110,6 +145,14 @@ def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
                 _check_clang_format_policy(resolved_root),
                 _check_cmake_presets_policy(resolved_root),
                 _check_dist_root_policy(resolved_root),
+            ]
+        )
+    if profile == "csharp-app":
+        checks.extend(
+            [
+                _check_required_paths(resolved_root, "C# files", CSHARP_REQUIRED_PATHS),
+                _check_dotnet_project_policy(resolved_root),
+                _check_dotnet_analyzer_policy(resolved_root),
             ]
         )
     return tuple(checks)
@@ -147,7 +190,15 @@ def _check_no_env_file(root: Path) -> CheckResult:
 def _required_root_files(profile: ProfileName) -> tuple[str, ...]:
     if profile == "cpp-library":
         return tuple(path for path in REQUIRED_ROOT_FILES if path != "pyproject.toml")
+    if profile == "csharp-app":
+        return CSHARP_REQUIRED_PATHS
     return REQUIRED_ROOT_FILES
+
+
+def _required_doc_paths(profile: ProfileName) -> tuple[str, ...]:
+    if profile == "csharp-app":
+        return CSHARP_REQUIRED_DOC_PATHS
+    return REQUIRED_DOC_PATHS
 
 
 def _check_uv_lock(root: Path) -> CheckResult:
@@ -164,17 +215,37 @@ def _load_pyproject(root: Path) -> Mapping[str, object] | None:
         return cast(Mapping[str, object], tomllib.load(handle))
 
 
-def _project_profile(pyproject: Mapping[str, object] | None) -> ProfileName:
+def _load_standard_config(
+    root: Path,
+    pyproject: Mapping[str, object] | None,
+) -> Mapping[str, object] | None:
+    standalone = root / "wn-dev-std.toml"
+    if standalone.exists():
+        with standalone.open("rb") as handle:
+            raw = cast(Mapping[str, object], tomllib.load(handle))
+        tool_raw = raw.get("tool")
+        if isinstance(tool_raw, dict):
+            tool = cast(Mapping[str, object], tool_raw)
+            config_raw = tool.get("wn_dev_std")
+            if isinstance(config_raw, dict):
+                return cast(Mapping[str, object], config_raw)
+        return raw
+
     if pyproject is None:
-        return "python-package"
+        return None
     tool_raw = pyproject.get("tool")
     if not isinstance(tool_raw, dict):
-        return "python-package"
+        return None
     tool = cast(Mapping[str, object], tool_raw)
     config_raw = tool.get("wn_dev_std")
     if not isinstance(config_raw, dict):
+        return None
+    return cast(Mapping[str, object], config_raw)
+
+
+def _project_profile(config: Mapping[str, object] | None) -> ProfileName:
+    if config is None:
         return "python-package"
-    config = cast(Mapping[str, object], config_raw)
     profile = config.get("profile")
     if profile == "python-package":
         return "python-package"
@@ -182,6 +253,8 @@ def _project_profile(pyproject: Mapping[str, object] | None) -> ProfileName:
         return "python-native-wasm"
     if profile == "cpp-library":
         return "cpp-library"
+    if profile == "csharp-app":
+        return "csharp-app"
     return "python-package"
 
 
@@ -274,6 +347,52 @@ def _check_cmake_presets_policy(root: Path) -> CheckResult:
             "at least one configure preset must set CMAKE_EXPORT_COMPILE_COMMANDS=ON",
         )
     return CheckResult("CMake presets", True, "Ninja and compile commands are configured")
+
+
+def _check_dotnet_project_policy(root: Path) -> CheckResult:
+    source_projects = sorted((root / "src").rglob("*.csproj")) if (root / "src").exists() else []
+    test_projects = sorted((root / "tests").rglob("*.csproj")) if (root / "tests").exists() else []
+    if not source_projects:
+        return CheckResult("dotnet projects", False, "at least one source .csproj is required")
+    if not test_projects:
+        return CheckResult("dotnet projects", False, "at least one test .csproj is required")
+    return CheckResult("dotnet projects", True, "source and test projects are present")
+
+
+def _check_dotnet_analyzer_policy(root: Path) -> CheckResult:
+    props_path = root / "Directory.Build.props"
+    editorconfig_path = root / ".editorconfig"
+    if not props_path.exists():
+        return CheckResult("dotnet analyzer policy", False, "Directory.Build.props is required")
+    if not editorconfig_path.exists():
+        return CheckResult("dotnet analyzer policy", False, ".editorconfig is required")
+
+    props = _msbuild_properties(props_path)
+    missing_props = [
+        f"{name}={expected}"
+        for name, expected in CSHARP_ANALYZER_PROPS
+        if props.get(name) != expected
+    ]
+    editorconfig = editorconfig_path.read_text(encoding="utf-8")
+    missing_rules = [rule for rule in CSHARP_EDITORCONFIG_RULES if rule not in editorconfig]
+    if missing_props or missing_rules:
+        expected = missing_props + missing_rules
+        return CheckResult("dotnet analyzer policy", False, "expected " + ", ".join(expected))
+    return CheckResult(
+        "dotnet analyzer policy",
+        True,
+        "code style, analyzers, and complexity gates are configured",
+    )
+
+
+def _msbuild_properties(path: Path) -> dict[str, str]:
+    root = ElementTree.fromstring(path.read_text(encoding="utf-8"))
+    properties: dict[str, str] = {}
+    for property_group in root.findall("PropertyGroup"):
+        for child in list(property_group):
+            if child.text is not None:
+                properties[child.tag] = child.text.strip().lower()
+    return properties
 
 
 def _read_simple_yaml_map(path: Path) -> dict[str, str]:

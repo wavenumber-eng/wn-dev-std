@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>C# Standard Design</title>
+</head>
+<body data-design="csharp-standard">
+  <h1>C# Standard</h1>
+
+  <section data-interface="wn_dev_std.default_csharp_standard">
+    <h2>default_csharp_standard</h2>
+    <p>
+      Returns the current C# application and host-plugin profile. The profile is
+      intended for SDK-style .NET projects, Windows GUI extensions, and
+      application code that has host-runtime boundaries.
+    </p>
+  </section>
+
+  <section data-interface="wn_dev_std.render_csharp_standard">
+    <h2>render_csharp_standard</h2>
+    <p>
+      Renders the C# profile for human or machine use.
+    </p>
+  </section>
+
+  <h2>Build And Tooling</h2>
+  <p>
+    C# projects must use SDK-style <code>.csproj</code> files, a committed
+    <code>Directory.Build.props</code>, and a committed <code>.editorconfig</code>.
+    <code>Directory.Build.props</code> must enable .NET analyzers and
+    code-style enforcement in build.
+  </p>
+
+  <h2>Analyzer Baseline</h2>
+  <p>
+    The baseline complexity gates are <code>CA1502</code>,
+    <code>CA1505</code>, and <code>CA1506</code> as errors. Legacy exceptions
+    may be scoped per file, but they need a ratchet check that prevents the
+    exception from growing.
+  </p>
+
+  <h2>Tests</h2>
+  <p>
+    Pure helper logic must be covered by <code>dotnet test</code>. Host-boundary
+    code that cannot be loaded in a normal test runner should stay thin and
+    route behavior through pure helpers. Manual smoke requirements for host
+    boundary behavior must be documented near the owning feature.
+  </p>
+
+  <h2>Artifacts</h2>
+  <p>
+    Installer, extension, or runtime artifacts may be committed only when the
+    project documents the target layout and regeneration path. Local
+    <code>bin/</code>, <code>obj/</code>, package scratch, and user-local host
+    state remain transient.
+  </p>
+</body>
+</html>

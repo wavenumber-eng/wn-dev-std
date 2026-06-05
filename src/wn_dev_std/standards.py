@@ -6,7 +6,7 @@ import json
 from dataclasses import dataclass
 from typing import Literal
 
-ProfileName = Literal["python-package", "python-native-wasm", "cpp-library"]
+ProfileName = Literal["python-package", "python-native-wasm", "cpp-library", "csharp-app"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -207,6 +207,62 @@ CPP_REQUIRED_DOCS = (
     "docs/releases/",
 )
 
+CSHARP_RULES = (
+    StrictRule("build-system", "dotnet sdk-style projects", "Keep C# builds scriptable."),
+    StrictRule("props", "Directory.Build.props", "Centralize analyzer and language policy."),
+    StrictRule("format", ".editorconfig", "Keep C# style and analyzer severities explicit."),
+    StrictRule(
+        "analyzers",
+        "EnableNETAnalyzers + EnforceCodeStyleInBuild",
+        "Surface maintainability and style issues during build.",
+    ),
+    StrictRule(
+        "complexity",
+        "CA1502/CA1505/CA1506 errors",
+        "Block new overly complex methods, unmaintainable code, and excessive coupling.",
+    ),
+    StrictRule(
+        "nullable",
+        "explicit project policy",
+        "Declare nullable enable/disable/ratchet state instead of inheriting defaults.",
+    ),
+    StrictRule("test-runner", "dotnet test", "Unit-test pure helpers outside host runtime."),
+    StrictRule(
+        "host-boundaries",
+        "thin unmockable boundary code",
+        "Route host API behavior through pure helpers that can be unit-tested.",
+    ),
+    StrictRule(
+        "artifact-policy",
+        "document dist/ or installer output",
+        "Separate committed runtime packages from local build scratch.",
+    ),
+    StrictRule(
+        "ci.os", "windows plus portable helper tests", "Catch .NET and host differences early."
+    ),
+)
+
+CSHARP_REQUIRED_FILES = (
+    ".editorconfig",
+    ".gitattributes",
+    ".gitignore",
+    "AGENTS.md",
+    "Directory.Build.props",
+    "README.md",
+    "build.ps1",
+    "src",
+    "tests",
+    "wn-dev-std.toml",
+)
+
+CSHARP_REQUIRED_DOCS = (
+    "docs/setup.html",
+    "docs/architecture.html",
+    "docs/design/",
+    "docs/contracts/",
+    "docs/releases/",
+)
+
 
 def default_python_standard() -> PythonStandard:
     """Return the current strict Python package standard."""
@@ -271,6 +327,18 @@ def default_cpp_standard() -> PythonStandard:
     )
 
 
+def default_csharp_standard() -> PythonStandard:
+    """Return the current C# application and plugin standard."""
+    return PythonStandard(
+        name="csharp-app",
+        version="2026.6.4",
+        status="initial",
+        rules=CSHARP_RULES,
+        required_files=CSHARP_REQUIRED_FILES,
+        required_docs=CSHARP_REQUIRED_DOCS,
+    )
+
+
 def default_standard(profile: ProfileName = "python-package") -> PythonStandard:
     """Return the current standard for a named profile."""
     if profile == "python-package":
@@ -279,6 +347,8 @@ def default_standard(profile: ProfileName = "python-package") -> PythonStandard:
         return default_mixed_mode_standard()
     if profile == "cpp-library":
         return default_cpp_standard()
+    if profile == "csharp-app":
+        return default_csharp_standard()
     raise ValueError(f"unsupported profile: {profile}")
 
 
@@ -295,6 +365,11 @@ def render_mixed_mode_standard(output_format: Literal["text", "json"] = "text") 
 def render_cpp_standard(output_format: Literal["text", "json"] = "text") -> str:
     """Render the current C++ standard as text or JSON."""
     return render_standard("cpp-library", output_format)
+
+
+def render_csharp_standard(output_format: Literal["text", "json"] = "text") -> str:
+    """Render the current C# standard as text or JSON."""
+    return render_standard("csharp-app", output_format)
 
 
 def render_standard(

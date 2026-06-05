@@ -61,6 +61,7 @@ wn-dev-std standard
 wn-dev-std standard --format json
 wn-dev-std standard --profile cpp-library
 wn-dev-std standard --profile python-native-wasm
+wn-dev-std standard --profile csharp-app
 ```
 
 Run the basic conformance checks against the current repo:

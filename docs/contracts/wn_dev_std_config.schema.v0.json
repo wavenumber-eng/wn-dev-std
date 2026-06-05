@@ -1,14 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/wavenumber-eng/wn-dev-std/docs/contracts/wn_dev_std_config.schema.v0.json",
-  "title": "wn-dev-std pyproject configuration",
+  "title": "wn-dev-std project configuration",
   "type": "object",
   "additionalProperties": false,
   "properties": {
     "profile": {
       "type": "string",
-      "enum": ["python-package", "python-native-wasm", "cpp-library"],
-      "description": "Primary project profile such as python-package, python-native-wasm, or cpp-library."
+      "enum": ["python-package", "python-native-wasm", "cpp-library", "csharp-app"],
+      "description": "Primary project profile such as python-package, python-native-wasm, cpp-library, or csharp-app."
     },
     "distribution": {
       "type": "string",
@@ -26,7 +26,7 @@
     },
     "artifact_policy": {
       "type": "string",
-      "enum": ["transient-dist", "committed-grouped-dist"],
+      "enum": ["transient-dist", "committed-grouped-dist", "committed-extension-dist"],
       "description": "Whether dist/ is transient packaging output or committed grouped runtime artifacts."
     }
   }

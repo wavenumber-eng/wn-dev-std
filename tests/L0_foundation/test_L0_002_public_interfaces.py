@@ -8,10 +8,12 @@ from wn_dev_std import (
     PythonStandard,
     StrictRule,
     default_cpp_standard,
+    default_csharp_standard,
     default_mixed_mode_standard,
     default_python_standard,
     default_standard,
     render_cpp_standard,
+    render_csharp_standard,
     render_mixed_mode_standard,
     render_python_standard,
     render_standard,
@@ -45,10 +47,20 @@ def test_default_cpp_standard_contains_formatter_and_preset_rules() -> None:
     assert "CMakePresets.json" in standard.required_files
 
 
+def test_default_csharp_standard_contains_dotnet_analyzer_rules() -> None:
+    standard = default_csharp_standard()
+    assert isinstance(standard, PythonStandard)
+    assert any(rule.key == "build-system" and "dotnet" in rule.value for rule in standard.rules)
+    assert any(rule.key == "complexity" and "CA1502" in rule.value for rule in standard.rules)
+    assert ".editorconfig" in standard.required_files
+    assert "Directory.Build.props" in standard.required_files
+
+
 def test_default_standard_selects_profiles() -> None:
     assert default_standard("python-package").name == "python-package"
     assert default_standard("python-native-wasm").name == "python-native-wasm"
     assert default_standard("cpp-library").name == "cpp-library"
+    assert default_standard("csharp-app").name == "csharp-app"
 
 
 def test_strict_rule_serializes_to_json_ready_dict() -> None:
@@ -81,14 +93,27 @@ def test_render_cpp_standard_json_round_trips() -> None:
     assert parsed["version"] == "2026.6.4"
 
 
-def test_render_standard_json_round_trips_for_named_profile() -> None:
-    rendered = render_standard("cpp-library", "json")
+def test_render_csharp_standard_json_round_trips() -> None:
+    rendered = render_csharp_standard("json")
     parsed = json.loads(rendered)
-    assert parsed["name"] == "cpp-library"
+    assert parsed["name"] == "csharp-app"
+    assert parsed["version"] == "2026.6.4"
+
+
+def test_render_standard_json_round_trips_for_named_profile() -> None:
+    rendered = render_standard("csharp-app", "json")
+    parsed = json.loads(rendered)
+    assert parsed["name"] == "csharp-app"
 
 
 def test_cpp_profile_basic_checks_pass_for_minimal_repo(tmp_path: Path) -> None:
     write_minimal_cpp_repo(tmp_path)
+    results = run_basic_checks(tmp_path)
+    assert all(result.passed for result in results), [result.to_dict() for result in results]
+
+
+def test_csharp_profile_basic_checks_pass_for_minimal_nested_project(tmp_path: Path) -> None:
+    write_minimal_csharp_project(tmp_path)
     results = run_basic_checks(tmp_path)
     assert all(result.passed for result in results), [result.to_dict() for result in results]
 
@@ -154,6 +179,66 @@ def write_minimal_cpp_repo(root: Path) -> None:
             }
             """
         ).lstrip(),
+    )
+
+
+def write_minimal_csharp_project(root: Path) -> None:
+    for relative_path in (
+        ".editorconfig",
+        ".gitattributes",
+        ".gitignore",
+        "AGENTS.md",
+        "Directory.Build.props",
+        "README.md",
+        "build.ps1",
+        "docs/setup.html",
+        "docs/architecture.html",
+    ):
+        write_file(root / relative_path, "placeholder\n")
+    for relative_dir in ("docs/design", "docs/contracts", "docs/releases"):
+        (root / relative_dir).mkdir(parents=True, exist_ok=True)
+    write_file(
+        root / "wn-dev-std.toml",
+        dedent(
+            """
+            profile = "csharp-app"
+            distribution = "internal"
+            languages = ["csharp"]
+            strict = true
+            artifact_policy = "committed-extension-dist"
+            """
+        ).lstrip(),
+    )
+    write_file(
+        root / "Directory.Build.props",
+        dedent(
+            """
+            <Project>
+              <PropertyGroup>
+                <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+                <EnableNETAnalyzers>true</EnableNETAnalyzers>
+              </PropertyGroup>
+            </Project>
+            """
+        ).lstrip(),
+    )
+    write_file(
+        root / ".editorconfig",
+        dedent(
+            """
+            root = true
+
+            [*.cs]
+            dotnet_diagnostic.CA1502.severity = error
+            dotnet_diagnostic.CA1505.severity = error
+            dotnet_diagnostic.CA1506.severity = error
+            """
+        ).lstrip(),
+    )
+    write_file(root / "src" / "app" / "app.csproj", '<Project Sdk="Microsoft.NET.Sdk" />\n')
+    write_file(
+        root / "tests" / "app.tests" / "app.tests.csproj",
+        '<Project Sdk="Microsoft.NET.Sdk" />\n',
     )
 
 

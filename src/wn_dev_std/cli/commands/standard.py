@@ -18,7 +18,7 @@ def register(subparsers: SubparserRegistry) -> None:
     )
     parser.add_argument(
         "--profile",
-        choices=("python-package", "python-native-wasm", "cpp-library"),
+        choices=("python-package", "python-native-wasm", "cpp-library", "csharp-app"),
         default="python-package",
         help="Standard profile to render",
     )
@@ -40,7 +40,7 @@ def run(args: argparse.Namespace) -> int:
 
 def _profile(args: argparse.Namespace) -> ProfileName:
     value = cast(str, args.profile)
-    if value in ("python-package", "python-native-wasm", "cpp-library"):
+    if value in ("python-package", "python-native-wasm", "cpp-library", "csharp-app"):
         return value
     raise TypeError("expected profile to be a supported standard profile")
 
