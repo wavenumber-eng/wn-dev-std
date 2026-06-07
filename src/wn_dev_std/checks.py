@@ -11,6 +11,7 @@ from typing import Literal, cast
 from xml.etree import ElementTree
 
 from wn_dev_std.compatibility_pruning import check_compatibility_pruning_policy
+from wn_dev_std.design_doc_status import check_design_doc_status_policy
 
 
 @dataclass(frozen=True, slots=True)
@@ -182,6 +183,7 @@ def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
     checks = [
         _check_required_paths(resolved_root, "root files", _required_root_files(profile)),
         _check_required_paths(resolved_root, "documentation", _required_doc_paths(profile)),
+        _check_design_doc_status(resolved_root),
         _check_no_env_file(resolved_root),
     ]
     if profile != "csharp-app":
@@ -263,6 +265,11 @@ def _check_required_paths(root: Path, name: str, relative_paths: tuple[str, ...]
     if missing:
         return CheckResult(name, False, "missing " + ", ".join(missing))
     return CheckResult(name, True, "all required paths are present")
+
+
+def _check_design_doc_status(root: Path) -> CheckResult:
+    result = check_design_doc_status_policy(root)
+    return CheckResult("design doc status", result.passed, result.detail)
 
 
 def _check_no_env_file(root: Path) -> CheckResult:

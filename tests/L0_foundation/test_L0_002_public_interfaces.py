@@ -105,35 +105,35 @@ def test_render_python_standard_json_round_trips() -> None:
     rendered = render_python_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "python-package"
-    assert parsed["version"] == "2026.6.4"
+    assert parsed["version"] == "2026.6.7"
 
 
 def test_render_mixed_mode_standard_json_round_trips() -> None:
     rendered = render_mixed_mode_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "python-native-wasm"
-    assert parsed["version"] == "2026.6.4"
+    assert parsed["version"] == "2026.6.7"
 
 
 def test_render_cpp_standard_json_round_trips() -> None:
     rendered = render_cpp_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "cpp-library"
-    assert parsed["version"] == "2026.6.4"
+    assert parsed["version"] == "2026.6.7"
 
 
 def test_render_csharp_standard_json_round_trips() -> None:
     rendered = render_csharp_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "csharp-app"
-    assert parsed["version"] == "2026.6.4"
+    assert parsed["version"] == "2026.6.7"
 
 
 def test_render_javascript_web_standard_json_round_trips() -> None:
     rendered = render_javascript_web_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "javascript-web-app"
-    assert parsed["version"] == "2026.6.4"
+    assert parsed["version"] == "2026.6.7"
 
 
 def test_render_standard_json_round_trips_for_named_profile() -> None:
@@ -190,6 +190,44 @@ def test_compatibility_pruning_check_fails_on_forbidden_reference(tmp_path: Path
     assert not pruning.passed
     assert "src/static/app.js:2" in pruning.detail
     assert "WN_LIBZ_ROOT" in pruning.detail
+
+
+def test_design_doc_status_check_fails_on_unmarked_html(tmp_path: Path) -> None:
+    write_minimal_python_js_project(tmp_path)
+    write_file(
+        tmp_path / "docs" / "design" / "draft-topic.html",
+        "<!doctype html><html><body><h1>Draft Topic</h1></body></html>\n",
+    )
+
+    results = run_basic_checks(tmp_path)
+    status = next(result for result in results if result.name == "design doc status")
+
+    assert not status.passed
+    assert "missing data-doc-status" in status.detail
+    assert "docs/design/draft-topic.html" in status.detail
+
+
+def test_design_doc_status_check_reports_draft_and_proposal_docs(tmp_path: Path) -> None:
+    write_minimal_python_js_project(tmp_path)
+    write_file(
+        tmp_path / "docs" / "design" / "draft-topic.html",
+        ('<!doctype html><html><body data-doc-status="draft"><h1>Draft Topic</h1></body></html>\n'),
+    )
+    write_file(
+        tmp_path / "docs" / "design" / "proposal-topic.html",
+        (
+            '<!doctype html><html><main data-doc-status="proposal">'
+            "<h1>Proposal Topic</h1></main></html>\n"
+        ),
+    )
+
+    results = run_basic_checks(tmp_path)
+    status = next(result for result in results if result.name == "design doc status")
+
+    assert status.passed
+    assert "draft/proposal docs" in status.detail
+    assert "docs/design/draft-topic.html=draft" in status.detail
+    assert "docs/design/proposal-topic.html=proposal" in status.detail
 
 
 def write_minimal_cpp_repo(root: Path) -> None:
@@ -335,6 +373,13 @@ def write_minimal_web_files(root: Path) -> None:
     for relative_dir in ("docs/design", "docs/contracts", "docs/releases"):
         (root / relative_dir).mkdir(parents=True, exist_ok=True)
     write_file(root / "src" / "static" / "app.js", "// @ts-check\nwindow.App = {};\n")
+    write_file(
+        root / "docs" / "design" / "javascript-standard.html",
+        (
+            '<!doctype html><html><body data-doc-status="accepted">'
+            "<h1>JavaScript Standard</h1></body></html>\n"
+        ),
+    )
     write_file(
         root / "src" / "static" / "style.css",
         ":root { --wn-space-0: 0; }\nbody { margin: var(--wn-space-0); }\n",

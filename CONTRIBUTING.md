@@ -24,6 +24,7 @@ Standards changes should update all affected surfaces:
 - implementation
 - tests
 - `docs/design/*.html`
+- explicit `data-doc-status` markers for HTML design docs
 - `docs/contracts/*`
 - `README.md` when user-facing behavior changes
 - `CHANGELOG.md`

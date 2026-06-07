@@ -5,7 +5,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import cast
 
-from wn_dev_std.checks import REQUIRED_ROOT_FILES
+from wn_dev_std.checks import REQUIRED_ROOT_FILES, run_basic_checks
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -97,3 +97,22 @@ def test_compatibility_pruning_policy_is_documented() -> None:
         assert "compatibility_pruning" in text
         assert "forbidden_patterns" in text
         assert "excluded_parts" in text
+
+
+def test_design_doc_status_policy_is_documented_and_clean() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    standard_doc = (ROOT / "docs" / "design" / "documentation-standard.html").read_text(
+        encoding="utf-8"
+    )
+    for text in (readme, standard_doc):
+        assert "data-doc-status" in text
+        assert "draft" in text
+        assert "proposal" in text
+        assert "accepted" in text
+        assert "superseded" in text
+
+    status_check = next(
+        result for result in run_basic_checks(ROOT) if result.name == "design doc status"
+    )
+    assert status_check.passed
+    assert "draft/proposal docs" not in status_check.detail

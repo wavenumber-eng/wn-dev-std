@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026.6.7
+
+- Codify HTML design-doc status markers with `draft`, `proposal`,
+  `accepted`, and `superseded` states.
+- Add a `wn-dev-std check` design-doc status gate that fails unmarked or
+  invalid HTML design docs and reports draft/proposal docs for release signoff.
+- Add the documentation standard design page and mark the reference design docs
+  as accepted.
+
 ## 2026.6.4
 
 - Add the initial working `wn-dev-std` Python package and CLI.

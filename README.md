@@ -83,7 +83,7 @@ Pure Python packages use:
 - Rack for test orchestration
 - Ruff and Pyright
 - strict typing
-- HTML design docs and JSON contracts
+- HTML design docs with explicit `data-doc-status` markers and JSON contracts
 - date-based releases
 - GitHub Release published events for release validation
 - optional PyPI trusted publishing for projects that choose that distribution
@@ -171,16 +171,23 @@ The check is intentionally configurable because legacy cleanup is project
 specific. It should be part of L99 signoff when a repo has known old surfaces to
 prune, with generated files and captured fixtures excluded explicitly.
 
+## Design Doc Status
+
+HTML design docs under `docs/design` must declare `data-doc-status` with one of
+`draft`, `proposal`, `accepted`, or `superseded`. The check fails unmarked or
+invalid design docs and reports draft/proposal pages for release review.
+
 ## Documentation
 
 - [Setup](docs/setup.html)
 - [Architecture](docs/architecture.html)
 - [CLI Design](docs/design/cli.html)
+- [Documentation Standard](docs/design/documentation-standard.html)
 - [Python Standard Design](docs/design/python-standard.html)
 - [C++ Standard](docs/design/cpp-standard.html)
 - [Mixed Mode Standard](docs/design/mixed-mode.html)
 - [JavaScript Web App Standard](docs/design/javascript-standard.html)
-- [Release Notes](docs/releases/2026-06-04.md)
+- [Release Notes](docs/releases/2026-06-07.md)
 
 ## License
 

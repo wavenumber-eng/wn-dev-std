@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Documentation Standard</title>
+</head>
+<body data-design="documentation-standard" data-doc-status="accepted">
+  <h1>Documentation Standard</h1>
+  <p>
+    Public design docs are human-reviewable contract context. They must make
+    their maturity explicit so agents, reviewers, and signoff gates can
+    distinguish accepted behavior from work in progress.
+  </p>
+
+  <h2>Design Doc Status Marker</h2>
+  <p>
+    Every HTML file under <code>docs/design</code> must declare
+    <code>data-doc-status</code> on either the root <code>body</code>,
+    <code>main</code>, or another top-level container. Pages should also show
+    the same status in visible text near the title when the status is
+    <code>draft</code> or <code>proposal</code>.
+  </p>
+  <pre><code>&lt;main data-doc-status="draft" data-doc-stage="proposal" data-doc-domain="pcb"&gt;</code></pre>
+
+  <h2>Status Vocabulary</h2>
+  <table>
+    <tr>
+      <th>Status</th>
+      <th>Meaning</th>
+      <th>Release posture</th>
+    </tr>
+    <tr>
+      <td><code>draft</code></td>
+      <td>Exploratory direction. Implementation may be absent or partial.</td>
+      <td>Allowed, but release signoff must not treat it as accepted contract evidence.</td>
+    </tr>
+    <tr>
+      <td><code>proposal</code></td>
+      <td>Ready for focused implementation review, but not yet accepted.</td>
+      <td>Allowed, but release signoff must review the open decision explicitly.</td>
+    </tr>
+    <tr>
+      <td><code>accepted</code></td>
+      <td>Aligned with code, tests, contracts, and any required ADR.</td>
+      <td>May be used as accepted standard or contract evidence.</td>
+    </tr>
+    <tr>
+      <td><code>superseded</code></td>
+      <td>Retained for history after a newer doc or ADR replaced it.</td>
+      <td>Must link to the replacement before release.</td>
+    </tr>
+  </table>
+
+  <h2>Signoff Behavior</h2>
+  <p>
+    <code>wn-dev-std check</code> fails when HTML design docs are unmarked or
+    use a status outside the approved vocabulary. It passes but reports
+    <code>draft</code> and <code>proposal</code> pages so L99 signoff can
+    decide whether those pages are acceptable for the release being prepared.
+  </p>
+  <p>
+    Repositories may add stricter local gates. A package with a public API,
+    serialized contract, or release note that depends on an unfinished design
+    should fail release signoff until the relevant document is promoted to
+    <code>accepted</code> or a clear release exception is recorded.
+  </p>
+</body>
+</html>

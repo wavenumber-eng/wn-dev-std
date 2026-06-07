@@ -20,7 +20,7 @@ def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
 def test_cli_global_version_reports_tool_and_dependency_versions() -> None:
     result = run_cli("--version")
     assert result.returncode == 0
-    assert "wn-dev-std 2026.6.4" in result.stdout
+    assert "wn-dev-std 2026.6.7" in result.stdout
     assert "python " in result.stdout
     assert "wn-rack " in result.stdout
 
@@ -28,7 +28,7 @@ def test_cli_global_version_reports_tool_and_dependency_versions() -> None:
 def test_cli_version_command_reports_same_version() -> None:
     result = run_cli("version")
     assert result.returncode == 0
-    assert "wn-dev-std 2026.6.4" in result.stdout
+    assert "wn-dev-std 2026.6.7" in result.stdout
 
 
 def test_cli_help_lists_public_commands() -> None:

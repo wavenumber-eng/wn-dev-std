@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>Python Standard Design</title>
 </head>
-<body data-design="python-standard">
+<body data-design="python-standard" data-doc-status="accepted">
   <h1>Python Standard</h1>
 
   <section data-interface="wn_dev_std.StrictRule">
@@ -79,6 +79,16 @@
     compatibility rules. Optional additive fields are usually compatible when
     old parsers ignore unknown fields. Required, renamed, removed, or semantic
     changes are breaking.
+  </p>
+
+  <h2>Design Document Status</h2>
+  <p>
+    HTML design docs must carry a machine-readable
+    <code>data-doc-status</code> marker. Accepted pages describe current
+    contract or standard behavior. Draft and proposal pages may guide active
+    implementation, but release signoff must review them explicitly before
+    treating them as accepted contract evidence. See
+    <a href="documentation-standard.html">Documentation Standard</a>.
   </p>
 
   <h2>Compatibility Pruning</h2>

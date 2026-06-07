@@ -40,6 +40,9 @@ uv run rack run L99_signoff
 - Reusable standard data and checks live outside the CLI package.
 - `docs/design/*.html` and `docs/contracts/*` are source-of-truth public
   contracts, not generated scratch output.
+- HTML design docs must declare `data-doc-status` as `draft`, `proposal`,
+  `accepted`, or `superseded`; release signoff must review any draft/proposal
+  docs before treating them as contract evidence.
 - C++ profile templates live under `docs/templates/cpp/`; keep them aligned
   with `docs/design/cpp-standard.html` and the checker policy.
 
