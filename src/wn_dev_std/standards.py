@@ -153,6 +153,11 @@ CPP_RULES = (
     ),
     StrictRule("static-analysis", "clang-tidy", "New native code starts with analysis enabled."),
     StrictRule(
+        "integer-widths",
+        "std::int32_t/std::uint32_t/std::int64_t/std::uint64_t",
+        "Owned integer storage uses fixed-width spellings instead of short, long, or long long.",
+    ),
+    StrictRule(
         "warnings",
         "MSVC /W4, Clang/GCC -Wall -Wextra -Wpedantic",
         "Catch compiler-visible defects early.",
@@ -448,7 +453,7 @@ def default_python_standard() -> PythonStandard:
     """Return the current strict Python package standard."""
     return PythonStandard(
         name="python-package",
-        version="2026.6.7",
+        version="2026.6.9",
         status="initial",
         rules=(
             StrictRule("workflow", "uv", "Use one environment and lock workflow."),
@@ -488,7 +493,7 @@ def default_mixed_mode_standard() -> PythonStandard:
     """Return the current Python plus native/WASM mixed-mode standard."""
     return PythonStandard(
         name="python-native-wasm",
-        version="2026.6.7",
+        version="2026.6.9",
         status="initial",
         rules=MIXED_MODE_RULES,
         required_files=MIXED_MODE_REQUIRED_FILES,
@@ -500,7 +505,7 @@ def default_cpp_standard() -> PythonStandard:
     """Return the current C++ library and native executable standard."""
     return PythonStandard(
         name="cpp-library",
-        version="2026.6.7",
+        version="2026.6.9",
         status="initial",
         rules=CPP_RULES,
         required_files=CPP_REQUIRED_FILES,
@@ -512,7 +517,7 @@ def default_csharp_standard() -> PythonStandard:
     """Return the current C# application and plugin standard."""
     return PythonStandard(
         name="csharp-app",
-        version="2026.6.7",
+        version="2026.6.9",
         status="initial",
         rules=CSHARP_RULES,
         required_files=CSHARP_REQUIRED_FILES,
@@ -524,7 +529,7 @@ def default_javascript_web_standard() -> PythonStandard:
     """Return the current no-build browser JavaScript and CSS standard."""
     return PythonStandard(
         name="javascript-web-app",
-        version="2026.6.7",
+        version="2026.6.9",
         status="initial",
         rules=JAVASCRIPT_WEB_RULES,
         required_files=JAVASCRIPT_WEB_REQUIRED_FILES,
@@ -536,7 +541,7 @@ def default_python_js_standard() -> PythonStandard:
     """Return the current Python plus browser JavaScript app standard."""
     return PythonStandard(
         name="python-js-app",
-        version="2026.6.7",
+        version="2026.6.9",
         status="initial",
         rules=PYTHON_JS_RULES,
         required_files=PYTHON_JS_REQUIRED_FILES,

@@ -155,6 +155,7 @@ CLANG_FORMAT_REQUIRED_SETTINGS = {
     "SortIncludes": "true",
     "IncludeBlocks": "Preserve",
 }
+CLANG_TIDY_REQUIRED_CHECKS = ("google-runtime-int",)
 
 ProfileName = Literal[
     "python-package",
@@ -200,6 +201,7 @@ def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
             [
                 _check_required_paths(resolved_root, "C++ files", CPP_REQUIRED_PATHS),
                 _check_clang_format_policy(resolved_root),
+                _check_clang_tidy_policy(resolved_root),
                 _check_cmake_presets_policy(resolved_root),
             ]
         )
@@ -208,6 +210,7 @@ def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
             [
                 _check_required_paths(resolved_root, "mixed-mode files", MIXED_MODE_REQUIRED_PATHS),
                 _check_clang_format_policy(resolved_root),
+                _check_clang_tidy_policy(resolved_root),
                 _check_cmake_presets_policy(resolved_root),
                 _check_dist_root_policy(resolved_root),
             ]
@@ -434,6 +437,52 @@ def _check_clang_format_policy(root: Path) -> CheckResult:
             "expected " + ", ".join(missing_or_wrong),
         )
     return CheckResult("clang-format policy", True, "formatter matches C++ baseline")
+
+
+def _check_clang_tidy_policy(root: Path) -> CheckResult:
+    path = root / ".clang-tidy"
+    if not path.exists():
+        return CheckResult("clang-tidy policy", False, ".clang-tidy is required")
+    text = path.read_text(encoding="utf-8")
+    checks = _clang_tidy_field_value(text, "Checks")
+    warnings_as_errors = _clang_tidy_field_value(text, "WarningsAsErrors")
+    missing_checks = [check for check in CLANG_TIDY_REQUIRED_CHECKS if check not in checks]
+    if missing_checks:
+        return CheckResult(
+            "clang-tidy policy",
+            False,
+            "expected Checks to include " + ", ".join(missing_checks),
+        )
+    missing_errors = [
+        check for check in CLANG_TIDY_REQUIRED_CHECKS if check not in warnings_as_errors
+    ]
+    if missing_errors:
+        return CheckResult(
+            "clang-tidy policy",
+            False,
+            "expected WarningsAsErrors to include " + ", ".join(missing_errors),
+        )
+    return CheckResult(
+        "clang-tidy policy",
+        True,
+        "google-runtime-int is configured as an error",
+    )
+
+
+def _clang_tidy_field_value(text: str, field: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith("#") or not stripped.startswith(f"{field}:"):
+            continue
+        _, remainder = stripped.split(":", 1)
+        values = [remainder.strip()]
+        for child in lines[index + 1 :]:
+            if child.strip() and not child[0].isspace() and ":" in child:
+                break
+            values.append(child.strip())
+        return "\n".join(values)
+    return ""
 
 
 def _check_cmake_presets_policy(root: Path) -> CheckResult:

@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026.6.9
+
+- Add the C/C++ fixed-width integer spelling rule to the `cpp-library`
+  standard.
+- Require C/C++ profiles to configure clang-tidy `google-runtime-int` as an
+  error so owned code uses `std::int32_t`, `std::uint32_t`, `std::int64_t`, and
+  `std::uint64_t` instead of `short`, `long`, or `long long`.
+
 ## 2026.6.7
 
 - Codify HTML design-doc status markers with `draft`, `proposal`,

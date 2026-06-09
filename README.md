@@ -103,6 +103,9 @@ C++ projects use:
 - clang-format style based on LLVM, Allman braces, 4-space indentation, 100
   columns, left pointer alignment, sorted includes, and preserved include
   blocks
+- fixed-width integer spellings in owned C/C++ code
+  (`std::int32_t`, `std::uint32_t`, `std::int64_t`, `std::uint64_t`) instead
+  of `short`, `long`, or `long long`
 - compiler warnings on owned code, with release-facing CI treating warnings as
   errors where feasible
 - Rack strata for native foundation, algorithms, CLI/API integration, and L99
@@ -187,7 +190,7 @@ invalid design docs and reports draft/proposal pages for release review.
 - [C++ Standard](docs/design/cpp-standard.html)
 - [Mixed Mode Standard](docs/design/mixed-mode.html)
 - [JavaScript Web App Standard](docs/design/javascript-standard.html)
-- [Release Notes](docs/releases/2026-06-07.md)
+- [Release Notes](docs/releases/2026-06-09.md)
 
 ## License
 

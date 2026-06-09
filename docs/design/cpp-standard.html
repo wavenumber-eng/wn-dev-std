@@ -54,6 +54,36 @@ SpaceBeforeParens: ControlStatements</code></pre>
     a CMake-generated <code>compile_commands.json</code>. Existing projects may
     document temporary suppressions, but new warnings should not be added.
   </p>
+  <p>
+    C and C++ projects enable <code>google-runtime-int</code> and treat it as an
+    error for owned code. That gate blocks <code>short</code>,
+    <code>long</code>, <code>long long</code>, <code>unsigned long</code>, and
+    <code>unsigned long long</code> spellings in application-owned integer
+    storage.
+  </p>
+
+  <h2>Integer Widths</h2>
+  <p>
+    Owned C++ code uses fixed-width standard integer types when width matters:
+    <code>std::int32_t</code>, <code>std::uint32_t</code>,
+    <code>std::int64_t</code>, and <code>std::uint64_t</code>. C ABI and C
+    headers use the corresponding C spellings from <code>&lt;stdint.h&gt;</code>
+    or <code>&lt;cstdint&gt;</code> without the <code>std::</code> qualifier
+    where the ABI requires C-compatible names.
+  </p>
+  <p>
+    Use <code>std::size_t</code> for object sizes and container indices, and
+    <code>std::ptrdiff_t</code> for signed pointer or container differences.
+    External-library integer spellings are allowed at the external API boundary,
+    but owned code should convert them into the Wavenumber-owned type at the
+    boundary.
+  </p>
+  <pre><code>Checks: &gt;
+  -*,
+  google-runtime-int
+
+WarningsAsErrors: &gt;
+  google-runtime-int</code></pre>
 
   <h2>CMake</h2>
   <p>

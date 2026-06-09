@@ -45,6 +45,7 @@ def test_default_cpp_standard_contains_formatter_and_preset_rules() -> None:
     assert isinstance(standard, PythonStandard)
     assert any(rule.key == "generator" and rule.value == "ninja" for rule in standard.rules)
     assert any(rule.key == "format.style" for rule in standard.rules)
+    assert any(rule.key == "integer-widths" for rule in standard.rules)
     assert ".clang-format" in standard.required_files
     assert "CMakePresets.json" in standard.required_files
 
@@ -105,35 +106,35 @@ def test_render_python_standard_json_round_trips() -> None:
     rendered = render_python_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "python-package"
-    assert parsed["version"] == "2026.6.7"
+    assert parsed["version"] == "2026.6.9"
 
 
 def test_render_mixed_mode_standard_json_round_trips() -> None:
     rendered = render_mixed_mode_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "python-native-wasm"
-    assert parsed["version"] == "2026.6.7"
+    assert parsed["version"] == "2026.6.9"
 
 
 def test_render_cpp_standard_json_round_trips() -> None:
     rendered = render_cpp_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "cpp-library"
-    assert parsed["version"] == "2026.6.7"
+    assert parsed["version"] == "2026.6.9"
 
 
 def test_render_csharp_standard_json_round_trips() -> None:
     rendered = render_csharp_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "csharp-app"
-    assert parsed["version"] == "2026.6.7"
+    assert parsed["version"] == "2026.6.9"
 
 
 def test_render_javascript_web_standard_json_round_trips() -> None:
     rendered = render_javascript_web_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "javascript-web-app"
-    assert parsed["version"] == "2026.6.7"
+    assert parsed["version"] == "2026.6.9"
 
 
 def test_render_standard_json_round_trips_for_named_profile() -> None:
@@ -239,7 +240,6 @@ def write_minimal_cpp_repo(root: Path) -> None:
         "CONTRIBUTING.md",
         "LICENSE",
         "README.md",
-        ".clang-tidy",
         "CMakeLists.txt",
         "tests/rack.toml",
         "docs/setup.html",
@@ -249,6 +249,19 @@ def write_minimal_cpp_repo(root: Path) -> None:
     for relative_dir in ("docs/design", "docs/contracts", "docs/releases"):
         (root / relative_dir).mkdir(parents=True, exist_ok=True)
 
+    write_file(
+        root / ".clang-tidy",
+        dedent(
+            """
+            Checks: >
+              -*,
+              google-runtime-int
+
+            WarningsAsErrors: >
+              google-runtime-int
+            """
+        ).lstrip(),
+    )
     write_file(
         root / "pyproject.toml",
         dedent(
