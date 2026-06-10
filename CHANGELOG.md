@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026.6.10
+
+- Allow local root `.env` files to pass `wn-dev-std check` only when Git reports
+  them as untracked and ignored.
+- Require C/C++ profiles to expose a Lizard-based native complexity gate under
+  `tests/`.
+
 ## 2026.6.9
 
 - Add the C/C++ fixed-width integer spelling rule to the `cpp-library`

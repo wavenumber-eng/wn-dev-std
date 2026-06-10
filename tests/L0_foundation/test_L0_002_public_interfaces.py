@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 from pathlib import Path
 from textwrap import dedent
 
@@ -36,6 +37,9 @@ def test_default_mixed_mode_standard_contains_native_and_wasm_rules() -> None:
     assert any(
         rule.key == "workflow.native" and rule.value == "cmake + ctest" for rule in standard.rules
     )
+    assert any(
+        rule.key == "complexity.native" and "lizard" in rule.value for rule in standard.rules
+    )
     assert any(rule.key == "wasm-artifacts" for rule in standard.rules)
     assert "CMakeLists.txt" in standard.required_files
 
@@ -46,6 +50,9 @@ def test_default_cpp_standard_contains_formatter_and_preset_rules() -> None:
     assert any(rule.key == "generator" and rule.value == "ninja" for rule in standard.rules)
     assert any(rule.key == "format.style" for rule in standard.rules)
     assert any(rule.key == "integer-widths" for rule in standard.rules)
+    assert any(
+        rule.key == "complexity.native" and "lizard" in rule.value for rule in standard.rules
+    )
     assert ".clang-format" in standard.required_files
     assert "CMakePresets.json" in standard.required_files
 
@@ -106,35 +113,35 @@ def test_render_python_standard_json_round_trips() -> None:
     rendered = render_python_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "python-package"
-    assert parsed["version"] == "2026.6.9"
+    assert parsed["version"] == "2026.6.10"
 
 
 def test_render_mixed_mode_standard_json_round_trips() -> None:
     rendered = render_mixed_mode_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "python-native-wasm"
-    assert parsed["version"] == "2026.6.9"
+    assert parsed["version"] == "2026.6.10"
 
 
 def test_render_cpp_standard_json_round_trips() -> None:
     rendered = render_cpp_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "cpp-library"
-    assert parsed["version"] == "2026.6.9"
+    assert parsed["version"] == "2026.6.10"
 
 
 def test_render_csharp_standard_json_round_trips() -> None:
     rendered = render_csharp_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "csharp-app"
-    assert parsed["version"] == "2026.6.9"
+    assert parsed["version"] == "2026.6.10"
 
 
 def test_render_javascript_web_standard_json_round_trips() -> None:
     rendered = render_javascript_web_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "javascript-web-app"
-    assert parsed["version"] == "2026.6.9"
+    assert parsed["version"] == "2026.6.10"
 
 
 def test_render_standard_json_round_trips_for_named_profile() -> None:
@@ -147,6 +154,15 @@ def test_cpp_profile_basic_checks_pass_for_minimal_repo(tmp_path: Path) -> None:
     write_minimal_cpp_repo(tmp_path)
     results = run_basic_checks(tmp_path)
     assert all(result.passed for result in results), [result.to_dict() for result in results]
+
+
+def test_cpp_profile_requires_lizard_complexity_gate(tmp_path: Path) -> None:
+    write_minimal_cpp_repo(tmp_path, include_lizard=False)
+    results = run_basic_checks(tmp_path)
+    complexity = next(result for result in results if result.name == "native complexity")
+
+    assert not complexity.passed
+    assert "Lizard complexity gate" in complexity.detail
 
 
 def test_csharp_profile_basic_checks_pass_for_minimal_nested_project(tmp_path: Path) -> None:
@@ -165,6 +181,45 @@ def test_python_js_profile_basic_checks_pass_for_minimal_repo(tmp_path: Path) ->
     write_minimal_python_js_project(tmp_path)
     results = run_basic_checks(tmp_path)
     assert all(result.passed for result in results), [result.to_dict() for result in results]
+
+
+def test_secret_hygiene_passes_for_ignored_local_env(tmp_path: Path) -> None:
+    write_minimal_python_js_project(tmp_path)
+    write_file(tmp_path / ".gitignore", ".env\n")
+    write_file(tmp_path / ".env", "R2_SECRET_ACCESS_KEY=test\n")
+    init_git_repo(tmp_path)
+
+    results = run_basic_checks(tmp_path)
+    secret = next(result for result in results if result.name == "secret hygiene")
+
+    assert secret.passed
+    assert "ignored by git" in secret.detail
+
+
+def test_secret_hygiene_fails_for_non_ignored_env(tmp_path: Path) -> None:
+    write_minimal_python_js_project(tmp_path)
+    write_file(tmp_path / ".env", "R2_SECRET_ACCESS_KEY=test\n")
+    init_git_repo(tmp_path)
+
+    results = run_basic_checks(tmp_path)
+    secret = next(result for result in results if result.name == "secret hygiene")
+
+    assert not secret.passed
+    assert "not ignored" in secret.detail
+
+
+def test_secret_hygiene_fails_for_tracked_env(tmp_path: Path) -> None:
+    write_minimal_python_js_project(tmp_path)
+    write_file(tmp_path / ".gitignore", ".env\n")
+    write_file(tmp_path / ".env", "R2_SECRET_ACCESS_KEY=test\n")
+    init_git_repo(tmp_path)
+    run_git(tmp_path, "add", "-f", ".env")
+
+    results = run_basic_checks(tmp_path)
+    secret = next(result for result in results if result.name == "secret hygiene")
+
+    assert not secret.passed
+    assert "tracked" in secret.detail
 
 
 def test_compatibility_pruning_check_passes_for_clean_configured_repo(tmp_path: Path) -> None:
@@ -231,7 +286,7 @@ def test_design_doc_status_check_reports_draft_and_proposal_docs(tmp_path: Path)
     assert "docs/design/proposal-topic.html=proposal" in status.detail
 
 
-def write_minimal_cpp_repo(root: Path) -> None:
+def write_minimal_cpp_repo(root: Path, *, include_lizard: bool = True) -> None:
     for relative_path in (
         ".gitattributes",
         ".gitignore",
@@ -305,6 +360,11 @@ def write_minimal_cpp_repo(root: Path) -> None:
             """
         ).lstrip(),
     )
+    if include_lizard:
+        write_file(
+            root / "tests" / "L99_signoff" / "test_lizard_complexity.py",
+            "def test_lizard_complexity_gate_is_configured():\n    assert 'lizard'\n",
+        )
 
 
 def write_minimal_csharp_project(root: Path) -> None:
@@ -495,3 +555,17 @@ def add_compatibility_pruning_config(root: Path) -> None:
 def write_file(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
+
+def init_git_repo(root: Path) -> None:
+    run_git(root, "init", "--initial-branch=main")
+
+
+def run_git(root: Path, *args: str) -> None:
+    subprocess.run(
+        ("git", *args),
+        cwd=root,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=True,
+    )

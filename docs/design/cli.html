@@ -16,7 +16,9 @@
     <p>
       Runs basic repository conformance checks for required files, docs, Rack,
       design-doc status markers, lockfile, secret hygiene, and Hatchling build
-      backend.
+      backend. A local root <code>.env</code> is allowed only when Git reports
+      it as untracked and ignored. C/C++ profiles must also expose a
+      Lizard-based native complexity gate under <code>tests/</code>.
     </p>
   </section>
 

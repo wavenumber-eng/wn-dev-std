@@ -190,7 +190,7 @@ invalid design docs and reports draft/proposal pages for release review.
 - [C++ Standard](docs/design/cpp-standard.html)
 - [Mixed Mode Standard](docs/design/mixed-mode.html)
 - [JavaScript Web App Standard](docs/design/javascript-standard.html)
-- [Release Notes](docs/releases/2026-06-09.md)
+- [Release Notes](docs/releases/2026-06-10.md)
 
 ## License
 

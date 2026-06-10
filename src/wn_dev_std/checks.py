@@ -11,7 +11,10 @@ from typing import Literal, cast
 from xml.etree import ElementTree
 
 from wn_dev_std.compatibility_pruning import check_compatibility_pruning_policy
+from wn_dev_std.cpp_policy import check_clang_tidy_policy
 from wn_dev_std.design_doc_status import check_design_doc_status_policy
+from wn_dev_std.native_complexity import check_lizard_gate
+from wn_dev_std.secret_hygiene import check_root_env_policy
 
 
 @dataclass(frozen=True, slots=True)
@@ -155,7 +158,6 @@ CLANG_FORMAT_REQUIRED_SETTINGS = {
     "SortIncludes": "true",
     "IncludeBlocks": "Preserve",
 }
-CLANG_TIDY_REQUIRED_CHECKS = ("google-runtime-int",)
 
 ProfileName = Literal[
     "python-package",
@@ -203,6 +205,7 @@ def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
                 _check_clang_format_policy(resolved_root),
                 _check_clang_tidy_policy(resolved_root),
                 _check_cmake_presets_policy(resolved_root),
+                _check_lizard_complexity_policy(resolved_root),
             ]
         )
     if profile == "python-native-wasm":
@@ -212,6 +215,7 @@ def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
                 _check_clang_format_policy(resolved_root),
                 _check_clang_tidy_policy(resolved_root),
                 _check_cmake_presets_policy(resolved_root),
+                _check_lizard_complexity_policy(resolved_root),
                 _check_dist_root_policy(resolved_root),
             ]
         )
@@ -276,9 +280,8 @@ def _check_design_doc_status(root: Path) -> CheckResult:
 
 
 def _check_no_env_file(root: Path) -> CheckResult:
-    if (root / ".env").exists():
-        return CheckResult("secret hygiene", False, ".env must not be committed")
-    return CheckResult("secret hygiene", True, ".env is not present")
+    passed, detail = check_root_env_policy(root)
+    return CheckResult("secret hygiene", passed, detail)
 
 
 def _required_root_files(profile: ProfileName) -> tuple[str, ...]:
@@ -440,49 +443,8 @@ def _check_clang_format_policy(root: Path) -> CheckResult:
 
 
 def _check_clang_tidy_policy(root: Path) -> CheckResult:
-    path = root / ".clang-tidy"
-    if not path.exists():
-        return CheckResult("clang-tidy policy", False, ".clang-tidy is required")
-    text = path.read_text(encoding="utf-8")
-    checks = _clang_tidy_field_value(text, "Checks")
-    warnings_as_errors = _clang_tidy_field_value(text, "WarningsAsErrors")
-    missing_checks = [check for check in CLANG_TIDY_REQUIRED_CHECKS if check not in checks]
-    if missing_checks:
-        return CheckResult(
-            "clang-tidy policy",
-            False,
-            "expected Checks to include " + ", ".join(missing_checks),
-        )
-    missing_errors = [
-        check for check in CLANG_TIDY_REQUIRED_CHECKS if check not in warnings_as_errors
-    ]
-    if missing_errors:
-        return CheckResult(
-            "clang-tidy policy",
-            False,
-            "expected WarningsAsErrors to include " + ", ".join(missing_errors),
-        )
-    return CheckResult(
-        "clang-tidy policy",
-        True,
-        "google-runtime-int is configured as an error",
-    )
-
-
-def _clang_tidy_field_value(text: str, field: str) -> str:
-    lines = text.splitlines()
-    for index, line in enumerate(lines):
-        stripped = line.strip()
-        if stripped.startswith("#") or not stripped.startswith(f"{field}:"):
-            continue
-        _, remainder = stripped.split(":", 1)
-        values = [remainder.strip()]
-        for child in lines[index + 1 :]:
-            if child.strip() and not child[0].isspace() and ":" in child:
-                break
-            values.append(child.strip())
-        return "\n".join(values)
-    return ""
+    passed, detail = check_clang_tidy_policy(root)
+    return CheckResult("clang-tidy policy", passed, detail)
 
 
 def _check_cmake_presets_policy(root: Path) -> CheckResult:
@@ -515,6 +477,11 @@ def _check_cmake_presets_policy(root: Path) -> CheckResult:
             "at least one configure preset must set CMAKE_EXPORT_COMPILE_COMMANDS=ON",
         )
     return CheckResult("CMake presets", True, "Ninja and compile commands are configured")
+
+
+def _check_lizard_complexity_policy(root: Path) -> CheckResult:
+    passed, detail = check_lizard_gate(root)
+    return CheckResult("native complexity", passed, detail)
 
 
 def _check_dotnet_project_policy(root: Path) -> CheckResult:
