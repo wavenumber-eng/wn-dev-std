@@ -67,6 +67,11 @@ MIXED_MODE_RULES = (
     StrictRule("workflow.native", "cmake + ctest", "Keep native builds portable."),
     StrictRule("workflow.wasm", "pinned emsdk or equivalent", "Keep browser builds reproducible."),
     StrictRule(
+        "complexity.native",
+        "lizard in release signoff",
+        "Block overly complex owned C/C++ functions before merge.",
+    ),
+    StrictRule(
         "inherits",
         "cpp-library",
         "Use the same formatter, preset, warning, and native signoff rules.",
@@ -169,6 +174,11 @@ CPP_RULES = (
     ),
     StrictRule("test-runner", "ctest", "Register native tests with CTest."),
     StrictRule("test-orchestration", "rack", "Expose native lanes and release gates explicitly."),
+    StrictRule(
+        "complexity.native",
+        "lizard in release signoff",
+        "Block overly complex owned C/C++ functions before merge.",
+    ),
     StrictRule(
         "sanitizers",
         "asan+ubsan where supported",
@@ -453,7 +463,7 @@ def default_python_standard() -> PythonStandard:
     """Return the current strict Python package standard."""
     return PythonStandard(
         name="python-package",
-        version="2026.6.9",
+        version="2026.6.10",
         status="initial",
         rules=(
             StrictRule("workflow", "uv", "Use one environment and lock workflow."),
@@ -493,7 +503,7 @@ def default_mixed_mode_standard() -> PythonStandard:
     """Return the current Python plus native/WASM mixed-mode standard."""
     return PythonStandard(
         name="python-native-wasm",
-        version="2026.6.9",
+        version="2026.6.10",
         status="initial",
         rules=MIXED_MODE_RULES,
         required_files=MIXED_MODE_REQUIRED_FILES,
@@ -505,7 +515,7 @@ def default_cpp_standard() -> PythonStandard:
     """Return the current C++ library and native executable standard."""
     return PythonStandard(
         name="cpp-library",
-        version="2026.6.9",
+        version="2026.6.10",
         status="initial",
         rules=CPP_RULES,
         required_files=CPP_REQUIRED_FILES,
@@ -517,7 +527,7 @@ def default_csharp_standard() -> PythonStandard:
     """Return the current C# application and plugin standard."""
     return PythonStandard(
         name="csharp-app",
-        version="2026.6.9",
+        version="2026.6.10",
         status="initial",
         rules=CSHARP_RULES,
         required_files=CSHARP_REQUIRED_FILES,
@@ -529,7 +539,7 @@ def default_javascript_web_standard() -> PythonStandard:
     """Return the current no-build browser JavaScript and CSS standard."""
     return PythonStandard(
         name="javascript-web-app",
-        version="2026.6.9",
+        version="2026.6.10",
         status="initial",
         rules=JAVASCRIPT_WEB_RULES,
         required_files=JAVASCRIPT_WEB_REQUIRED_FILES,
@@ -541,7 +551,7 @@ def default_python_js_standard() -> PythonStandard:
     """Return the current Python plus browser JavaScript app standard."""
     return PythonStandard(
         name="python-js-app",
-        version="2026.6.9",
+        version="2026.6.10",
         status="initial",
         rules=PYTHON_JS_RULES,
         required_files=PYTHON_JS_REQUIRED_FILES,

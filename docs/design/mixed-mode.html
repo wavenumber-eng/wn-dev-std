@@ -66,8 +66,9 @@
   <p>
     Release signoff must prove that the native CLI, Python source wrapper,
     installed wheel, and WASM targets still work. The release gate should run
-    Ruff, Pyright, clang-format, CTest, native validation, package validation,
-    and a stale artifact policy check.
+    Ruff, Pyright, clang-format, Lizard complexity checks for owned C/C++,
+    CTest, native validation, package validation, and a stale artifact policy
+    check.
   </p>
 
   <h2>Version Contract</h2>

@@ -109,6 +109,14 @@ WarningsAsErrors: &gt;
     L99 release signoff.
   </p>
 
+  <h2>Complexity</h2>
+  <p>
+    C and C++ projects must run a Lizard-based complexity gate as part of
+    release signoff. The gate should scan owned native source, exclude generated
+    and third-party code explicitly, and fail when project thresholds are
+    exceeded.
+  </p>
+
   <h2>Boundaries</h2>
   <p>
     Public headers live behind an intentional include boundary. Private headers
