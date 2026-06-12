@@ -47,12 +47,46 @@ def test_binary_distribution_policy_is_documented() -> None:
     assert "installed-wheel validation" in mixed_mode_doc
 
 
+def test_rack_and_signoff_quality_model_is_documented() -> None:
+    architecture = (ROOT / "docs" / "architecture.html").read_text(encoding="utf-8")
+    for expected in (
+        "Quality Model",
+        "Rack answers",
+        "Signoff answers",
+        "Every project needs a signoff gate",
+        "L99_signoff",
+        "complexity, file",
+        r"C:\ELI\prj\wavenumber-eng\wn-dev-std\tests",
+        "fast edit-loop check",
+        "release-facing gate",
+        "baselines can make existing debt visible",
+    ):
+        assert expected in architecture
+
+
+def test_readme_documents_public_rack_package_and_project_model() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    for expected in (
+        "https://pypi.org/project/wn-rack/",
+        "uv add --dev wn-rack",
+        "All Wavenumber projects should use the Rack model",
+        "Non-Python projects should still follow the same model",
+        "Every project needs a signoff gate",
+        "L99_signoff",
+        "complexity, file size, function size",
+        r"C:\ELI\prj\wavenumber-eng\wn-dev-std\tests",
+        "tests/rack.toml",
+    ):
+        assert expected in readme
+
+
 def test_cpp_tooling_policy_is_documented_and_templated() -> None:
     cpp_doc = (ROOT / "docs" / "design" / "cpp-standard.html").read_text(encoding="utf-8")
     clang_format = (ROOT / "docs" / "templates" / "cpp" / ".clang-format").read_text(
         encoding="utf-8"
     )
     clang_tidy = (ROOT / "docs" / "templates" / "cpp" / ".clang-tidy").read_text(encoding="utf-8")
+    signoff = (ROOT / "docs" / "templates" / "cpp" / "signoff.toml").read_text(encoding="utf-8")
     for expected in (
         "BasedOnStyle: LLVM",
         "BreakBeforeBraces: Allman",
@@ -65,7 +99,30 @@ def test_cpp_tooling_policy_is_documented_and_templated() -> None:
         assert expected in cpp_doc
         assert expected in clang_format
     assert "CMAKE_EXPORT_COMPILE_COMMANDS=ON" in cpp_doc
+    assert "max_cyclomatic_complexity = 10" in cpp_doc
+    assert "max_cyclomatic_complexity = 10" in signoff
+    assert 'lizard = "fail"' in signoff
     assert "clang-analyzer-*" in clang_tidy
+    assert "google-runtime-int" in clang_tidy
+
+
+def test_zephyr_policy_is_documented_and_templated() -> None:
+    zephyr_doc = (ROOT / "docs" / "design" / "zephyr-standard.html").read_text(encoding="utf-8")
+    clang_format = (ROOT / "docs" / "templates" / "zephyr" / ".clang-format").read_text(
+        encoding="utf-8"
+    )
+    signoff = (ROOT / "docs" / "templates" / "zephyr" / "signoff.toml").read_text(encoding="utf-8")
+    for expected in (
+        "zephyr-firmware",
+        "CMAKE_EXPORT_COMPILE_COMMANDS=ON",
+        "max_cyclomatic_complexity = 10",
+        "Xtensa",
+    ):
+        assert expected in zephyr_doc
+    assert "BreakBeforeBraces: Attach" in clang_format
+    assert "SortIncludes: Never" in clang_format
+    assert 'profile = "zephyr-firmware"' in signoff
+    assert "max_cyclomatic_complexity = 10" in signoff
 
 
 def test_javascript_web_policy_is_documented() -> None:

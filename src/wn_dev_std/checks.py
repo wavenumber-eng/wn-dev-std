@@ -7,13 +7,31 @@ import tomllib
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal, cast
+from typing import cast
 from xml.etree import ElementTree
 
+from wn_dev_std.check_profiles import (
+    CLANG_FORMAT_REQUIRED_SETTINGS,
+    CPP_REQUIRED_PATHS,
+    CSHARP_ANALYZER_PROPS,
+    CSHARP_EDITORCONFIG_RULES,
+    CSHARP_REQUIRED_PATHS,
+    JAVASCRIPT_WEB_REQUIRED_PATHS,
+    MIXED_MODE_REQUIRED_PATHS,
+    ZEPHYR_CLANG_FORMAT_REQUIRED_SETTINGS,
+    ZEPHYR_REQUIRED_PATHS,
+    ProfileName,
+    project_profile,
+    required_doc_paths,
+    required_root_files,
+)
+from wn_dev_std.check_profiles import (
+    REQUIRED_ROOT_FILES as REQUIRED_ROOT_FILES,
+)
 from wn_dev_std.compatibility_pruning import check_compatibility_pruning_policy
 from wn_dev_std.cpp_policy import check_clang_tidy_policy
 from wn_dev_std.design_doc_status import check_design_doc_status_policy
-from wn_dev_std.native_complexity import check_lizard_gate
+from wn_dev_std.native_complexity import check_lizard_gate, check_native_signoff_config
 from wn_dev_std.secret_hygiene import check_root_env_policy
 
 
@@ -34,147 +52,8 @@ class CheckResult:
         }
 
 
-REQUIRED_ROOT_FILES = (
-    ".gitattributes",
-    ".gitignore",
-    "AGENTS.md",
-    "CHANGELOG.md",
-    "CONTRIBUTING.md",
-    "LICENSE",
-    "README.md",
-    "pyproject.toml",
-)
-
-REQUIRED_DOC_PATHS = (
-    "docs/setup.html",
-    "docs/architecture.html",
-    "docs/design",
-    "docs/contracts",
-    "docs/releases",
-)
-
-MIXED_MODE_REQUIRED_PATHS = (
-    ".clang-format",
-    ".clang-tidy",
-    "CMakeLists.txt",
-    "CMakePresets.json",
-    "dist/README.md",
-    "scripts/validate_native.py",
-    "scripts/validate_python_package.py",
-)
-
-CPP_REQUIRED_PATHS = (
-    ".clang-format",
-    ".clang-tidy",
-    "CMakeLists.txt",
-    "CMakePresets.json",
-)
-
-CSHARP_REQUIRED_PATHS = (
-    ".editorconfig",
-    ".gitattributes",
-    ".gitignore",
-    "AGENTS.md",
-    "Directory.Build.props",
-    "README.md",
-    "build.ps1",
-    "src",
-    "tests",
-    "wn-dev-std.toml",
-)
-
-CSHARP_REQUIRED_DOC_PATHS = (
-    "docs/setup.html",
-    "docs/architecture.html",
-    "docs/design",
-    "docs/contracts",
-    "docs/releases",
-)
-
-CSHARP_ANALYZER_PROPS = (
-    ("EnforceCodeStyleInBuild", "true"),
-    ("EnableNETAnalyzers", "true"),
-)
-
-CSHARP_EDITORCONFIG_RULES = (
-    "dotnet_diagnostic.CA1502.severity = error",
-    "dotnet_diagnostic.CA1505.severity = error",
-    "dotnet_diagnostic.CA1506.severity = error",
-)
-
-JAVASCRIPT_WEB_REQUIRED_PATHS = (
-    "src",
-    "tests/rack.toml",
-)
-
-JAVASCRIPT_WEB_REQUIRED_ROOT_FILES = (
-    ".gitattributes",
-    ".gitignore",
-    "AGENTS.md",
-    "README.md",
-    "src",
-    "tests",
-    "wn-dev-std.toml",
-)
-
-PYTHON_JS_REQUIRED_ROOT_FILES = (
-    ".gitattributes",
-    ".gitignore",
-    "AGENTS.md",
-    "README.md",
-    "pyproject.toml",
-    "src",
-    "tests",
-    "wn-dev-std.toml",
-)
-
-JAVASCRIPT_WEB_REQUIRED_DOC_PATHS = (
-    "docs/setup.html",
-    "docs/architecture.html",
-    "docs/design",
-    "docs/design/javascript-standard.html",
-    "docs/contracts",
-    "docs/releases",
-)
-
-PYTHON_JS_REQUIRED_DOC_PATHS = (
-    "docs/setup.html",
-    "docs/architecture.html",
-    "docs/design",
-    "docs/design/javascript-standard.html",
-    "docs/contracts",
-    "docs/releases",
-)
-
 JS_CSS_EXCLUDED_PARTS = {"vendor", "lib", "_build", "node_modules"}
 STANDARD_COMMAND_VERBS = ("install", "update", "build", "test", "signoff")
-
-CLANG_FORMAT_REQUIRED_SETTINGS = {
-    "BasedOnStyle": "LLVM",
-    "BreakBeforeBraces": "Allman",
-    "IndentWidth": "4",
-    "ColumnLimit": "100",
-    "PointerAlignment": "Left",
-    "SortIncludes": "true",
-    "IncludeBlocks": "Preserve",
-}
-
-ProfileName = Literal[
-    "python-package",
-    "python-native-wasm",
-    "cpp-library",
-    "csharp-app",
-    "javascript-web-app",
-    "python-js-app",
-]
-SUPPORTED_PROFILES = (
-    "python-package",
-    "python-native-wasm",
-    "cpp-library",
-    "csharp-app",
-    "javascript-web-app",
-    "python-js-app",
-)
 
 
 def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
@@ -182,66 +61,16 @@ def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
     resolved_root = root.resolve()
     pyproject = _load_pyproject(resolved_root)
     config = _load_standard_config(resolved_root, pyproject)
-    profile = _project_profile(config)
-    checks = [
-        _check_required_paths(resolved_root, "root files", _required_root_files(profile)),
-        _check_required_paths(resolved_root, "documentation", _required_doc_paths(profile)),
-        _check_design_doc_status(resolved_root),
-        _check_no_env_file(resolved_root),
-    ]
-    if profile != "csharp-app":
-        checks.append(_check_required_paths(resolved_root, "rack suite", ("tests/rack.toml",)))
-    if profile not in {"cpp-library", "csharp-app", "javascript-web-app"}:
+    profile = project_profile(config)
+    checks = _common_checks(resolved_root, profile)
+    if _needs_python_package_checks(profile):
         checks.extend(
             [
                 _check_uv_lock(resolved_root),
                 _check_pyproject_backend(resolved_root, pyproject, profile),
             ]
         )
-    if profile == "cpp-library":
-        checks.extend(
-            [
-                _check_required_paths(resolved_root, "C++ files", CPP_REQUIRED_PATHS),
-                _check_clang_format_policy(resolved_root),
-                _check_clang_tidy_policy(resolved_root),
-                _check_cmake_presets_policy(resolved_root),
-                _check_lizard_complexity_policy(resolved_root),
-            ]
-        )
-    if profile == "python-native-wasm":
-        checks.extend(
-            [
-                _check_required_paths(resolved_root, "mixed-mode files", MIXED_MODE_REQUIRED_PATHS),
-                _check_clang_format_policy(resolved_root),
-                _check_clang_tidy_policy(resolved_root),
-                _check_cmake_presets_policy(resolved_root),
-                _check_lizard_complexity_policy(resolved_root),
-                _check_dist_root_policy(resolved_root),
-            ]
-        )
-    if profile == "csharp-app":
-        checks.extend(
-            [
-                _check_required_paths(resolved_root, "C# files", CSHARP_REQUIRED_PATHS),
-                _check_dotnet_project_policy(resolved_root),
-                _check_dotnet_analyzer_policy(resolved_root),
-            ]
-        )
-    if profile in {"javascript-web-app", "python-js-app"}:
-        checks.extend(
-            [
-                _check_required_paths(
-                    resolved_root,
-                    "web app files",
-                    JAVASCRIPT_WEB_REQUIRED_PATHS,
-                ),
-                _check_web_source_policy(resolved_root),
-                _check_web_typecheck_policy(resolved_root),
-                _check_web_css_token_policy(resolved_root),
-                _check_web_command_surface_policy(resolved_root),
-                _check_web_signoff_policy(resolved_root),
-            ]
-        )
+    checks.extend(_profile_specific_checks(resolved_root, profile))
     pruning_config = _compatibility_pruning_config(config)
     if pruning_config is not None:
         pruning_result = check_compatibility_pruning_policy(resolved_root, pruning_config)
@@ -249,6 +78,88 @@ def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
             CheckResult("compatibility pruning", pruning_result.passed, pruning_result.detail)
         )
     return tuple(checks)
+
+
+def _common_checks(root: Path, profile: ProfileName) -> list[CheckResult]:
+    checks = [
+        _check_required_paths(root, "root files", required_root_files(profile)),
+        _check_required_paths(root, "documentation", required_doc_paths(profile)),
+        _check_design_doc_status(root),
+        _check_no_env_file(root),
+    ]
+    if profile != "csharp-app":
+        checks.append(_check_required_paths(root, "rack suite", ("tests/rack.toml",)))
+    return checks
+
+
+def _needs_python_package_checks(profile: ProfileName) -> bool:
+    native_or_non_python = {"cpp-library", "csharp-app", "javascript-web-app", "zephyr-firmware"}
+    return profile not in native_or_non_python
+
+
+def _profile_specific_checks(root: Path, profile: ProfileName) -> list[CheckResult]:
+    if profile == "cpp-library":
+        return _cpp_checks(root)
+    if profile == "zephyr-firmware":
+        return _zephyr_checks(root)
+    if profile == "python-native-wasm":
+        return _mixed_mode_checks(root)
+    if profile == "csharp-app":
+        return _csharp_checks(root)
+    if profile in {"javascript-web-app", "python-js-app"}:
+        return _web_checks(root)
+    return []
+
+
+def _cpp_checks(root: Path) -> list[CheckResult]:
+    return [
+        _check_required_paths(root, "C++ files", CPP_REQUIRED_PATHS),
+        _check_clang_format_policy(root),
+        _check_clang_tidy_policy(root),
+        _check_cmake_presets_policy(root),
+        _check_native_signoff_config(root),
+        _check_lizard_complexity_policy(root),
+    ]
+
+
+def _zephyr_checks(root: Path) -> list[CheckResult]:
+    return [
+        _check_required_paths(root, "Zephyr files", ZEPHYR_REQUIRED_PATHS),
+        _check_zephyr_clang_format_policy(root),
+        _check_clang_tidy_policy(root),
+        _check_native_signoff_config(root),
+        _check_lizard_complexity_policy(root),
+    ]
+
+
+def _mixed_mode_checks(root: Path) -> list[CheckResult]:
+    return [
+        _check_required_paths(root, "mixed-mode files", MIXED_MODE_REQUIRED_PATHS),
+        _check_clang_format_policy(root),
+        _check_clang_tidy_policy(root),
+        _check_cmake_presets_policy(root),
+        _check_lizard_complexity_policy(root),
+        _check_dist_root_policy(root),
+    ]
+
+
+def _csharp_checks(root: Path) -> list[CheckResult]:
+    return [
+        _check_required_paths(root, "C# files", CSHARP_REQUIRED_PATHS),
+        _check_dotnet_project_policy(root),
+        _check_dotnet_analyzer_policy(root),
+    ]
+
+
+def _web_checks(root: Path) -> list[CheckResult]:
+    return [
+        _check_required_paths(root, "web app files", JAVASCRIPT_WEB_REQUIRED_PATHS),
+        _check_web_source_policy(root),
+        _check_web_typecheck_policy(root),
+        _check_web_css_token_policy(root),
+        _check_web_command_surface_policy(root),
+        _check_web_signoff_policy(root),
+    ]
 
 
 def format_results(results: tuple[CheckResult, ...], output_format: str) -> str:
@@ -282,26 +193,6 @@ def _check_design_doc_status(root: Path) -> CheckResult:
 def _check_no_env_file(root: Path) -> CheckResult:
     passed, detail = check_root_env_policy(root)
     return CheckResult("secret hygiene", passed, detail)
-
-
-def _required_root_files(profile: ProfileName) -> tuple[str, ...]:
-    if profile == "cpp-library":
-        return tuple(path for path in REQUIRED_ROOT_FILES if path != "pyproject.toml")
-    if profile == "csharp-app":
-        return CSHARP_REQUIRED_PATHS
-    if profile == "javascript-web-app":
-        return JAVASCRIPT_WEB_REQUIRED_ROOT_FILES
-    if profile == "python-js-app":
-        return PYTHON_JS_REQUIRED_ROOT_FILES
-    return REQUIRED_ROOT_FILES
-
-
-def _required_doc_paths(profile: ProfileName) -> tuple[str, ...]:
-    if profile == "csharp-app":
-        return CSHARP_REQUIRED_DOC_PATHS
-    if profile in {"javascript-web-app", "python-js-app"}:
-        return PYTHON_JS_REQUIRED_DOC_PATHS
-    return REQUIRED_DOC_PATHS
 
 
 def _check_uv_lock(root: Path) -> CheckResult:
@@ -358,25 +249,6 @@ def _load_standard_config(
     return cast(Mapping[str, object], config_raw)
 
 
-def _project_profile(config: Mapping[str, object] | None) -> ProfileName:
-    if config is None:
-        return "python-package"
-    profile = config.get("profile")
-    if profile == "python-package":
-        return "python-package"
-    if profile == "python-native-wasm":
-        return "python-native-wasm"
-    if profile == "cpp-library":
-        return "cpp-library"
-    if profile == "csharp-app":
-        return "csharp-app"
-    if profile == "javascript-web-app":
-        return "javascript-web-app"
-    if profile == "python-js-app":
-        return "python-js-app"
-    return "python-package"
-
-
 def _compatibility_pruning_config(config: Mapping[str, object] | None) -> object | None:
     if config is None:
         return None
@@ -424,14 +296,23 @@ def _check_dist_root_policy(root: Path) -> CheckResult:
 
 
 def _check_clang_format_policy(root: Path) -> CheckResult:
+    return _check_clang_format_settings(root, CLANG_FORMAT_REQUIRED_SETTINGS)
+
+
+def _check_zephyr_clang_format_policy(root: Path) -> CheckResult:
+    return _check_clang_format_settings(root, ZEPHYR_CLANG_FORMAT_REQUIRED_SETTINGS)
+
+
+def _check_clang_format_settings(
+    root: Path,
+    required_settings: Mapping[str, str],
+) -> CheckResult:
     path = root / ".clang-format"
     if not path.exists():
         return CheckResult("clang-format policy", False, ".clang-format is required")
     settings = _read_simple_yaml_map(path)
     missing_or_wrong = [
-        f"{key}={value}"
-        for key, value in CLANG_FORMAT_REQUIRED_SETTINGS.items()
-        if settings.get(key) != value
+        f"{key}={value}" for key, value in required_settings.items() if settings.get(key) != value
     ]
     if missing_or_wrong:
         return CheckResult(
@@ -482,6 +363,11 @@ def _check_cmake_presets_policy(root: Path) -> CheckResult:
 def _check_lizard_complexity_policy(root: Path) -> CheckResult:
     passed, detail = check_lizard_gate(root)
     return CheckResult("native complexity", passed, detail)
+
+
+def _check_native_signoff_config(root: Path) -> CheckResult:
+    passed, detail = check_native_signoff_config(root)
+    return CheckResult("native signoff config", passed, detail)
 
 
 def _check_dotnet_project_policy(root: Path) -> CheckResult:

@@ -8,18 +8,21 @@ from textwrap import dedent
 from wn_dev_std import (
     PythonStandard,
     StrictRule,
+    __version__,
     default_cpp_standard,
     default_csharp_standard,
     default_javascript_web_standard,
     default_mixed_mode_standard,
     default_python_standard,
     default_standard,
+    default_zephyr_standard,
     render_cpp_standard,
     render_csharp_standard,
     render_javascript_web_standard,
     render_mixed_mode_standard,
     render_python_standard,
     render_standard,
+    render_zephyr_standard,
 )
 from wn_dev_std.checks import run_basic_checks
 
@@ -37,9 +40,7 @@ def test_default_mixed_mode_standard_contains_native_and_wasm_rules() -> None:
     assert any(
         rule.key == "workflow.native" and rule.value == "cmake + ctest" for rule in standard.rules
     )
-    assert any(
-        rule.key == "complexity.native" and "lizard" in rule.value for rule in standard.rules
-    )
+    assert any(rule.key == "complexity.native" and "<= 10" in rule.value for rule in standard.rules)
     assert any(rule.key == "wasm-artifacts" for rule in standard.rules)
     assert "CMakeLists.txt" in standard.required_files
 
@@ -50,11 +51,20 @@ def test_default_cpp_standard_contains_formatter_and_preset_rules() -> None:
     assert any(rule.key == "generator" and rule.value == "ninja" for rule in standard.rules)
     assert any(rule.key == "format.style" for rule in standard.rules)
     assert any(rule.key == "integer-widths" for rule in standard.rules)
-    assert any(
-        rule.key == "complexity.native" and "lizard" in rule.value for rule in standard.rules
-    )
+    assert any(rule.key == "complexity.native" and "<= 10" in rule.value for rule in standard.rules)
     assert ".clang-format" in standard.required_files
     assert "CMakePresets.json" in standard.required_files
+    assert "signoff.toml" in standard.required_files
+
+
+def test_default_zephyr_standard_contains_embedded_signoff_rules() -> None:
+    standard = default_zephyr_standard()
+    assert isinstance(standard, PythonStandard)
+    assert any(rule.key == "inherits" and rule.value == "cpp-library" for rule in standard.rules)
+    assert any(rule.key == "complexity.native" and "<= 10" in rule.value for rule in standard.rules)
+    assert any(rule.key == "target-toolchains" for rule in standard.rules)
+    assert "signoff.toml" in standard.required_files
+    assert "docs/design/zephyr-standard.html" in standard.required_docs
 
 
 def test_default_csharp_standard_contains_dotnet_analyzer_rules() -> None:
@@ -98,6 +108,7 @@ def test_default_standard_selects_profiles() -> None:
     assert default_standard("csharp-app").name == "csharp-app"
     assert default_standard("javascript-web-app").name == "javascript-web-app"
     assert default_standard("python-js-app").name == "python-js-app"
+    assert default_standard("zephyr-firmware").name == "zephyr-firmware"
 
 
 def test_strict_rule_serializes_to_json_ready_dict() -> None:
@@ -113,41 +124,48 @@ def test_render_python_standard_json_round_trips() -> None:
     rendered = render_python_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "python-package"
-    assert parsed["version"] == "2026.6.10"
+    assert parsed["version"] == __version__
 
 
 def test_render_mixed_mode_standard_json_round_trips() -> None:
     rendered = render_mixed_mode_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "python-native-wasm"
-    assert parsed["version"] == "2026.6.10"
+    assert parsed["version"] == __version__
 
 
 def test_render_cpp_standard_json_round_trips() -> None:
     rendered = render_cpp_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "cpp-library"
-    assert parsed["version"] == "2026.6.10"
+    assert parsed["version"] == __version__
 
 
 def test_render_csharp_standard_json_round_trips() -> None:
     rendered = render_csharp_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "csharp-app"
-    assert parsed["version"] == "2026.6.10"
+    assert parsed["version"] == __version__
 
 
 def test_render_javascript_web_standard_json_round_trips() -> None:
     rendered = render_javascript_web_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "javascript-web-app"
-    assert parsed["version"] == "2026.6.10"
+    assert parsed["version"] == __version__
 
 
 def test_render_standard_json_round_trips_for_named_profile() -> None:
     rendered = render_standard("python-js-app", "json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "python-js-app"
+
+
+def test_render_zephyr_standard_json_round_trips() -> None:
+    rendered = render_zephyr_standard("json")
+    parsed = json.loads(rendered)
+    assert parsed["name"] == "zephyr-firmware"
+    assert parsed["version"] == __version__
 
 
 def test_cpp_profile_basic_checks_pass_for_minimal_repo(tmp_path: Path) -> None:
@@ -163,6 +181,22 @@ def test_cpp_profile_requires_lizard_complexity_gate(tmp_path: Path) -> None:
 
     assert not complexity.passed
     assert "Lizard complexity gate" in complexity.detail
+
+
+def test_cpp_profile_requires_canonical_native_signoff_limit(tmp_path: Path) -> None:
+    write_minimal_cpp_repo(tmp_path, max_cyclomatic_complexity=35)
+    results = run_basic_checks(tmp_path)
+    signoff = next(result for result in results if result.name == "native signoff config")
+
+    assert not signoff.passed
+    assert "max_cyclomatic_complexity" in signoff.detail
+    assert "<= 10" in signoff.detail
+
+
+def test_zephyr_profile_basic_checks_pass_for_minimal_repo(tmp_path: Path) -> None:
+    write_minimal_zephyr_project(tmp_path)
+    results = run_basic_checks(tmp_path)
+    assert all(result.passed for result in results), [result.to_dict() for result in results]
 
 
 def test_csharp_profile_basic_checks_pass_for_minimal_nested_project(tmp_path: Path) -> None:
@@ -286,7 +320,12 @@ def test_design_doc_status_check_reports_draft_and_proposal_docs(tmp_path: Path)
     assert "docs/design/proposal-topic.html=proposal" in status.detail
 
 
-def write_minimal_cpp_repo(root: Path, *, include_lizard: bool = True) -> None:
+def write_minimal_cpp_repo(
+    root: Path,
+    *,
+    include_lizard: bool = True,
+    max_cyclomatic_complexity: int = 10,
+) -> None:
     for relative_path in (
         ".gitattributes",
         ".gitignore",
@@ -323,6 +362,26 @@ def write_minimal_cpp_repo(root: Path, *, include_lizard: bool = True) -> None:
             """
             [tool.wn_dev_std]
             profile = "cpp-library"
+            """
+        ).lstrip(),
+    )
+    write_file(
+        root / "signoff.toml",
+        dedent(
+            f"""
+            schema = 1
+            profile = "cpp-library"
+            baseline = "scripts/signoff_baseline.json"
+
+            [limits]
+            max_file_lines = 2200
+            max_function_lines = 220
+            max_cyclomatic_complexity = {max_cyclomatic_complexity}
+
+            [tools]
+            lizard = "fail"
+            clang_format = "report"
+            clang_tidy = "report"
             """
         ).lstrip(),
     )
@@ -365,6 +424,93 @@ def write_minimal_cpp_repo(root: Path, *, include_lizard: bool = True) -> None:
             root / "tests" / "L99_signoff" / "test_lizard_complexity.py",
             "def test_lizard_complexity_gate_is_configured():\n    assert 'lizard'\n",
         )
+
+
+def write_minimal_zephyr_project(root: Path) -> None:
+    for relative_path in (
+        ".clang-format",
+        ".clang-tidy",
+        ".gitattributes",
+        ".gitignore",
+        "AGENTS.md",
+        "README.md",
+        "tests/rack.toml",
+        "docs/setup.html",
+        "docs/architecture.html",
+        "docs/design/zephyr-standard.html",
+    ):
+        write_file(root / relative_path, "placeholder\n")
+    for relative_dir in ("docs/contracts", "docs/releases", "src/app/src"):
+        (root / relative_dir).mkdir(parents=True, exist_ok=True)
+    write_file(
+        root / "docs" / "design" / "zephyr-standard.html",
+        (
+            '<!doctype html><html><body data-doc-status="accepted">'
+            "<h1>Zephyr Standard</h1></body></html>\n"
+        ),
+    )
+    write_file(
+        root / "wn-dev-std.toml",
+        dedent(
+            """
+            profile = "zephyr-firmware"
+            distribution = "internal"
+            languages = ["c", "cpp"]
+            strict = true
+            artifact_policy = "transient-dist"
+            """
+        ).lstrip(),
+    )
+    write_file(
+        root / ".clang-format",
+        dedent(
+            """
+            BasedOnStyle: LLVM
+            BreakBeforeBraces: Attach
+            IndentWidth: 4
+            ColumnLimit: 100
+            PointerAlignment: Right
+            SortIncludes: Never
+            """
+        ).lstrip(),
+    )
+    write_file(
+        root / ".clang-tidy",
+        dedent(
+            """
+            Checks: >
+              -*,
+              google-runtime-int
+
+            WarningsAsErrors: >
+              google-runtime-int
+            """
+        ).lstrip(),
+    )
+    write_file(
+        root / "signoff.toml",
+        dedent(
+            """
+            schema = 1
+            profile = "zephyr-firmware"
+            baseline = "scripts/signoff_baseline.json"
+
+            [limits]
+            max_file_lines = 2200
+            max_function_lines = 220
+            max_cyclomatic_complexity = 10
+
+            [tools]
+            lizard = "fail"
+            clang_format = "report"
+            clang_tidy = "report"
+            """
+        ).lstrip(),
+    )
+    write_file(
+        root / "tests" / "L99_signoff" / "test_lizard_complexity.py",
+        "def test_lizard_complexity_gate_is_configured():\n    assert 'lizard'\n",
+    )
 
 
 def write_minimal_csharp_project(root: Path) -> None:

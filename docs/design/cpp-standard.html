@@ -111,11 +111,28 @@ WarningsAsErrors: &gt;
 
   <h2>Complexity</h2>
   <p>
-    C and C++ projects must run a Lizard-based complexity gate as part of
-    release signoff. The gate should scan owned native source, exclude generated
-    and third-party code explicitly, and fail when project thresholds are
-    exceeded.
+    C and C++ projects must run a Lizard-based complexity gate as part of the
+    normal signoff loop. The gate scans owned native source, excludes generated
+    and third-party code explicitly, and fails when project thresholds are
+    exceeded. Canonical new-code limits are
+    <code>max_file_lines = 2200</code>,
+    <code>max_function_lines = 220</code>, and
+    <code>max_cyclomatic_complexity = 10</code>.
   </p>
+  <p>
+    Existing projects may carry a checked-in baseline for current debt. The
+    baseline makes old debt visible, but new functions over the canonical
+    cyclomatic complexity threshold must fail signoff.
+  </p>
+  <pre><code>[limits]
+max_file_lines = 2200
+max_function_lines = 220
+max_cyclomatic_complexity = 10
+
+[tools]
+lizard = "fail"
+clang_format = "report"
+clang_tidy = "report"</code></pre>
 
   <h2>Boundaries</h2>
   <p>

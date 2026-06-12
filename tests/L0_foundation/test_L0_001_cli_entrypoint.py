@@ -4,6 +4,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from wn_dev_std import __version__
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -20,7 +22,7 @@ def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
 def test_cli_global_version_reports_tool_and_dependency_versions() -> None:
     result = run_cli("--version")
     assert result.returncode == 0
-    assert "wn-dev-std 2026.6.10" in result.stdout
+    assert f"wn-dev-std {__version__}" in result.stdout
     assert "python " in result.stdout
     assert "wn-rack " in result.stdout
 
@@ -28,7 +30,7 @@ def test_cli_global_version_reports_tool_and_dependency_versions() -> None:
 def test_cli_version_command_reports_same_version() -> None:
     result = run_cli("version")
     assert result.returncode == 0
-    assert "wn-dev-std 2026.6.10" in result.stdout
+    assert f"wn-dev-std {__version__}" in result.stdout
 
 
 def test_cli_help_lists_public_commands() -> None:
@@ -84,3 +86,10 @@ def test_standard_profile_can_render_python_js_json() -> None:
     assert result.returncode == 0
     assert '"name": "python-js-app"' in result.stdout
     assert "javascript-web-app" in result.stdout
+
+
+def test_standard_profile_can_render_zephyr_json() -> None:
+    result = run_cli("standard", "--profile", "zephyr-firmware", "--format", "json")
+    assert result.returncode == 0
+    assert '"name": "zephyr-firmware"' in result.stdout
+    assert "cyclomatic_complexity <= 10" in result.stdout

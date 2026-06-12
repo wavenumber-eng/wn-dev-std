@@ -1,0 +1,37 @@
+schema = 1
+profile = "zephyr-firmware"
+description = "Wavenumber Zephyr application signoff profile."
+baseline = "scripts/signoff_baseline.json"
+
+[limits]
+max_file_lines = 2200
+max_function_lines = 220
+max_cyclomatic_complexity = 10
+
+[tools]
+lizard = "fail"
+clang_format = "report"
+clang_tidy = "report"
+
+[paths]
+source_suffixes = [".c", ".cpp", ".cc", ".cxx", ".h", ".hpp"]
+translation_unit_suffixes = [".c", ".cpp", ".cc", ".cxx"]
+exclude_parts = [
+  ".git",
+  ".venv",
+  "__pycache__",
+  "bootloader",
+  "build",
+  "generated",
+  "images",
+  "legacy",
+  "modules",
+  "temp",
+  "vendor",
+  "zephyr",
+]
+
+[[apps]]
+name = "app"
+source_roots = ["src/app/src"]
+build_dirs = ["src/app/build"]

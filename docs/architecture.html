@@ -31,15 +31,51 @@
   <p>
     Extension profiles include <code>cpp-library</code>,
     <code>python-native-wasm</code>, <code>csharp-app</code>,
-    <code>javascript-web-app</code>, and <code>python-js-app</code>. The C++
-    profile captures CMake, Ninja, clang-format, clang-tidy, CTest, and ABI
-    rules. The mixed-mode profile builds on that for Geometer-style packages
-    that combine Python, CMake/C++, platform wheels, and WASM outputs. The
-    JavaScript profiles capture no-build browser runtime, checked JS/JSDoc,
-    deterministic JS tests, CSS tokens, owned Web Components, JS-to-WASM smoke,
-    vendor isolation, browser smoke, and simple command-verb rules. Future
-    profiles will add C, Rust, and Zephyr. Zephyr profiles must respect Zephyr
-    layout and test tools such as west, twister, and ztest.
+    <code>javascript-web-app</code>, <code>python-js-app</code>, and
+    <code>zephyr-firmware</code>. The C++ profile captures CMake, Ninja,
+    clang-format, clang-tidy, CTest, and ABI rules. The mixed-mode profile
+    builds on that for Geometer-style packages that combine Python, CMake/C++,
+    platform wheels, and WASM outputs. The JavaScript profiles capture no-build
+    browser runtime, checked JS/JSDoc, deterministic JS tests, CSS tokens,
+    owned Web Components, JS-to-WASM smoke, vendor isolation, browser smoke,
+    and simple command-verb rules. The Zephyr profile captures west-based
+    firmware builds, app-owned source signoff, target toolchain notes, and
+    embedded C/C++ complexity gates.
+  </p>
+
+  <h2>Quality Model</h2>
+  <p>
+    Wavenumber projects use Rack to make validation structure explicit. Rack
+    names strata, lanes, concerns, and dependencies so a developer, CI system,
+    or agent can tell whether a command is a fast edit-loop check, an
+    integration test, or a release-facing gate. That structure avoids hiding
+    critical checks behind one opaque script while still allowing each project
+    to keep simple local commands.
+  </p>
+  <p>
+    In the local checkout, the reference Rack suite and signoff strata live at
+    <code>C:\ELI\prj\wavenumber-eng\wn-dev-std\tests</code>.
+  </p>
+  <p>
+    The signoff process is the release-facing layer of that model. Signoff
+    checks are intentionally boring and repeatable: formatting, static
+    analysis, complexity limits, documentation status, contracts, release
+    metadata, and project-specific ratchets. They should fail when new code
+    violates accepted rules, while baselines can make existing debt visible
+    without blocking unrelated work.
+  </p>
+  <p>
+    Every project needs a signoff gate. In Rack this is normally an
+    <code>L99_signoff</code> stratum. The contents are profile-specific, but
+    standard signoff should include measurable checks such as complexity, file
+    size, function size, formatting, static analysis, docs, contracts, release
+    metadata, and project-local ratchets.
+  </p>
+  <p>
+    Rack answers <em>which validation lane is being run and why</em>. Signoff answers
+    <em>whether this change is ready to merge or release</em>. Keeping
+    those ideas separate lets projects grow from a small local workflow into CI
+    without changing the vocabulary reviewers and agents use.
   </p>
 </body>
 </html>

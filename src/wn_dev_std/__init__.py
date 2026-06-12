@@ -12,6 +12,7 @@ from wn_dev_std.standards import (
     default_python_js_standard,
     default_python_standard,
     default_standard,
+    default_zephyr_standard,
     render_cpp_standard,
     render_csharp_standard,
     render_javascript_web_standard,
@@ -19,6 +20,7 @@ from wn_dev_std.standards import (
     render_python_js_standard,
     render_python_standard,
     render_standard,
+    render_zephyr_standard,
 )
 
 __all__ = [
@@ -33,6 +35,7 @@ __all__ = [
     "default_python_js_standard",
     "default_python_standard",
     "default_standard",
+    "default_zephyr_standard",
     "render_csharp_standard",
     "render_cpp_standard",
     "render_javascript_web_standard",
@@ -40,4 +43,5 @@ __all__ = [
     "render_python_js_standard",
     "render_python_standard",
     "render_standard",
+    "render_zephyr_standard",
 ]

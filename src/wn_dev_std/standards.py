@@ -13,6 +13,7 @@ ProfileName = Literal[
     "csharp-app",
     "javascript-web-app",
     "python-js-app",
+    "zephyr-firmware",
 ]
 
 
@@ -68,8 +69,13 @@ MIXED_MODE_RULES = (
     StrictRule("workflow.wasm", "pinned emsdk or equivalent", "Keep browser builds reproducible."),
     StrictRule(
         "complexity.native",
-        "lizard in release signoff",
-        "Block overly complex owned C/C++ functions before merge.",
+        "new code cyclomatic_complexity <= 10",
+        "Use Lizard signoff and baselines so old debt is visible without allowing new debt.",
+    ),
+    StrictRule(
+        "signoff.native",
+        "signoff.toml with lizard=fail",
+        "Make native source size, function size, and complexity gates project-local.",
     ),
     StrictRule(
         "inherits",
@@ -176,8 +182,13 @@ CPP_RULES = (
     StrictRule("test-orchestration", "rack", "Expose native lanes and release gates explicitly."),
     StrictRule(
         "complexity.native",
-        "lizard in release signoff",
-        "Block overly complex owned C/C++ functions before merge.",
+        "new code cyclomatic_complexity <= 10",
+        "Use Lizard signoff and baselines so old debt is visible without allowing new debt.",
+    ),
+    StrictRule(
+        "signoff.native",
+        "signoff.toml with lizard=fail",
+        "Make native source size, function size, and complexity gates project-local.",
     ),
     StrictRule(
         "sanitizers",
@@ -225,6 +236,7 @@ CPP_REQUIRED_FILES = (
     "CONTRIBUTING.md",
     "LICENSE",
     "README.md",
+    "signoff.toml",
     "tests/rack.toml",
 )
 
@@ -233,6 +245,80 @@ CPP_REQUIRED_DOCS = (
     "docs/architecture.html",
     "docs/design/",
     "docs/design/cpp-standard.html",
+    "docs/contracts/",
+    "docs/releases/",
+)
+
+ZEPHYR_RULES = (
+    StrictRule("inherits", "cpp-library", "Use the same C/C++ formatter and static-analysis base."),
+    StrictRule(
+        "workflow", "west + app-local scripts", "Keep Zephyr builds reproducible and simple."
+    ),
+    StrictRule(
+        "scope",
+        "owned application code first",
+        "Exclude Zephyr, west modules, generated code, vendor code, and build output by default.",
+    ),
+    StrictRule(
+        "compile-commands",
+        "CMAKE_EXPORT_COMPILE_COMMANDS=ON",
+        "clang-tidy and editor tooling need the active Zephyr build arguments.",
+    ),
+    StrictRule(
+        "format",
+        "clang-format prebuild report/fail lane",
+        "Formatting should be visible in the normal build loop before it becomes a hard gate.",
+    ),
+    StrictRule(
+        "static-analysis",
+        "clang-tidy postbuild report/fail lane",
+        "Analyze only files present in the active compile database.",
+    ),
+    StrictRule(
+        "complexity.native",
+        "new code cyclomatic_complexity <= 10",
+        "Embedded control paths need small, testable functions; use baselines for legacy debt.",
+    ),
+    StrictRule(
+        "size.file",
+        "physical lines <= 2200",
+        "Large owned files should be split before they become unreviewable.",
+    ),
+    StrictRule(
+        "size.function",
+        "function lines <= 220",
+        "Large functions need decomposition even when cyclomatic complexity is low.",
+    ),
+    StrictRule(
+        "target-toolchains",
+        "document clang target gaps",
+        "Xtensa and other non-host LLVM gaps may be report-only until a matching clang exists.",
+    ),
+    StrictRule(
+        "setup-doc",
+        "document Windows and CI tools",
+        "Zephyr machines need explicit west, SDK, dtc, LLVM, lizard, and flashing setup.",
+    ),
+    COMPATIBILITY_PRUNING_RULE,
+)
+
+ZEPHYR_REQUIRED_FILES = (
+    ".clang-format",
+    ".clang-tidy",
+    ".gitattributes",
+    ".gitignore",
+    "AGENTS.md",
+    "README.md",
+    "signoff.toml",
+    "tests/rack.toml",
+    "wn-dev-std.toml",
+)
+
+ZEPHYR_REQUIRED_DOCS = (
+    "docs/setup.html",
+    "docs/architecture.html",
+    "docs/design/",
+    "docs/design/zephyr-standard.html",
     "docs/contracts/",
     "docs/releases/",
 )
@@ -463,7 +549,7 @@ def default_python_standard() -> PythonStandard:
     """Return the current strict Python package standard."""
     return PythonStandard(
         name="python-package",
-        version="2026.6.10",
+        version="2026.6.12",
         status="initial",
         rules=(
             StrictRule("workflow", "uv", "Use one environment and lock workflow."),
@@ -503,7 +589,7 @@ def default_mixed_mode_standard() -> PythonStandard:
     """Return the current Python plus native/WASM mixed-mode standard."""
     return PythonStandard(
         name="python-native-wasm",
-        version="2026.6.10",
+        version="2026.6.12",
         status="initial",
         rules=MIXED_MODE_RULES,
         required_files=MIXED_MODE_REQUIRED_FILES,
@@ -515,7 +601,7 @@ def default_cpp_standard() -> PythonStandard:
     """Return the current C++ library and native executable standard."""
     return PythonStandard(
         name="cpp-library",
-        version="2026.6.10",
+        version="2026.6.12",
         status="initial",
         rules=CPP_RULES,
         required_files=CPP_REQUIRED_FILES,
@@ -523,11 +609,23 @@ def default_cpp_standard() -> PythonStandard:
     )
 
 
+def default_zephyr_standard() -> PythonStandard:
+    """Return the current Zephyr firmware standard."""
+    return PythonStandard(
+        name="zephyr-firmware",
+        version="2026.6.12",
+        status="initial",
+        rules=ZEPHYR_RULES,
+        required_files=ZEPHYR_REQUIRED_FILES,
+        required_docs=ZEPHYR_REQUIRED_DOCS,
+    )
+
+
 def default_csharp_standard() -> PythonStandard:
     """Return the current C# application and plugin standard."""
     return PythonStandard(
         name="csharp-app",
-        version="2026.6.10",
+        version="2026.6.12",
         status="initial",
         rules=CSHARP_RULES,
         required_files=CSHARP_REQUIRED_FILES,
@@ -539,7 +637,7 @@ def default_javascript_web_standard() -> PythonStandard:
     """Return the current no-build browser JavaScript and CSS standard."""
     return PythonStandard(
         name="javascript-web-app",
-        version="2026.6.10",
+        version="2026.6.12",
         status="initial",
         rules=JAVASCRIPT_WEB_RULES,
         required_files=JAVASCRIPT_WEB_REQUIRED_FILES,
@@ -551,7 +649,7 @@ def default_python_js_standard() -> PythonStandard:
     """Return the current Python plus browser JavaScript app standard."""
     return PythonStandard(
         name="python-js-app",
-        version="2026.6.10",
+        version="2026.6.12",
         status="initial",
         rules=PYTHON_JS_RULES,
         required_files=PYTHON_JS_REQUIRED_FILES,
@@ -573,6 +671,8 @@ def default_standard(profile: ProfileName = "python-package") -> PythonStandard:
         return default_javascript_web_standard()
     if profile == "python-js-app":
         return default_python_js_standard()
+    if profile == "zephyr-firmware":
+        return default_zephyr_standard()
     raise ValueError(f"unsupported profile: {profile}")
 
 
@@ -604,6 +704,11 @@ def render_javascript_web_standard(output_format: Literal["text", "json"] = "tex
 def render_python_js_standard(output_format: Literal["text", "json"] = "text") -> str:
     """Render the current Python plus browser JavaScript standard as text or JSON."""
     return render_standard("python-js-app", output_format)
+
+
+def render_zephyr_standard(output_format: Literal["text", "json"] = "text") -> str:
+    """Render the current Zephyr firmware standard as text or JSON."""
+    return render_standard("zephyr-firmware", output_format)
 
 
 def render_standard(

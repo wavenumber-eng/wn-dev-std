@@ -1,5 +1,5 @@
 {
-  "schema_version": "2026.6.10",
+  "schema_version": "2026.6.12",
   "interfaces": [
     {
       "name": "wn_dev_std.StrictRule",
@@ -56,6 +56,12 @@
       "description": "Factory for the Python-served browser JavaScript and CSS app standard."
     },
     {
+      "name": "wn_dev_std.default_zephyr_standard",
+      "design_doc": "docs/design/zephyr-standard.html",
+      "data_interface": "wn_dev_std.default_zephyr_standard",
+      "description": "Factory for the Zephyr firmware standard."
+    },
+    {
       "name": "wn_dev_std.default_standard",
       "design_doc": "docs/design/python-standard.html",
       "data_interface": "wn_dev_std.default_standard",
@@ -96,6 +102,12 @@
       "design_doc": "docs/design/javascript-standard.html",
       "data_interface": "wn_dev_std.render_python_js_standard",
       "description": "Render helper for the Python-served browser JavaScript and CSS app standard."
+    },
+    {
+      "name": "wn_dev_std.render_zephyr_standard",
+      "design_doc": "docs/design/zephyr-standard.html",
+      "data_interface": "wn_dev_std.render_zephyr_standard",
+      "description": "Render helper for the Zephyr firmware standard."
     },
     {
       "name": "wn_dev_std.render_standard",

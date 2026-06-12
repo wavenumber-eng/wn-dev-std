@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Zephyr Firmware Standard</title>
+</head>
+<body data-design="zephyr-standard" data-profile="zephyr-firmware" data-doc-status="accepted">
+  <h1>Zephyr Firmware Standard</h1>
+  <p>
+    The <code>zephyr-firmware</code> profile covers Wavenumber-owned Zephyr
+    application repositories and west workspaces. It inherits the native C/C++
+    policy, then narrows signoff to owned application code first.
+  </p>
+
+  <section data-interface="wn_dev_std.default_zephyr_standard">
+    <h2>default_zephyr_standard</h2>
+    <p>
+      Returns the current Zephyr firmware profile.
+    </p>
+  </section>
+
+  <section data-interface="wn_dev_std.render_zephyr_standard">
+    <h2>render_zephyr_standard</h2>
+    <p>
+      Renders the Zephyr firmware profile as text or JSON.
+    </p>
+  </section>
+
+  <h2>Scope</h2>
+  <p>
+    Signoff scans owned application source roots. Zephyr, west modules,
+    generated files, vendor trees, build outputs, temporary files, and captured
+    hardware artifacts are excluded unless a project explicitly opts them in.
+  </p>
+
+  <h2>Build Loop</h2>
+  <p>
+    Projects should expose simple app-local build scripts that enable
+    <code>CMAKE_EXPORT_COMPILE_COMMANDS=ON</code>. The normal loop runs
+    prebuild signoff before <code>west build</code> and postbuild signoff after
+    the compile database is fresh.
+  </p>
+
+  <h2>Native Signoff</h2>
+  <p>
+    Zephyr projects use <code>signoff.toml</code> to configure Lizard,
+    clang-format, and clang-tidy. Canonical new-code limits are
+    <code>max_file_lines = 2200</code>,
+    <code>max_function_lines = 220</code>, and
+    <code>max_cyclomatic_complexity = 10</code>. Existing projects may carry a
+    baseline so current debt is visible without permitting new debt.
+  </p>
+
+  <pre><code>[limits]
+max_file_lines = 2200
+max_function_lines = 220
+max_cyclomatic_complexity = 10
+
+[tools]
+lizard = "fail"
+clang_format = "report"
+clang_tidy = "report"</code></pre>
+
+  <h2>Target Toolchains</h2>
+  <p>
+    clang-tidy runs against the active compile database. If the target requires
+    a clang backend that is not installed, such as Xtensa on a host LLVM build,
+    the project should report that limitation and keep the gate non-blocking
+    until a matching clang toolchain is installed.
+  </p>
+
+  <h2>Setup Documentation</h2>
+  <p>
+    <code>docs/setup.html</code> or a project setup document must list west,
+    Zephyr SDK, board SDKs, <code>dtc</code>, LLVM tools, Python dependencies,
+    flashing tools, and any hardware required for release signoff.
+  </p>
+</body>
+</html>

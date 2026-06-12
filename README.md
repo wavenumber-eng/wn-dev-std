@@ -11,8 +11,8 @@ kept in sync by Rack signoff.
 ## Status
 
 Initial Python support. This repository is a model/reference package and is not
-published to PyPI. C++, C#, and JavaScript profiles are present; C, Rust, and
-Zephyr profiles will reuse the same base rules as they are added.
+published to PyPI. C++, C#, JavaScript, and Zephyr profiles are present; C and
+Rust profiles will reuse the same base rules as they are added.
 
 ## Install
 
@@ -37,12 +37,43 @@ uv run wn-dev-std check .
 uv run rack run --all
 ```
 
+## Rack Model
+
+All Wavenumber projects should use the Rack model for validation structure.
+Rack keeps test and signoff intent explicit through suite manifests, ordered
+strata, lanes, concerns, dependencies, and durable result artifacts.
+
+The public Rack package is [`wn-rack`](https://pypi.org/project/wn-rack/). The
+distribution name is `wn-rack`; the command is `rack`.
+
+Python projects should add `wn-rack` to their development or test dependency
+group, then commit a `tests/rack.toml` suite manifest:
+
+```bash
+uv add --dev wn-rack
+```
+
+Non-Python projects should still follow the same model: keep `tests/rack.toml`
+and stratum manifests in the repository, then run Rack from the project's
+standard Python/tooling environment or CI image.
+
+In this checkout, the working Rack/signoff example lives at
+`C:\ELI\prj\wavenumber-eng\wn-dev-std\tests`.
+
+Every project needs a signoff gate. In Rack suites this is generally an
+`L99_signoff` stratum that runs the release-facing checks for the repository.
+The exact checks vary by profile, but signoff should include measurable gates
+such as complexity, file size, function size, formatting, static analysis,
+documentation status, contract checks, release metadata, and any project-local
+ratchets.
+
 ## Use Cases
 
 - Start a new strict Python package with known Wavenumber defaults.
 - Check whether a repository has required public project hygiene files.
 - Provide agents with a concrete example of Rack, signoff, docs, contracts, and
   release metadata working together.
+- Explain the quality model behind Rack orchestration and release signoff.
 - Serve as the base vocabulary for future C/C++/C#/JS/Rust/Zephyr standards.
 
 ## CLI Examples
@@ -64,6 +95,7 @@ wn-dev-std standard --profile python-native-wasm
 wn-dev-std standard --profile csharp-app
 wn-dev-std standard --profile javascript-web-app
 wn-dev-std standard --profile python-js-app
+wn-dev-std standard --profile zephyr-firmware
 ```
 
 Run the basic conformance checks against the current repo:
@@ -78,6 +110,7 @@ wn-dev-std check . --format json
 Pure Python packages use:
 
 - `uv` for environment, locking, and tool workflows
+- `wn-rack` from PyPI as the standard test/signoff orchestrator
 - committed `uv.lock`
 - `pyproject.toml` with Hatchling
 - Rack for test orchestration
@@ -110,6 +143,21 @@ C++ projects use:
   errors where feasible
 - Rack strata for native foundation, algorithms, CLI/API integration, and L99
   release signoff
+
+## Zephyr Firmware Baseline
+
+The first embedded profile is `zephyr-firmware`. It inherits the C/C++ native
+rules and adds Zephyr-specific build-loop expectations:
+
+- app-local `build` scripts that enable `CMAKE_EXPORT_COMPILE_COMMANDS=ON`
+- application-owned source roots checked first, excluding Zephyr, west modules,
+  generated files, vendor code, and build outputs
+- `signoff.toml` with Lizard as the failing complexity gate
+- canonical new-code `max_cyclomatic_complexity = 10`
+- clang-format in the prebuild report/fail lane
+- clang-tidy in the postbuild report/fail lane using the active compile
+  database
+- documented target-toolchain gaps, such as Xtensa clang-tidy support
 
 ## Mixed-Mode Baseline
 
@@ -183,7 +231,7 @@ invalid design docs and reports draft/proposal pages for release review.
 ## Documentation
 
 - [Setup](docs/setup.html)
-- [Architecture](docs/architecture.html)
+- [Architecture](docs/architecture.html), including the Rack/signoff quality model
 - [CLI Design](docs/design/cli.html)
 - [Documentation Standard](docs/design/documentation-standard.html)
 - [Python Standard Design](docs/design/python-standard.html)

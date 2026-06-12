@@ -1,0 +1,32 @@
+schema = 1
+profile = "cpp-library"
+description = "Wavenumber C/C++ native signoff profile."
+baseline = "scripts/signoff_baseline.json"
+
+[limits]
+max_file_lines = 2200
+max_function_lines = 220
+max_cyclomatic_complexity = 10
+
+[tools]
+lizard = "fail"
+clang_format = "report"
+clang_tidy = "report"
+
+[paths]
+source_suffixes = [".c", ".cpp", ".cc", ".cxx", ".h", ".hpp"]
+translation_unit_suffixes = [".c", ".cpp", ".cc", ".cxx"]
+exclude_parts = [
+  ".git",
+  ".venv",
+  "__pycache__",
+  "build",
+  "generated",
+  "temp",
+  "vendor",
+]
+
+[[apps]]
+name = "native"
+source_roots = ["src"]
+build_dirs = ["build"]

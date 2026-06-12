@@ -25,6 +25,7 @@ def register(subparsers: SubparserRegistry) -> None:
             "csharp-app",
             "javascript-web-app",
             "python-js-app",
+            "zephyr-firmware",
         ),
         default="python-package",
         help="Standard profile to render",
@@ -54,6 +55,7 @@ def _profile(args: argparse.Namespace) -> ProfileName:
         "csharp-app",
         "javascript-web-app",
         "python-js-app",
+        "zephyr-firmware",
     ):
         return value
     raise TypeError("expected profile to be a supported standard profile")

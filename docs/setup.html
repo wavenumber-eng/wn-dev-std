@@ -58,5 +58,16 @@ uv run twine check dist/*</code></pre>
     <code>docs/templates/cpp/</code>. CMake presets must enable
     <code>CMAKE_EXPORT_COMPILE_COMMANDS=ON</code>.
   </p>
+
+  <h2>Zephyr Tooling</h2>
+  <p>
+    Zephyr firmware projects use west, the project-selected Zephyr SDK,
+    <code>dtc</code>, LLVM tools, Python with Lizard, and any required flashing
+    tools. The first Zephyr templates live under
+    <code>docs/templates/zephyr/</code>. App-local build scripts should enable
+    <code>CMAKE_EXPORT_COMPILE_COMMANDS=ON</code>, run prebuild signoff before
+    <code>west build</code>, and run postbuild signoff after a successful
+    build.
+  </p>
 </body>
 </html>

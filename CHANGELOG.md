@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026.6.12
+
+- Add the `zephyr-firmware` profile with west-based build-loop expectations,
+  app-owned source signoff, target-toolchain notes, and embedded C/C++
+  complexity gates.
+- Add reusable C/C++ and Zephyr `signoff.toml` templates.
+- Make canonical native new-code complexity explicit:
+  `max_cyclomatic_complexity = 10`.
+- Add native signoff configuration checks for complexity, file size, function
+  size, clang-format mode, clang-tidy mode, and Lizard enforcement.
+- Document the Rack/signoff quality model, including the public `wn-rack` PyPI
+  package and the expectation that every project has an `L99_signoff` gate.
+
 ## 2026.6.10
 
 - Allow local root `.env` files to pass `wn-dev-std check` only when Git reports
