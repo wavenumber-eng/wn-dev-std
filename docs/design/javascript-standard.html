@@ -82,6 +82,17 @@
     <li>Python-served apps document static routes, JSON APIs, and WebSockets.</li>
   </ul>
 
+  <h2>Documentation Layout</h2>
+  <p>
+    JavaScript profiles require a canonical JavaScript standard design doc.
+    Repositories may keep the legacy root page
+    <code>docs/design/javascript-standard.html</code> or use the foldered
+    design-doc layout <code>docs/design/standards/javascript.html</code>.
+    Projects with another deliberate layout may configure the canonical path:
+  </p>
+  <pre><code>[documentation.standard_docs]
+javascript = "docs/design/standards/javascript.html"</code></pre>
+
   <h2>JavaScript Rules</h2>
   <ul>
     <li>

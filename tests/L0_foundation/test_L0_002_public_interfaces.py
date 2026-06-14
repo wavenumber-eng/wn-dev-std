@@ -87,6 +87,7 @@ def test_default_javascript_web_standard_contains_no_build_rules() -> None:
     assert any(rule.key == "web-components" for rule in standard.rules)
     assert any(rule.key == "wasm.testing" for rule in standard.rules)
     assert any(rule.key == "commands" for rule in standard.rules)
+    assert any(rule.key == "docs.javascript-standard" for rule in standard.rules)
     assert "src" in standard.required_files
     assert "docs/design/javascript-standard.html" in standard.required_docs
 
@@ -215,6 +216,68 @@ def test_python_js_profile_basic_checks_pass_for_minimal_repo(tmp_path: Path) ->
     write_minimal_python_js_project(tmp_path)
     results = run_basic_checks(tmp_path)
     assert all(result.passed for result in results), [result.to_dict() for result in results]
+
+
+def test_python_js_profile_accepts_foldered_javascript_standard_doc(
+    tmp_path: Path,
+) -> None:
+    write_minimal_python_js_project(tmp_path)
+    (tmp_path / "docs" / "design" / "javascript-standard.html").unlink()
+    write_file(
+        tmp_path / "docs" / "design" / "standards" / "javascript.html",
+        (
+            '<!doctype html><html><body data-doc-status="accepted">'
+            "<h1>JavaScript Standard</h1></body></html>\n"
+        ),
+    )
+
+    results = run_basic_checks(tmp_path)
+    documentation = next(result for result in results if result.name == "documentation")
+
+    assert documentation.passed
+    assert all(result.passed for result in results), [result.to_dict() for result in results]
+
+
+def test_python_js_profile_accepts_configured_javascript_standard_doc(
+    tmp_path: Path,
+) -> None:
+    write_minimal_python_js_project(tmp_path)
+    (tmp_path / "docs" / "design" / "javascript-standard.html").unlink()
+    write_file(
+        tmp_path / "docs" / "design" / "project" / "javascript-standard.html",
+        (
+            '<!doctype html><html><body data-doc-status="accepted">'
+            "<h1>JavaScript Standard</h1></body></html>\n"
+        ),
+    )
+    write_file(
+        tmp_path / "wn-dev-std.toml",
+        (tmp_path / "wn-dev-std.toml").read_text(encoding="utf-8")
+        + (
+            "\n[documentation.standard_docs]\n"
+            'javascript = "docs/design/project/javascript-standard.html"\n'
+        ),
+    )
+
+    results = run_basic_checks(tmp_path)
+    documentation = next(result for result in results if result.name == "documentation")
+
+    assert documentation.passed
+    assert all(result.passed for result in results), [result.to_dict() for result in results]
+
+
+def test_python_js_profile_reports_javascript_standard_doc_alternatives(
+    tmp_path: Path,
+) -> None:
+    write_minimal_python_js_project(tmp_path)
+    (tmp_path / "docs" / "design" / "javascript-standard.html").unlink()
+
+    results = run_basic_checks(tmp_path)
+    documentation = next(result for result in results if result.name == "documentation")
+
+    assert not documentation.passed
+    assert "docs/design/javascript-standard.html" in documentation.detail
+    assert "docs/design/standards/javascript.html" in documentation.detail
 
 
 def test_secret_hygiene_passes_for_ignored_local_env(tmp_path: Path) -> None:

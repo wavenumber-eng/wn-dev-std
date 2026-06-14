@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026.6.14
+
+- Allow JavaScript profiles to use a foldered canonical standard design doc at
+  `docs/design/standards/javascript.html` while preserving the legacy
+  `docs/design/javascript-standard.html` path.
+- Add `[documentation.standard_docs].javascript` for projects with deliberate
+  custom design-doc layouts.
+- Document the configuration schema and add regression tests for legacy,
+  foldered, configured, and missing JavaScript standard doc paths.
+
 ## 2026.6.12
 
 - Add the `zephyr-firmware` profile with west-based build-loop expectations,

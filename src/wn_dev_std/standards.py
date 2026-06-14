@@ -462,6 +462,12 @@ JAVASCRIPT_WEB_RULES = (
         "Frontend state, URL, storage, and API payloads need reviewable contracts.",
     ),
     StrictRule(
+        "docs.javascript-standard",
+        "root or foldered JavaScript standard design doc",
+        "Use docs/design/javascript-standard.html, docs/design/standards/javascript.html, "
+        "or configure [documentation.standard_docs].javascript.",
+    ),
+    StrictRule(
         "wasm.testing",
         "test the JS-to-WASM boundary",
         "Browser WASM needs wrapper tests; Wasmer or Wasmtime is optional for core WASM.",
@@ -549,7 +555,7 @@ def default_python_standard() -> PythonStandard:
     """Return the current strict Python package standard."""
     return PythonStandard(
         name="python-package",
-        version="2026.6.12",
+        version="2026.6.14",
         status="initial",
         rules=(
             StrictRule("workflow", "uv", "Use one environment and lock workflow."),
@@ -589,7 +595,7 @@ def default_mixed_mode_standard() -> PythonStandard:
     """Return the current Python plus native/WASM mixed-mode standard."""
     return PythonStandard(
         name="python-native-wasm",
-        version="2026.6.12",
+        version="2026.6.14",
         status="initial",
         rules=MIXED_MODE_RULES,
         required_files=MIXED_MODE_REQUIRED_FILES,
@@ -601,7 +607,7 @@ def default_cpp_standard() -> PythonStandard:
     """Return the current C++ library and native executable standard."""
     return PythonStandard(
         name="cpp-library",
-        version="2026.6.12",
+        version="2026.6.14",
         status="initial",
         rules=CPP_RULES,
         required_files=CPP_REQUIRED_FILES,
@@ -613,7 +619,7 @@ def default_zephyr_standard() -> PythonStandard:
     """Return the current Zephyr firmware standard."""
     return PythonStandard(
         name="zephyr-firmware",
-        version="2026.6.12",
+        version="2026.6.14",
         status="initial",
         rules=ZEPHYR_RULES,
         required_files=ZEPHYR_REQUIRED_FILES,
@@ -625,7 +631,7 @@ def default_csharp_standard() -> PythonStandard:
     """Return the current C# application and plugin standard."""
     return PythonStandard(
         name="csharp-app",
-        version="2026.6.12",
+        version="2026.6.14",
         status="initial",
         rules=CSHARP_RULES,
         required_files=CSHARP_REQUIRED_FILES,
@@ -637,7 +643,7 @@ def default_javascript_web_standard() -> PythonStandard:
     """Return the current no-build browser JavaScript and CSS standard."""
     return PythonStandard(
         name="javascript-web-app",
-        version="2026.6.12",
+        version="2026.6.14",
         status="initial",
         rules=JAVASCRIPT_WEB_RULES,
         required_files=JAVASCRIPT_WEB_REQUIRED_FILES,
@@ -649,7 +655,7 @@ def default_python_js_standard() -> PythonStandard:
     """Return the current Python plus browser JavaScript app standard."""
     return PythonStandard(
         name="python-js-app",
-        version="2026.6.12",
+        version="2026.6.14",
         status="initial",
         rules=PYTHON_JS_RULES,
         required_files=PYTHON_JS_REQUIRED_FILES,

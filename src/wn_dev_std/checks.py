@@ -54,6 +54,10 @@ class CheckResult:
 
 JS_CSS_EXCLUDED_PARTS = {"vendor", "lib", "_build", "node_modules"}
 STANDARD_COMMAND_VERBS = ("install", "update", "build", "test", "signoff")
+JAVASCRIPT_STANDARD_DOC_PATHS = (
+    "docs/design/javascript-standard.html",
+    "docs/design/standards/javascript.html",
+)
 
 
 def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
@@ -62,7 +66,7 @@ def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
     pyproject = _load_pyproject(resolved_root)
     config = _load_standard_config(resolved_root, pyproject)
     profile = project_profile(config)
-    checks = _common_checks(resolved_root, profile)
+    checks = _common_checks(resolved_root, profile, config)
     if _needs_python_package_checks(profile):
         checks.extend(
             [
@@ -80,10 +84,14 @@ def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
     return tuple(checks)
 
 
-def _common_checks(root: Path, profile: ProfileName) -> list[CheckResult]:
+def _common_checks(
+    root: Path,
+    profile: ProfileName,
+    config: Mapping[str, object] | None,
+) -> list[CheckResult]:
     checks = [
         _check_required_paths(root, "root files", required_root_files(profile)),
-        _check_required_paths(root, "documentation", required_doc_paths(profile)),
+        _check_required_documentation_paths(root, profile, config),
         _check_design_doc_status(root),
         _check_no_env_file(root),
     ]
@@ -183,6 +191,61 @@ def _check_required_paths(root: Path, name: str, relative_paths: tuple[str, ...]
     if missing:
         return CheckResult(name, False, "missing " + ", ".join(missing))
     return CheckResult(name, True, "all required paths are present")
+
+
+def _check_required_documentation_paths(
+    root: Path,
+    profile: ProfileName,
+    config: Mapping[str, object] | None,
+) -> CheckResult:
+    required_paths = required_doc_paths(profile)
+    if profile not in {"javascript-web-app", "python-js-app"}:
+        return _check_required_paths(root, "documentation", required_paths)
+
+    base_required = tuple(
+        path for path in required_paths if path != JAVASCRIPT_STANDARD_DOC_PATHS[0]
+    )
+    missing = [
+        relative_path for relative_path in base_required if not (root / relative_path).exists()
+    ]
+    if missing:
+        return CheckResult("documentation", False, "missing " + ", ".join(missing))
+
+    standard_doc_paths = _javascript_standard_doc_paths(config)
+    if any((root / path).exists() for path in standard_doc_paths):
+        return CheckResult("documentation", True, "all required paths are present")
+    return CheckResult(
+        "documentation",
+        False,
+        "missing " + " or ".join(standard_doc_paths),
+    )
+
+
+def _javascript_standard_doc_paths(config: Mapping[str, object] | None) -> tuple[str, ...]:
+    configured_path = _configured_standard_doc_path(config, "javascript")
+    if configured_path:
+        return (configured_path,)
+    return JAVASCRIPT_STANDARD_DOC_PATHS
+
+
+def _configured_standard_doc_path(
+    config: Mapping[str, object] | None,
+    language: str,
+) -> str | None:
+    if config is None:
+        return None
+    documentation = config.get("documentation")
+    if not isinstance(documentation, dict):
+        return None
+    documentation_config = cast(Mapping[str, object], documentation)
+    standard_docs = documentation_config.get("standard_docs")
+    if not isinstance(standard_docs, dict):
+        return None
+    standard_doc_config = cast(Mapping[str, object], standard_docs)
+    value = standard_doc_config.get(language)
+    if not isinstance(value, str):
+        return None
+    return value.strip() or None
 
 
 def _check_design_doc_status(root: Path) -> CheckResult:

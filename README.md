@@ -228,6 +228,16 @@ HTML design docs under `docs/design` must declare `data-doc-status` with one of
 `draft`, `proposal`, `accepted`, or `superseded`. The check fails unmarked or
 invalid design docs and reports draft/proposal pages for release review.
 
+JavaScript profiles accept either `docs/design/javascript-standard.html` or the
+foldered path `docs/design/standards/javascript.html` for the canonical
+JavaScript standard design doc. Projects with a different deliberate layout may
+configure it:
+
+```toml
+[documentation.standard_docs]
+javascript = "docs/design/standards/javascript.html"
+```
+
 ## Documentation
 
 - [Setup](docs/setup.html)
@@ -238,7 +248,7 @@ invalid design docs and reports draft/proposal pages for release review.
 - [C++ Standard](docs/design/cpp-standard.html)
 - [Mixed Mode Standard](docs/design/mixed-mode.html)
 - [JavaScript Web App Standard](docs/design/javascript-standard.html)
-- [Release Notes](docs/releases/2026-06-10.md)
+- [Release Notes](docs/releases/2026-06-14.md)
 
 ## License
 

@@ -36,6 +36,24 @@
       "type": "string",
       "enum": ["transient-dist", "committed-grouped-dist", "committed-extension-dist"],
       "description": "Whether dist/ is transient packaging output or committed grouped runtime artifacts."
+    },
+    "documentation": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Project-local documentation policy overrides.",
+      "properties": {
+        "standard_docs": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Canonical standard design-doc paths by language or profile family.",
+          "properties": {
+            "javascript": {
+              "type": "string",
+              "description": "Canonical JavaScript standard design doc path. Defaults accept docs/design/javascript-standard.html or docs/design/standards/javascript.html."
+            }
+          }
+        }
+      }
     }
   }
 }
