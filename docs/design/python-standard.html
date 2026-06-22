@@ -111,5 +111,18 @@ excluded_parts = ["test_cases", "fixtures"]</code></pre>
     deliberately. New compatibility shims need an explicit design reason and a
     signoff ratchet so they do not become permanent hidden API surface.
   </p>
+
+  <h2>Public PR Hygiene</h2>
+  <p>
+    Public repositories should install the shared GitHub PR hygiene workflow
+    and PR template from <code>docs/templates/github/</code>, then opt into
+    local validation with a <code>[pr_hygiene]</code> table. The workflow
+    requires a filled <code>Linked issue:</code> line that resolves to an
+    existing same-repo issue, Conventional Commit form for PR titles and commit
+    subjects, commit subjects of 72 characters or fewer, and no <code>WIP</code>,
+    emoji, or AI-vendor attribution in PR metadata or commit messages.
+  </p>
+  <pre><code>[pr_hygiene]
+enabled = true</code></pre>
 </body>
 </html>

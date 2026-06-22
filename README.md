@@ -222,6 +222,28 @@ The check is intentionally configurable because legacy cleanup is project
 specific. It should be part of L99 signoff when a repo has known old surfaces to
 prune, with generated files and captured fixtures excluded explicitly.
 
+## Public PR Hygiene
+
+Public repositories can opt into the shared PR hygiene gate by copying:
+
+- `docs/templates/github/pr-hygiene.yml` to
+  `.github/workflows/pr-hygiene.yml`
+- `docs/templates/github/pull_request_template.md` to
+  `.github/pull_request_template.md`
+
+Then enable local conformance validation:
+
+```toml
+[pr_hygiene]
+enabled = true
+```
+
+In `pyproject.toml`, use `[tool.wn_dev_std.pr_hygiene]` instead. The workflow
+requires a filled `Linked issue:` line that points at an existing same-repo
+issue, Conventional Commit form for PR titles and commit subjects, commit
+subjects of 72 characters or fewer, and no `WIP`, emoji, or AI-vendor
+attribution in PR metadata or commit messages.
+
 ## Design Doc Status
 
 HTML design docs under `docs/design` must declare `data-doc-status` with one of
@@ -248,7 +270,7 @@ javascript = "docs/design/standards/javascript.html"
 - [C++ Standard](docs/design/cpp-standard.html)
 - [Mixed Mode Standard](docs/design/mixed-mode.html)
 - [JavaScript Web App Standard](docs/design/javascript-standard.html)
-- [Release Notes](docs/releases/2026-06-14.md)
+- [Release Notes](docs/releases/2026-06-22.md)
 
 ## License
 

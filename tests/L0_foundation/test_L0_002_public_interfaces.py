@@ -25,6 +25,13 @@ from wn_dev_std import (
     render_zephyr_standard,
 )
 from wn_dev_std.checks import run_basic_checks
+from wn_dev_std.pr_hygiene import (
+    check_pr_hygiene_policy,
+    conventional_subject_pattern,
+    is_conventional_subject,
+)
+
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_default_python_standard_contains_strict_rules() -> None:
@@ -119,6 +126,15 @@ def test_strict_rule_serializes_to_json_ready_dict() -> None:
         "value": "<= 8",
         "rationale": "Keep functions reviewable.",
     }
+
+
+def test_pr_hygiene_subject_validation_uses_conventional_commits() -> None:
+    assert is_conventional_subject("fix: handle missing board outline")
+    assert is_conventional_subject("feat(kicad): add HTTP library setup")
+    assert is_conventional_subject("ci!: require linked issues")
+    assert not is_conventional_subject("Handle missing board outline")
+    assert not is_conventional_subject("misc: update things")
+    assert "build|chore|ci|deps|docs|feat|fix" in conventional_subject_pattern()
 
 
 def test_render_python_standard_json_round_trips() -> None:
@@ -343,6 +359,37 @@ def test_compatibility_pruning_check_fails_on_forbidden_reference(tmp_path: Path
     assert not pruning.passed
     assert "src/static/app.js:2" in pruning.detail
     assert "WN_LIBZ_ROOT" in pruning.detail
+
+
+def test_pr_hygiene_policy_passes_for_installed_templates(tmp_path: Path) -> None:
+    install_pr_hygiene_templates(tmp_path)
+
+    result = check_pr_hygiene_policy(tmp_path, {"enabled": True})
+
+    assert result.passed
+
+
+def test_pr_hygiene_policy_fails_when_workflow_is_missing(tmp_path: Path) -> None:
+    result = check_pr_hygiene_policy(tmp_path, {"enabled": True})
+
+    assert not result.passed
+    assert ".github/workflows/pr-hygiene.yml" in result.detail
+
+
+def test_pr_hygiene_check_runs_when_configured(tmp_path: Path) -> None:
+    write_minimal_python_js_project(tmp_path)
+    install_pr_hygiene_templates(tmp_path)
+    write_file(
+        tmp_path / "wn-dev-std.toml",
+        (tmp_path / "wn-dev-std.toml").read_text(encoding="utf-8")
+        + "\n[pr_hygiene]\nenabled = true\n",
+    )
+
+    results = run_basic_checks(tmp_path)
+    hygiene = next(result for result in results if result.name == "public PR hygiene")
+
+    assert hygiene.passed
+    assert all(result.passed for result in results), [result.to_dict() for result in results]
 
 
 def test_design_doc_status_check_fails_on_unmarked_html(tmp_path: Path) -> None:
@@ -758,6 +805,19 @@ def add_compatibility_pruning_config(root: Path) -> None:
             excluded_parts = ["test_cases"]
             """
         ).lstrip(),
+    )
+
+
+def install_pr_hygiene_templates(root: Path) -> None:
+    write_file(
+        root / ".github" / "workflows" / "pr-hygiene.yml",
+        (ROOT / "docs" / "templates" / "github" / "pr-hygiene.yml").read_text(encoding="utf-8"),
+    )
+    write_file(
+        root / ".github" / "pull_request_template.md",
+        (ROOT / "docs" / "templates" / "github" / "pull_request_template.md").read_text(
+            encoding="utf-8"
+        ),
     )
 
 

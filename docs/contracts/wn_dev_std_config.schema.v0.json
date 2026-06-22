@@ -54,6 +54,29 @@
           }
         }
       }
+    },
+    "pr_hygiene": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Opt-in public GitHub pull-request hygiene policy.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether wn-dev-std check validates the public PR hygiene workflow."
+        },
+        "workflow": {
+          "type": "string",
+          "description": "Relative path to the GitHub PR hygiene workflow. Defaults to .github/workflows/pr-hygiene.yml."
+        },
+        "pull_request_template": {
+          "type": "string",
+          "description": "Relative path to the PR template. Defaults to .github/pull_request_template.md."
+        },
+        "require_pull_request_template": {
+          "type": "boolean",
+          "description": "Whether the local check requires a PR template with Linked issue guidance."
+        }
+      }
     }
   }
 }

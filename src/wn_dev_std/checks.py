@@ -32,6 +32,7 @@ from wn_dev_std.compatibility_pruning import check_compatibility_pruning_policy
 from wn_dev_std.cpp_policy import check_clang_tidy_policy
 from wn_dev_std.design_doc_status import check_design_doc_status_policy
 from wn_dev_std.native_complexity import check_lizard_gate, check_native_signoff_config
+from wn_dev_std.pr_hygiene import check_pr_hygiene_policy
 from wn_dev_std.secret_hygiene import check_root_env_policy
 
 
@@ -80,6 +81,12 @@ def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
         pruning_result = check_compatibility_pruning_policy(resolved_root, pruning_config)
         checks.append(
             CheckResult("compatibility pruning", pruning_result.passed, pruning_result.detail)
+        )
+    pr_hygiene_config = _pr_hygiene_config(config)
+    if pr_hygiene_config is not None:
+        pr_hygiene_result = check_pr_hygiene_policy(resolved_root, pr_hygiene_config)
+        checks.append(
+            CheckResult("public PR hygiene", pr_hygiene_result.passed, pr_hygiene_result.detail)
         )
     return tuple(checks)
 
@@ -316,6 +323,12 @@ def _compatibility_pruning_config(config: Mapping[str, object] | None) -> object
     if config is None:
         return None
     return config.get("compatibility_pruning")
+
+
+def _pr_hygiene_config(config: Mapping[str, object] | None) -> object | None:
+    if config is None:
+        return None
+    return config.get("pr_hygiene")
 
 
 def _check_pyproject_backend(
