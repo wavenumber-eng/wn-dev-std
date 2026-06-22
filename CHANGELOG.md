@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026.6.22
+
+- Add a public PR hygiene standard for linked issues, Conventional Commit PR
+  titles and commit subjects, emoji rejection, and AI-vendor attribution
+  rejection.
+- Add reusable GitHub workflow and pull request template files under
+  `docs/templates/github/`.
+- Add an opt-in `[pr_hygiene]` conformance check that verifies downstream repos
+  have installed the public PR hygiene workflow and template.
+
 ## 2026.6.14
 
 - Allow JavaScript profiles to use a foldered canonical standard design doc at

@@ -156,6 +156,31 @@ def test_compatibility_pruning_policy_is_documented() -> None:
         assert "excluded_parts" in text
 
 
+def test_public_pr_hygiene_policy_is_documented_and_installed() -> None:
+    workflow_template = (ROOT / "docs" / "templates" / "github" / "pr-hygiene.yml").read_text(
+        encoding="utf-8"
+    )
+    workflow = (ROOT / ".github" / "workflows" / "pr-hygiene.yml").read_text(encoding="utf-8")
+    pr_template = (ROOT / ".github" / "pull_request_template.md").read_text(encoding="utf-8")
+    pr_template_source = (
+        ROOT / "docs" / "templates" / "github" / "pull_request_template.md"
+    ).read_text(encoding="utf-8")
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    python_doc = (ROOT / "docs" / "design" / "python-standard.html").read_text(encoding="utf-8")
+
+    assert workflow == workflow_template
+    assert pr_template == pr_template_source
+    for text in (workflow, readme, python_doc):
+        assert "Linked issue:" in text
+        assert "Conventional Commit" in text
+        assert "Claude" in text or ("AI-vendor" in text and "attribution" in text)
+
+    hygiene_check = next(
+        result for result in run_basic_checks(ROOT) if result.name == "public PR hygiene"
+    )
+    assert hygiene_check.passed
+
+
 def test_design_doc_status_policy_is_documented_and_clean() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     standard_doc = (ROOT / "docs" / "design" / "documentation-standard.html").read_text(

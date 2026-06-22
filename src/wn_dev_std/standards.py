@@ -16,6 +16,8 @@ ProfileName = Literal[
     "zephyr-firmware",
 ]
 
+STANDARD_VERSION = "2026.6.22"
+
 
 @dataclass(frozen=True, slots=True)
 class StrictRule:
@@ -61,6 +63,11 @@ COMPATIBILITY_PRUNING_RULE = StrictRule(
     "compatibility-pruning",
     "configured forbidden legacy surface",
     "Old compatibility shims, environment variables, and aliases need a signoff gate.",
+)
+PUBLIC_PR_HYGIENE_RULE = StrictRule(
+    "pr-hygiene.public",
+    "linked issue + Conventional Commit CI",
+    "Public PRs need reviewable issue context and machine-checkable metadata.",
 )
 
 MIXED_MODE_RULES = (
@@ -113,6 +120,7 @@ MIXED_MODE_RULES = (
     StrictRule("lint", "ruff + clang-format", "Keep Python and native style automated."),
     StrictRule("static-analysis", "pyright + clang-tidy", "Catch wrapper and native drift early."),
     COMPATIBILITY_PRUNING_RULE,
+    PUBLIC_PR_HYGIENE_RULE,
     StrictRule("ci.os", "ubuntu, windows, macos", "Build platform wheels on real targets."),
     StrictRule("ci.wasm", "separate wasm lane", "Avoid hiding browser/toolchain failures."),
     StrictRule("release", "GitHub Release published", "Allow final review before publish."),
@@ -221,6 +229,7 @@ CPP_RULES = (
         "Generated native sources need a maintained source of truth.",
     ),
     COMPATIBILITY_PRUNING_RULE,
+    PUBLIC_PR_HYGIENE_RULE,
     StrictRule("ci.os", "ubuntu, windows, macos", "Catch compiler and platform differences early."),
 )
 
@@ -300,6 +309,7 @@ ZEPHYR_RULES = (
         "Zephyr machines need explicit west, SDK, dtc, LLVM, lizard, and flashing setup.",
     ),
     COMPATIBILITY_PRUNING_RULE,
+    PUBLIC_PR_HYGIENE_RULE,
 )
 
 ZEPHYR_REQUIRED_FILES = (
@@ -354,6 +364,7 @@ CSHARP_RULES = (
         "Separate committed runtime packages from local build scratch.",
     ),
     COMPATIBILITY_PRUNING_RULE,
+    PUBLIC_PR_HYGIENE_RULE,
     StrictRule(
         "ci.os", "windows plus portable helper tests", "Catch .NET and host differences early."
     ),
@@ -478,6 +489,7 @@ JAVASCRIPT_WEB_RULES = (
         "Projects need a simple cross-platform command surface even when shells differ.",
     ),
     COMPATIBILITY_PRUNING_RULE,
+    PUBLIC_PR_HYGIENE_RULE,
     StrictRule(
         "ci.os",
         "ubuntu, windows, macos",
@@ -527,6 +539,7 @@ PYTHON_JS_RULES = (
         "Frontend state and API payloads need reviewable contracts.",
     ),
     COMPATIBILITY_PRUNING_RULE,
+    PUBLIC_PR_HYGIENE_RULE,
 )
 
 PYTHON_JS_REQUIRED_FILES = (
@@ -555,7 +568,7 @@ def default_python_standard() -> PythonStandard:
     """Return the current strict Python package standard."""
     return PythonStandard(
         name="python-package",
-        version="2026.6.14",
+        version=STANDARD_VERSION,
         status="initial",
         rules=(
             StrictRule("workflow", "uv", "Use one environment and lock workflow."),
@@ -568,6 +581,7 @@ def default_python_standard() -> PythonStandard:
             StrictRule("complexity.tests", "<= 10", "Tests may orchestrate more setup."),
             StrictRule("docs.design", "HTML", "Keep docs human-readable and machine-checkable."),
             COMPATIBILITY_PRUNING_RULE,
+            PUBLIC_PR_HYGIENE_RULE,
             StrictRule("release", "GitHub Release published", "Allow final review before publish."),
             StrictRule("ci.os", "ubuntu, windows, macos", "Catch platform differences early."),
         ),
@@ -595,7 +609,7 @@ def default_mixed_mode_standard() -> PythonStandard:
     """Return the current Python plus native/WASM mixed-mode standard."""
     return PythonStandard(
         name="python-native-wasm",
-        version="2026.6.14",
+        version=STANDARD_VERSION,
         status="initial",
         rules=MIXED_MODE_RULES,
         required_files=MIXED_MODE_REQUIRED_FILES,
@@ -607,7 +621,7 @@ def default_cpp_standard() -> PythonStandard:
     """Return the current C++ library and native executable standard."""
     return PythonStandard(
         name="cpp-library",
-        version="2026.6.14",
+        version=STANDARD_VERSION,
         status="initial",
         rules=CPP_RULES,
         required_files=CPP_REQUIRED_FILES,
@@ -619,7 +633,7 @@ def default_zephyr_standard() -> PythonStandard:
     """Return the current Zephyr firmware standard."""
     return PythonStandard(
         name="zephyr-firmware",
-        version="2026.6.14",
+        version=STANDARD_VERSION,
         status="initial",
         rules=ZEPHYR_RULES,
         required_files=ZEPHYR_REQUIRED_FILES,
@@ -631,7 +645,7 @@ def default_csharp_standard() -> PythonStandard:
     """Return the current C# application and plugin standard."""
     return PythonStandard(
         name="csharp-app",
-        version="2026.6.14",
+        version=STANDARD_VERSION,
         status="initial",
         rules=CSHARP_RULES,
         required_files=CSHARP_REQUIRED_FILES,
@@ -643,7 +657,7 @@ def default_javascript_web_standard() -> PythonStandard:
     """Return the current no-build browser JavaScript and CSS standard."""
     return PythonStandard(
         name="javascript-web-app",
-        version="2026.6.14",
+        version=STANDARD_VERSION,
         status="initial",
         rules=JAVASCRIPT_WEB_RULES,
         required_files=JAVASCRIPT_WEB_REQUIRED_FILES,
@@ -655,7 +669,7 @@ def default_python_js_standard() -> PythonStandard:
     """Return the current Python plus browser JavaScript app standard."""
     return PythonStandard(
         name="python-js-app",
-        version="2026.6.14",
+        version=STANDARD_VERSION,
         status="initial",
         rules=PYTHON_JS_RULES,
         required_files=PYTHON_JS_REQUIRED_FILES,
