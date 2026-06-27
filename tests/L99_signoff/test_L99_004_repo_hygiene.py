@@ -221,6 +221,7 @@ def test_audit_and_plan_log_policy_is_documented() -> None:
         "plan create",
         "plan status",
         "log",
+        "log show",
         "log create",
         "rogue",
         "v1_1_log.md",

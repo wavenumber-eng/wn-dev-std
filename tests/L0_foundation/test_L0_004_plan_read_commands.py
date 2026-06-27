@@ -97,6 +97,30 @@ def test_log_list_outputs_logs_for_plan(tmp_path: Path) -> None:
     assert "docs/plans/pcb-a0/logs/2026-06-27.md" in result.stdout
 
 
+def test_log_show_outputs_body(tmp_path: Path) -> None:
+    write_compliant_plan_repo(tmp_path)
+
+    result = run_cli(tmp_path, "log", "show", "pcb-a0-log")
+
+    assert result.returncode == 0
+    assert "Log: pcb-a0-log" in result.stdout
+    assert "Plan: pcb-a0" in result.stdout
+    assert "docs/plans/pcb-a0/logs/2026-06-27.md" in result.stdout
+    assert "Work log body." in result.stdout
+
+
+def test_log_show_json_is_machine_readable(tmp_path: Path) -> None:
+    write_compliant_plan_repo(tmp_path)
+
+    result = run_cli(tmp_path, "log", "show", "pcb-a0-log", "--format", "json")
+
+    assert result.returncode == 0
+    payload = json.loads(result.stdout)
+    assert payload["id"] == "pcb-a0-log"
+    assert payload["plan_id"] == "pcb-a0"
+    assert payload["body"] == "Work log body."
+
+
 def test_plan_read_commands_fail_on_noncompliant_catalog(tmp_path: Path) -> None:
     write_file(tmp_path / "wn-dev-std.toml", 'profile = "python-package"\n')
     write_file(tmp_path / "docs" / "plans" / "pcb-a0-plan.md", "# Missing metadata\n")

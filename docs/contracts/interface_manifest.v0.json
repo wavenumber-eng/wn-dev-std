@@ -1,5 +1,5 @@
 {
-  "schema_version": "2026.6.22",
+  "schema_version": "2026.6.27",
   "interfaces": [
     {
       "name": "wn_dev_std.StrictRule",

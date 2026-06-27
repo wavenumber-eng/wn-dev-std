@@ -125,6 +125,7 @@ dev-std plan create pcb-a0 --title "PCB A0"
 dev-std plan status pcb-a0 blocked
 dev-std plan step add pcb-a0 audit --title "Audit old plans"
 dev-std log list pcb-a0
+dev-std log show pcb-a0-2026-06-27-001
 dev-std log create pcb-a0 --body "Captured cleanup notes."
 ```
 
@@ -308,8 +309,9 @@ The `plan` and `log` commands discover the package root by walking upward to
 `wn-dev-std.toml`, a `pyproject.toml` with `[tool.wn_dev_std]`, or a `.git`
 fallback boundary. Read and mutation commands only operate on a compliant plan
 catalog. The first mutation slice is non-destructive: create plans, set plan
-status, add/update step status, and create attached logs. Plan deletion,
-retirement, and migration helpers are intentionally left for a later tool pass.
+status, add/update step status, and create attached logs. `log show` reads one
+attached log body by globally unique log id. Plan deletion, retirement, and
+migration helpers are intentionally left for a later tool pass.
 
 ## Documentation
 
@@ -322,7 +324,7 @@ retirement, and migration helpers are intentionally left for a later tool pass.
 - [C++ Standard](docs/design/cpp-standard.html)
 - [Mixed Mode Standard](docs/design/mixed-mode.html)
 - [JavaScript Web App Standard](docs/design/javascript-standard.html)
-- [Release Notes](docs/releases/2026-06-22.md)
+- [Release Notes](docs/releases/2026-06-27.md)
 
 ## License
 

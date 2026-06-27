@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026.6.27
+
+- Add `dev-std log show` for reading one compliant plan work log by globally
+  unique log id.
+- Release the first plan/log hygiene workflow slice with stricter plan-root
+  Markdown metadata checks, structured plan steps, log attachment validation,
+  and read/write helper commands.
+- Document package-scoped plan audits, root discovery, active plan lifecycle,
+  and the intended non-destructive boundary for plan/log commands.
+
 ## 2026.6.22
 
 - Add a public PR hygiene standard for linked issues, Conventional Commit PR
