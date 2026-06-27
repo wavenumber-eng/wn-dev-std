@@ -59,6 +59,25 @@ def test_docs_plans_audit_fails_plan_like_file_without_front_matter(tmp_path: Pa
     assert "missing TOML front matter" in result.detail
 
 
+def test_docs_plans_audit_fails_any_markdown_under_plan_root_without_front_matter(
+    tmp_path: Path,
+) -> None:
+    write_file(tmp_path / "docs" / "plans" / "2026-04-16-spike.md", "# Spike\n")
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "2026-04-16-spike.md: missing TOML front matter" in result.detail
+
+
+def test_docs_plans_audit_allows_readme_under_plan_root(tmp_path: Path) -> None:
+    write_file(tmp_path / "docs" / "plans" / "README.md", "# Plans\n")
+
+    result = docs_plans_result(tmp_path)
+
+    assert result.passed
+
+
 def test_docs_plans_audit_fails_completed_plan(tmp_path: Path) -> None:
     write_plan(tmp_path, "docs/plans/pcb-a0/plan.md", "pcb-a0", "complete")
 

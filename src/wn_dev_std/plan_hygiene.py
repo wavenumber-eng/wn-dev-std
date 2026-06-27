@@ -226,7 +226,9 @@ def _process_plan_root_document(
     if metadata_type in PLAN_DOCUMENT_TYPES:
         _collect_record(path, relative_path, metadata, state.plans, state.logs, state.failures)
         return
-    if _is_plan_or_log_like_path(path):
+    if path.name.lower() == "readme.md":
+        return
+    if path.suffix.lower() == MARKDOWN_SUFFIX:
         _record_missing_front_matter(path, relative_path, state)
 
 
