@@ -20,22 +20,25 @@ For normal tool use:
 
 ```bash
 uv tool install git+https://github.com/wavenumber-eng/wn-dev-std.git
-wn-dev-std --version
+dev-std --version
 ```
 
 For one-shot use:
 
 ```bash
-uvx --from git+https://github.com/wavenumber-eng/wn-dev-std.git wn-dev-std --help
+uvx --from git+https://github.com/wavenumber-eng/wn-dev-std.git dev-std --help
 ```
 
 For local development:
 
 ```bash
 uv sync --all-extras
-uv run wn-dev-std check .
+uv run dev-std audit .
 uv run rack run --all
 ```
+
+The installed command is `dev-std`. The older `wn-dev-std` command remains as a
+compatibility alias for existing repositories and CI jobs.
 
 ## Rack Model
 
@@ -81,28 +84,35 @@ ratchets.
 Show version and major internal dependency versions:
 
 ```bash
-wn-dev-std version
-wn-dev-std --version
+dev-std version
+dev-std --version
 ```
 
 Print the current Python standard summary:
 
 ```bash
-wn-dev-std standard
-wn-dev-std standard --format json
-wn-dev-std standard --profile cpp-library
-wn-dev-std standard --profile python-native-wasm
-wn-dev-std standard --profile csharp-app
-wn-dev-std standard --profile javascript-web-app
-wn-dev-std standard --profile python-js-app
-wn-dev-std standard --profile zephyr-firmware
+dev-std standard
+dev-std standard --format json
+dev-std standard --profile cpp-library
+dev-std standard --profile python-native-wasm
+dev-std standard --profile csharp-app
+dev-std standard --profile javascript-web-app
+dev-std standard --profile python-js-app
+dev-std standard --profile zephyr-firmware
 ```
 
-Run the basic conformance checks against the current repo:
+Run the repository audit checks against the current repo:
 
 ```bash
-wn-dev-std check .
-wn-dev-std check . --format json
+dev-std audit .
+dev-std audit . --format json
+dev-std audit . --scope docs.plans
+```
+
+The `check` command is a compatibility alias for `audit`:
+
+```bash
+dev-std check .
 ```
 
 ## Python Baseline
@@ -260,11 +270,28 @@ configure it:
 javascript = "docs/design/standards/javascript.html"
 ```
 
+## Plan And Log Hygiene
+
+Active plans and attached work logs are temporary Markdown documents with TOML
+front matter. The `docs.plans` audit scope checks approved plan roots, plan/log
+metadata, dependency references, orphan logs, and rogue plan-like or log-like
+files outside approved roots. Approved roots are allowed locations, not required
+folders, so packages with no active plans do not need empty placeholders. Plan
+documents use `type = "plan"` and work logs use `type = "plan_log"`.
+Completed work is closed out into durable artifacts and removed; `complete` is
+not a valid resting status for active plan files.
+
+```toml
+[documentation.plans]
+roots = ["docs/plans"]
+```
+
 ## Documentation
 
 - [Setup](docs/setup.html)
 - [Architecture](docs/architecture.html), including the Rack/signoff quality model
 - [CLI Design](docs/design/cli.html)
+- [Audit Standard](docs/design/audit-standard.html)
 - [Documentation Standard](docs/design/documentation-standard.html)
 - [Python Standard Design](docs/design/python-standard.html)
 - [C++ Standard](docs/design/cpp-standard.html)

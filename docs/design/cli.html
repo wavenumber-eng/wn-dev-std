@@ -8,17 +8,26 @@
   <h1>CLI Design</h1>
   <p>
     The CLI demonstrates the standard command layout: a thin entry point, one
-    file per public command, command-level help, and version reporting.
+    file per public command, command-level help, and version reporting. The
+    primary executable is <code>dev-std</code>; <code>wn-dev-std</code> remains
+    a compatibility alias.
   </p>
+
+  <section data-command="audit">
+    <h2>audit</h2>
+    <p>
+      Runs repository audit checks for release signoff. The default scope is
+      <code>all</code>; callers may request narrower scopes such as
+      <code>docs.plans</code>. Text and JSON output are supported.
+    </p>
+  </section>
 
   <section data-command="check">
     <h2>check</h2>
     <p>
-      Runs basic repository conformance checks for required files, docs, Rack,
-      design-doc status markers, lockfile, secret hygiene, and Hatchling build
-      backend. A local root <code>.env</code> is allowed only when Git reports
-      it as untracked and ignored. C/C++ profiles must also expose a
-      Lizard-based native complexity gate under <code>tests/</code>.
+      Compatibility alias for <code>audit</code>. Existing repositories and CI
+      jobs may keep using this command while new signoff wiring should call
+      <code>audit</code>.
     </p>
   </section>
 

@@ -198,3 +198,26 @@ def test_design_doc_status_policy_is_documented_and_clean() -> None:
     )
     assert status_check.passed
     assert "draft/proposal docs" not in status_check.detail
+
+
+def test_audit_and_plan_log_policy_is_documented() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    audit_doc = (ROOT / "docs" / "design" / "audit-standard.html").read_text(encoding="utf-8")
+    documentation_doc = (ROOT / "docs" / "design" / "documentation-standard.html").read_text(
+        encoding="utf-8"
+    )
+
+    for text in (readme, audit_doc, documentation_doc):
+        normalized = " ".join(text.split())
+        assert "TOML front matter" in normalized
+        assert "plan_log" in normalized
+        assert "complete" in normalized
+
+    for expected in (
+        "Approved roots are allowed locations, not required folders",
+        "docs.plans",
+        "rogue",
+        "worklogs",
+        "package root",
+    ):
+        assert expected in audit_doc

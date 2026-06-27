@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Audit Standard</title>
+</head>
+<body data-design="audit-standard" data-doc-status="accepted">
+  <h1>Audit Standard</h1>
+  <p>
+    <code>dev-std audit</code> is the canonical read-only signoff command for
+    Wavenumber repository checks. It groups checks by scope so projects can run
+    the full release-facing audit or focus on one policy area while migrating.
+  </p>
+
+  <h2>Command Boundary</h2>
+  <p>
+    The default audit scope is <code>all</code>. Narrow scopes such as
+    <code>docs.plans</code> are intended for migration and local ratchets.
+    <code>dev-std check</code> is a compatibility alias for existing CI jobs;
+    new signoff wiring should call <code>dev-std audit</code>.
+  </p>
+
+  <h2>Package Root Boundary</h2>
+  <p>
+    The current audit model treats the path passed to <code>dev-std audit</code>
+    as one package root. Monorepo packages should run audit from package-level
+    signoff until workspace-level package registration is added. Repo-root
+    workspace audits are a future layer and should not be inferred from the
+    package-local contract.
+  </p>
+
+  <h2>Plan Roots</h2>
+  <p>
+    The <code>docs.plans</code> scope audits active plan and work-log artifacts.
+    The default approved root is <code>docs/plans</code>. Projects may override
+    the approved roots with <code>[documentation.plans]</code> in
+    <code>wn-dev-std.toml</code> or <code>[tool.wn_dev_std.documentation.plans]</code>
+    in <code>pyproject.toml</code>.
+  </p>
+  <pre><code>[documentation.plans]
+roots = ["docs/pcb/plans", "docs/sch/plans"]</code></pre>
+  <p>
+    Approved roots are allowed locations, not required folders. A repository or
+    package with no active plans does not need to keep an empty
+    <code>docs/plans</code> folder or a placeholder file.
+  </p>
+
+  <h2>Plan And Log Documents</h2>
+  <p>
+    Active plans and attached work logs are Markdown documents with TOML front
+    matter. Plan metadata uses <code>type = "plan"</code>; log metadata uses
+    <code>type = "plan_log"</code>. Logs must identify their owning plan with
+    <code>plan_id</code>.
+  </p>
+  <pre><code>+++
+type = "plan_log"
+id = "pcb-a0-2026-06-27-001"
+plan_id = "pcb-a0"
+created = "2026-06-27T12:00:00-04:00"
++++</code></pre>
+
+  <h2>Rogue Detection</h2>
+  <p>
+    A rogue plan-like or log-like document outside approved plan roots fails the
+    <code>docs.plans</code> audit. This includes common active-work names such
+    as plan, roadmap, worklog, logbook, <code>log/</code>,
+    <code>logs/</code>, and <code>worklogs/</code>. Inside approved roots,
+    plan-like and log-like files must use the TOML front matter contract.
+  </p>
+
+  <h2>Lifecycle</h2>
+  <p>
+    Valid active plan statuses are <code>active</code>, <code>pending</code>,
+    and <code>blocked</code>. <code>complete</code> is not a valid resting
+    state in active plan roots. Completed work should be closed out into durable
+    artifacts such as code, tests, design docs, requirements, ADRs, or release
+    notes, then the temporary plan and work logs should be removed.
+  </p>
+</body>
+</html>

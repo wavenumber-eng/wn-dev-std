@@ -1,4 +1,4 @@
-"""Thin command-line entry point for `wn-dev-std`."""
+"""Thin command-line entry point for `dev-std`."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import argparse
 from collections.abc import Sequence
 from typing import Protocol, cast
 
-from wn_dev_std.cli.commands import check, standard, version
+from wn_dev_std.cli.commands import audit, check, standard, version
 
 
 class CommandHandler(Protocol):
@@ -20,7 +20,6 @@ class CommandHandler(Protocol):
 def build_parser() -> argparse.ArgumentParser:
     """Build the public CLI parser."""
     parser = argparse.ArgumentParser(
-        prog="wn-dev-std",
         description="Wavenumber development standards reference tool",
     )
     parser.add_argument(
@@ -30,6 +29,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     subparsers = parser.add_subparsers(dest="command", metavar="<command>")
+    audit.register(subparsers)
     check.register(subparsers)
     standard.register(subparsers)
     version.register(subparsers)

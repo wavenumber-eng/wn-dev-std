@@ -20,7 +20,7 @@
 
   <h2>Development Commands</h2>
   <pre><code>uv sync --all-extras
-uv run wn-dev-std check .
+uv run dev-std audit .
 uv run rack run --all
 uv run python -m build
 uv run twine check dist/*</code></pre>
@@ -36,7 +36,8 @@ uv run twine check dist/*</code></pre>
     <code>wn-dev-std</code> is model-only and is not published to PyPI. It still
     builds wheels and sdists so the packaging path is exercised. Projects based
     on this standard may opt into PyPI trusted publishing, internal publishing,
-    or no publishing.
+    or no publishing. The installed command is <code>dev-std</code>;
+    <code>wn-dev-std</code> remains available as a compatibility alias.
   </p>
   <p>
     Pure Python packages treat <code>dist/</code> as transient build output.

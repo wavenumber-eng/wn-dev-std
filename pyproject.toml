@@ -57,6 +57,7 @@ Repository = "https://github.com/wavenumber-eng/wn-dev-std"
 Issues = "https://github.com/wavenumber-eng/wn-dev-std/issues"
 
 [project.scripts]
+dev-std = "wn_dev_std.cli.main:main"
 wn-dev-std = "wn_dev_std.cli.main:main"
 
 [tool.wn_dev_std]

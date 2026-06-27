@@ -53,7 +53,7 @@
 
   <h2>Signoff Behavior</h2>
   <p>
-    <code>wn-dev-std check</code> fails when HTML design docs are unmarked or
+    <code>dev-std audit</code> fails when HTML design docs are unmarked or
     use a status outside the approved vocabulary. It passes but reports
     <code>draft</code> and <code>proposal</code> pages so L99 signoff can
     decide whether those pages are acceptable for the release being prepared.
@@ -63,6 +63,30 @@
     serialized contract, or release note that depends on an unfinished design
     should fail release signoff until the relevant document is promoted to
     <code>accepted</code> or a clear release exception is recorded.
+  </p>
+
+  <h2>Plan And Log Metadata</h2>
+  <p>
+    Active plans and attached work logs use Markdown files with TOML front
+    matter. The minimum plan fields are <code>type</code>, <code>id</code>,
+    <code>status</code>, and <code>created</code>. The minimum log fields are
+    <code>type</code>, <code>id</code>, <code>plan_id</code>, and
+    <code>created</code>. Plan documents use <code>type = "plan"</code> and
+    work logs use <code>type = "plan_log"</code>. Plans may declare
+    <code>depends_on</code> when one plan must finish before another can
+    proceed.
+  </p>
+  <pre><code>+++
+type = "plan"
+id = "pcb-a0-alignment"
+status = "active"
+created = "2026-06-27"
++++</code></pre>
+  <p>
+    Plan status values are <code>active</code>, <code>pending</code>, and
+    <code>blocked</code>. Completed plans are closed out into durable artifacts
+    and removed from active plan roots rather than left with a
+    <code>complete</code> status.
   </p>
 </body>
 </html>

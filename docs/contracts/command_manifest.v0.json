@@ -2,11 +2,18 @@
   "schema_version": "2026.6.22",
   "commands": [
     {
+      "name": "audit",
+      "module": "wn_dev_std.cli.commands.audit",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "audit",
+      "description": "Run repository audit checks."
+    },
+    {
       "name": "check",
       "module": "wn_dev_std.cli.commands.check",
       "design_doc": "docs/design/cli.html",
       "data_command": "check",
-      "description": "Run basic repository conformance checks."
+      "description": "Compatibility alias for audit."
     },
     {
       "name": "standard",

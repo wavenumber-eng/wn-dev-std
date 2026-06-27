@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import tomllib
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
@@ -32,6 +32,7 @@ from wn_dev_std.compatibility_pruning import check_compatibility_pruning_policy
 from wn_dev_std.cpp_policy import check_clang_tidy_policy
 from wn_dev_std.design_doc_status import check_design_doc_status_policy
 from wn_dev_std.native_complexity import check_lizard_gate, check_native_signoff_config
+from wn_dev_std.plan_hygiene import check_plan_hygiene_policy
 from wn_dev_std.pr_hygiene import check_pr_hygiene_policy
 from wn_dev_std.secret_hygiene import check_root_env_policy
 
@@ -43,6 +44,7 @@ class CheckResult:
     name: str
     passed: bool
     detail: str
+    scope: str = "repo"
 
     def to_dict(self) -> dict[str, object]:
         """Return a JSON-serializable representation."""
@@ -50,9 +52,20 @@ class CheckResult:
             "name": self.name,
             "passed": self.passed,
             "detail": self.detail,
+            "scope": self.scope,
         }
 
 
+AUDIT_SCOPES = (
+    "all",
+    "repo",
+    "docs",
+    "docs.design",
+    "docs.plans",
+    "language",
+    "ci",
+    "compat",
+)
 JS_CSS_EXCLUDED_PARTS = {"vendor", "lib", "_build", "node_modules"}
 STANDARD_COMMAND_VERBS = ("install", "update", "build", "test", "signoff")
 JAVASCRIPT_STANDARD_DOC_PATHS = (
@@ -63,6 +76,21 @@ JAVASCRIPT_STANDARD_DOC_PATHS = (
 
 def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
     """Run lightweight repository checks for a Python standards project."""
+    return run_audit_checks(root, ("all",))
+
+
+def run_audit_checks(
+    root: Path,
+    scopes: Sequence[str] = ("all",),
+) -> tuple[CheckResult, ...]:
+    """Run repository audit checks for the requested scopes."""
+    requested_scopes = _normalize_scopes(scopes)
+    checks = _run_all_audit_checks(root)
+    return tuple(check for check in checks if _scope_is_selected(check.scope, requested_scopes))
+
+
+def _run_all_audit_checks(root: Path) -> tuple[CheckResult, ...]:
+    """Run the full repository audit set before scope filtering."""
     resolved_root = root.resolve()
     pyproject = _load_pyproject(resolved_root)
     config = _load_standard_config(resolved_root, pyproject)
@@ -75,19 +103,38 @@ def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
                 _check_pyproject_backend(resolved_root, pyproject, profile),
             ]
         )
-    checks.extend(_profile_specific_checks(resolved_root, profile))
+    checks.extend(_scoped_results(_profile_specific_checks(resolved_root, profile), "language"))
     pruning_config = _compatibility_pruning_config(config)
     if pruning_config is not None:
         pruning_result = check_compatibility_pruning_policy(resolved_root, pruning_config)
         checks.append(
-            CheckResult("compatibility pruning", pruning_result.passed, pruning_result.detail)
+            CheckResult(
+                "compatibility pruning",
+                pruning_result.passed,
+                pruning_result.detail,
+                "compat",
+            )
         )
     pr_hygiene_config = _pr_hygiene_config(config)
     if pr_hygiene_config is not None:
         pr_hygiene_result = check_pr_hygiene_policy(resolved_root, pr_hygiene_config)
         checks.append(
-            CheckResult("public PR hygiene", pr_hygiene_result.passed, pr_hygiene_result.detail)
+            CheckResult(
+                "public PR hygiene",
+                pr_hygiene_result.passed,
+                pr_hygiene_result.detail,
+                "ci",
+            )
         )
+    plan_hygiene_result = check_plan_hygiene_policy(resolved_root, config)
+    checks.append(
+        CheckResult(
+            "docs.plans",
+            plan_hygiene_result.passed,
+            plan_hygiene_result.detail,
+            "docs.plans",
+        )
+    )
     return tuple(checks)
 
 
@@ -98,8 +145,8 @@ def _common_checks(
 ) -> list[CheckResult]:
     checks = [
         _check_required_paths(root, "root files", required_root_files(profile)),
-        _check_required_documentation_paths(root, profile, config),
-        _check_design_doc_status(root),
+        _scoped_result(_check_required_documentation_paths(root, profile, config), "docs"),
+        _scoped_result(_check_design_doc_status(root), "docs.design"),
         _check_no_env_file(root),
     ]
     if profile != "csharp-app":
@@ -189,6 +236,29 @@ def format_results(results: tuple[CheckResult, ...], output_format: str) -> str:
         marker = "PASS" if result.passed else "FAIL"
         lines.append(f"[{marker}] {result.name}: {result.detail}")
     return "\n".join(lines)
+
+
+def _normalize_scopes(scopes: Sequence[str]) -> tuple[str, ...]:
+    selected = tuple(scope for scope in scopes if scope in AUDIT_SCOPES)
+    if not selected:
+        return ("all",)
+    if "all" in selected:
+        return ("all",)
+    return selected
+
+
+def _scope_is_selected(scope: str, selected: Sequence[str]) -> bool:
+    if "all" in selected:
+        return True
+    return any(scope == item or scope.startswith(f"{item}.") for item in selected)
+
+
+def _scoped_result(result: CheckResult, scope: str) -> CheckResult:
+    return CheckResult(result.name, result.passed, result.detail, scope)
+
+
+def _scoped_results(results: Sequence[CheckResult], scope: str) -> list[CheckResult]:
+    return [_scoped_result(result, scope) for result in results]
 
 
 def _check_required_paths(root: Path, name: str, relative_paths: tuple[str, ...]) -> CheckResult:
@@ -339,7 +409,10 @@ def _check_pyproject_backend(
     if pyproject is None:
         return CheckResult("build backend", False, "pyproject.toml is missing")
 
-    build_system = _mapping(pyproject.get("build-system"), "build-system")
+    build_system_raw = pyproject.get("build-system")
+    if not isinstance(build_system_raw, dict):
+        return CheckResult("build backend", False, "pyproject.toml is missing [build-system]")
+    build_system = cast(Mapping[str, object], build_system_raw)
     backend = build_system.get("build-backend")
     if backend == "hatchling.build":
         return CheckResult("build backend", True, "pure Python package uses Hatchling")
@@ -720,9 +793,3 @@ def _has_compile_commands_enabled(presets: list[Mapping[str, object]]) -> bool:
         if value is True or value == "ON":
             return True
     return False
-
-
-def _mapping(value: object, label: str) -> Mapping[str, object]:
-    if isinstance(value, dict):
-        return cast(Mapping[str, object], value)
-    raise ValueError(f"expected [{label}] to be a mapping")

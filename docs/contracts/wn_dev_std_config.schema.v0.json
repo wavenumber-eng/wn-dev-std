@@ -52,6 +52,18 @@
               "description": "Canonical JavaScript standard design doc path. Defaults accept docs/design/javascript-standard.html or docs/design/standards/javascript.html."
             }
           }
+        },
+        "plans": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Plan and work-log audit configuration.",
+          "properties": {
+            "roots": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Configured active plan roots. Defaults to docs/plans."
+            }
+          }
         }
       }
     },

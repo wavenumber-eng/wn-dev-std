@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 from wn_dev_std import __version__
@@ -36,15 +37,36 @@ def test_cli_version_command_reports_same_version() -> None:
 def test_cli_help_lists_public_commands() -> None:
     result = run_cli("--help")
     assert result.returncode == 0
-    for command in ("check", "standard", "version"):
+    for command in ("audit", "check", "standard", "version"):
         assert command in result.stdout
+
+
+def test_pyproject_exposes_dev_std_and_legacy_cli_aliases() -> None:
+    with (ROOT / "pyproject.toml").open("rb") as handle:
+        pyproject = tomllib.load(handle)
+    scripts = pyproject["project"]["scripts"]
+    assert scripts["dev-std"] == "wn_dev_std.cli.main:main"
+    assert scripts["wn-dev-std"] == "wn_dev_std.cli.main:main"
 
 
 def test_cli_command_help_starts_for_public_commands() -> None:
-    for command in ("check", "standard", "version"):
+    for command in ("audit", "check", "standard", "version"):
         result = run_cli(command, "--help")
         assert result.returncode == 0
         assert command in result.stdout
+
+
+def test_audit_docs_plans_scope_runs() -> None:
+    result = run_cli("audit", "--scope", "docs.plans")
+    assert result.returncode == 0
+    assert "docs.plans" in result.stdout
+
+
+def test_check_remains_audit_compatibility_alias() -> None:
+    audit = run_cli("audit", "--scope", "docs.plans", "--format", "json")
+    check = run_cli("check", "--scope", "docs.plans", "--format", "json")
+    assert audit.returncode == check.returncode == 0
+    assert audit.stdout == check.stdout
 
 
 def test_standard_json_command_is_machine_readable() -> None:
