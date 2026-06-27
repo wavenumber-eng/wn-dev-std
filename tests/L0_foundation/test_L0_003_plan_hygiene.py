@@ -207,6 +207,14 @@ def test_docs_plans_audit_fails_rogue_plan_like_file(tmp_path: Path) -> None:
     assert "rogue plan/log-like document" in result.detail
 
 
+def test_docs_plans_audit_does_not_flag_planar_as_plan_like(tmp_path: Path) -> None:
+    write_file(tmp_path / "docs" / "models" / "geom_planar_region.html", "<html></html>\n")
+
+    result = docs_plans_result(tmp_path)
+
+    assert result.passed
+
+
 def test_docs_plans_audit_fails_rogue_log_like_file(tmp_path: Path) -> None:
     write_file(tmp_path / "docs" / "logs" / "2026-06-27.md", "notes\n")
 

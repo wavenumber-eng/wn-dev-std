@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import tomllib
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -557,8 +558,8 @@ def _duplicates(values: Sequence[str]) -> list[str]:
 
 
 def _is_plan_like_path(path: Path) -> bool:
-    stem = path.stem.lower()
-    return any(token in stem for token in PLAN_LIKE_NAME_TOKENS)
+    stem_tokens = set(_name_tokens(path.stem))
+    return bool(stem_tokens.intersection(PLAN_LIKE_NAME_TOKENS))
 
 
 def _is_log_like_path(path: Path) -> bool:
@@ -570,6 +571,10 @@ def _is_log_like_path(path: Path) -> bool:
 
 def _is_plan_or_log_like_path(path: Path) -> bool:
     return _is_plan_like_path(path) or _is_log_like_path(path)
+
+
+def _name_tokens(name: str) -> tuple[str, ...]:
+    return tuple(token for token in re.split(r"[^a-z0-9]+", name.lower()) if token)
 
 
 def _is_relative_to(path: Path, root: Path) -> bool:
