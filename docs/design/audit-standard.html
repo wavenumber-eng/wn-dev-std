@@ -107,9 +107,11 @@ depends_on = ["audit-existing-plans"]</code></pre>
   <p>
     A rogue plan-like or log-like document outside approved plan roots fails the
     <code>docs.plans</code> audit. This includes common active-work names such
-    as plan, roadmap, worklog, logbook, <code>log/</code>,
-    <code>logs/</code>, and <code>worklogs/</code>. Inside approved roots,
-    plan-like and log-like files must use the TOML front matter contract.
+    as plan, roadmap, worklog, logbook, Markdown files with a standalone
+    <code>log</code> filename token such as <code>v1_1_log.md</code>,
+    <code>log/</code>, <code>logs/</code>, and <code>worklogs/</code>.
+    Inside approved roots, plan-like and log-like files must use the TOML
+    front matter contract.
   </p>
 
   <h2>Lifecycle</h2>
@@ -118,7 +120,10 @@ depends_on = ["audit-existing-plans"]</code></pre>
     and <code>blocked</code>. <code>complete</code> is not a valid resting
     state in active plan roots. Completed work should be closed out into durable
     artifacts such as code, tests, design docs, requirements, ADRs, or release
-    notes, then the temporary plan and work logs should be removed.
+    notes, then the temporary plan and work logs should be removed. Useful
+    historical or reverse-engineering material may be kept, but it should be
+    renamed and classified as history, research, design, or another durable
+    document type rather than left as an active-work log.
   </p>
 </body>
 </html>

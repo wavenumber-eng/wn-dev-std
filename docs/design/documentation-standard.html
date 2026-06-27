@@ -76,6 +76,14 @@
     <code>depends_on</code> when one plan must finish before another can
     proceed.
   </p>
+  <p>
+    Markdown filenames with a standalone <code>log</code> token, such as
+    <code>v1_1_log.md</code>, are treated as log-like by the docs audit. Keep
+    them as compliant <code>plan_log</code> files only while they support an
+    active plan. After closeout, delete them or distill useful material into
+    durable history, research, design, requirement, ADR, release, or source
+    documentation.
+  </p>
   <pre><code>+++
 type = "plan"
 id = "pcb-a0-alignment"

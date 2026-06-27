@@ -198,6 +198,18 @@ def test_docs_plans_audit_fails_log_file_without_front_matter(tmp_path: Path) ->
     assert "missing TOML front matter" in result.detail
 
 
+def test_docs_plans_audit_fails_markdown_log_token_without_front_matter(
+    tmp_path: Path,
+) -> None:
+    write_plan(tmp_path, "docs/plans/pcb-a0/plan.md", "pcb-a0", "active")
+    write_file(tmp_path / "docs" / "plans" / "pcb-a0" / "v1_1_log.md", "notes\n")
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "v1_1_log.md: missing TOML front matter" in result.detail
+
+
 def test_docs_plans_audit_fails_rogue_plan_like_file(tmp_path: Path) -> None:
     write_file(tmp_path / "docs" / "design" / "migration_plan.md", "# Migration Plan\n")
 
@@ -209,6 +221,17 @@ def test_docs_plans_audit_fails_rogue_plan_like_file(tmp_path: Path) -> None:
 
 def test_docs_plans_audit_does_not_flag_planar_as_plan_like(tmp_path: Path) -> None:
     write_file(tmp_path / "docs" / "models" / "geom_planar_region.html", "<html></html>\n")
+
+    result = docs_plans_result(tmp_path)
+
+    assert result.passed
+
+
+def test_docs_plans_audit_does_not_flag_catalog_or_topology_substrings(
+    tmp_path: Path,
+) -> None:
+    write_file(tmp_path / "docs" / "design" / "model-catalog.html", "<html></html>\n")
+    write_file(tmp_path / "docs" / "design" / "construction-topology.md", "# Topology\n")
 
     result = docs_plans_result(tmp_path)
 

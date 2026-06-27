@@ -564,6 +564,9 @@ def _is_plan_like_path(path: Path) -> bool:
 
 def _is_log_like_path(path: Path) -> bool:
     stem = path.stem.lower()
+    stem_tokens = set(_name_tokens(path.stem))
+    if path.suffix.lower() == MARKDOWN_SUFFIX and "log" in stem_tokens:
+        return True
     if any(token in stem for token in LOG_LIKE_NAME_TOKENS):
         return True
     return any(part.lower() in LOG_LIKE_DIRECTORY_NAMES for part in path.parts)

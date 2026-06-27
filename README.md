@@ -291,8 +291,11 @@ metadata, dependency references, orphan logs, and rogue plan-like or log-like
 files outside approved roots. Approved roots are allowed locations, not required
 folders, so packages with no active plans do not need empty placeholders. Plan
 documents use `type = "plan"` and work logs use `type = "plan_log"`.
-Completed work is closed out into durable artifacts and removed; `complete` is
-not a valid resting status for active plan files.
+Markdown names with a standalone `log` token, such as `v1_1_log.md`, are treated
+as log-like and must either be compliant `plan_log` files or be renamed and
+classified as durable documentation. Completed work is closed out into durable
+artifacts and removed; `complete` is not a valid resting status for active plan
+files.
 Multi-step plans may declare `[[steps]]` metadata with `pending`, `active`,
 `blocked`, or `done` status values.
 
