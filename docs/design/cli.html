@@ -8,9 +8,10 @@
   <h1>CLI Design</h1>
   <p>
     The CLI demonstrates the standard command layout: a thin entry point, one
-    file per public command, command-level help, and version reporting. The
-    primary executable is <code>dev-std</code>; <code>wn-dev-std</code> remains
-    a compatibility alias.
+    file per public command, split subcommand modules when a command grows,
+    command-level help, and version reporting. The primary executable is
+    <code>dev-std</code>; <code>wn-dev-std</code> remains a compatibility
+    alias.
   </p>
 
   <section data-command="audit">
@@ -34,20 +35,24 @@
   <section data-command="plan">
     <h2>plan</h2>
     <p>
-      Read-only helpers for compliant plan documents. <code>plan list</code>
-      lists plans from the discovered project root, and <code>plan show</code>
-      renders one plan by id. The command discovers the package root by walking
-      upward to <code>wn-dev-std.toml</code>, a configured
-      <code>pyproject.toml</code>, or a <code>.git</code> fallback boundary.
+      Helpers for compliant plan documents. <code>plan list</code> lists plans
+      from the discovered project root, <code>plan show</code> renders one plan
+      by id, <code>plan create</code> writes a new canonical plan,
+      <code>plan status</code> updates the plan status, and
+      <code>plan step</code> adds or updates structured step state. The command
+      discovers the package root by walking upward to
+      <code>wn-dev-std.toml</code>, a configured <code>pyproject.toml</code>,
+      or a <code>.git</code> fallback boundary.
     </p>
   </section>
 
   <section data-command="log">
     <h2>log</h2>
     <p>
-      Read-only helpers for compliant plan work logs. <code>log list</code>
-      lists logs attached to a plan id after the same root discovery and catalog
-      validation used by <code>plan</code>.
+      Helpers for compliant plan work logs. <code>log list</code> lists logs
+      attached to a plan id, and <code>log create</code> writes a new attached
+      log entry after the same root discovery and catalog validation used by
+      <code>plan</code>.
     </p>
   </section>
 

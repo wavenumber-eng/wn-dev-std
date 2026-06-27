@@ -115,12 +115,17 @@ The `check` command is a compatibility alias for `audit`:
 dev-std check .
 ```
 
-Read compliant active plans and attached logs from anywhere inside a package:
+Read and update compliant active plans and attached logs from anywhere inside a
+package:
 
 ```bash
 dev-std plan list
 dev-std plan show pcb-a0
+dev-std plan create pcb-a0 --title "PCB A0"
+dev-std plan status pcb-a0 blocked
+dev-std plan step add pcb-a0 audit --title "Audit old plans"
 dev-std log list pcb-a0
+dev-std log create pcb-a0 --body "Captured cleanup notes."
 ```
 
 ## Python Baseline
@@ -296,9 +301,12 @@ Multi-step plans may declare `[[steps]]` metadata with `pending`, `active`,
 roots = ["docs/plans"]
 ```
 
-The read-only `plan` and `log` commands discover the package root by walking
-upward to `wn-dev-std.toml`, a `pyproject.toml` with `[tool.wn_dev_std]`, or a
-`.git` fallback boundary. They only operate on a compliant plan catalog.
+The `plan` and `log` commands discover the package root by walking upward to
+`wn-dev-std.toml`, a `pyproject.toml` with `[tool.wn_dev_std]`, or a `.git`
+fallback boundary. Read and mutation commands only operate on a compliant plan
+catalog. The first mutation slice is non-destructive: create plans, set plan
+status, add/update step status, and create attached logs. Plan deletion,
+retirement, and migration helpers are intentionally left for a later tool pass.
 
 ## Documentation
 

@@ -20,11 +20,14 @@
     new signoff wiring should call <code>dev-std audit</code>.
   </p>
   <p>
-    <code>dev-std plan</code> and <code>dev-std log</code> are read-only
-    workflow helpers. They read only compliant plan catalogs and fail when the
-    same metadata problems reported by <code>docs.plans</code> are present.
-    Mutation commands such as creating, appending, or closing plans are outside
-    this slice.
+    <code>dev-std plan</code> and <code>dev-std log</code> are workflow
+    helpers over the same catalog. Read and mutation commands operate only on
+    compliant plan catalogs and fail when the same metadata problems reported
+    by <code>docs.plans</code> are present. The initial mutation surface is
+    non-destructive: <code>plan create</code>, <code>plan status</code>,
+    <code>plan step add</code>, <code>plan step status</code>, and
+    <code>log create</code>. Delete, retire, and migration commands are future
+    slices.
   </p>
 
   <h2>Package Root Boundary</h2>
@@ -36,8 +39,8 @@
     package-local contract.
   </p>
   <p>
-    Read-only plan commands discover the package root by walking upward from
-    the current directory or <code>--root</code> value until they find
+    Plan and log commands discover the package root by walking upward from the
+    current directory or <code>--root</code> value until they find
     <code>wn-dev-std.toml</code> or a <code>pyproject.toml</code> with
     <code>[tool.wn_dev_std]</code>. A <code>.git</code> directory is a
     fallback boundary when no Wavenumber config marker is present.

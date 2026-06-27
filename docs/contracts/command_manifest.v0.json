@@ -20,14 +20,14 @@
       "module": "wn_dev_std.cli.commands.log",
       "design_doc": "docs/design/cli.html",
       "data_command": "log",
-      "description": "Read compliant plan logs."
+      "description": "Read and create compliant plan logs."
     },
     {
       "name": "plan",
       "module": "wn_dev_std.cli.commands.plan",
       "design_doc": "docs/design/cli.html",
       "data_command": "plan",
-      "description": "Read compliant plans."
+      "description": "Read and update compliant plans."
     },
     {
       "name": "standard",
