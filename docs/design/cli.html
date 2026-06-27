@@ -31,6 +31,26 @@
     </p>
   </section>
 
+  <section data-command="plan">
+    <h2>plan</h2>
+    <p>
+      Read-only helpers for compliant plan documents. <code>plan list</code>
+      lists plans from the discovered project root, and <code>plan show</code>
+      renders one plan by id. The command discovers the package root by walking
+      upward to <code>wn-dev-std.toml</code>, a configured
+      <code>pyproject.toml</code>, or a <code>.git</code> fallback boundary.
+    </p>
+  </section>
+
+  <section data-command="log">
+    <h2>log</h2>
+    <p>
+      Read-only helpers for compliant plan work logs. <code>log list</code>
+      lists logs attached to a plan id after the same root discovery and catalog
+      validation used by <code>plan</code>.
+    </p>
+  </section>
+
   <section data-command="standard">
     <h2>standard</h2>
     <p>

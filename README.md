@@ -115,6 +115,14 @@ The `check` command is a compatibility alias for `audit`:
 dev-std check .
 ```
 
+Read compliant active plans and attached logs from anywhere inside a package:
+
+```bash
+dev-std plan list
+dev-std plan show pcb-a0
+dev-std log list pcb-a0
+```
+
 ## Python Baseline
 
 Pure Python packages use:
@@ -280,11 +288,17 @@ folders, so packages with no active plans do not need empty placeholders. Plan
 documents use `type = "plan"` and work logs use `type = "plan_log"`.
 Completed work is closed out into durable artifacts and removed; `complete` is
 not a valid resting status for active plan files.
+Multi-step plans may declare `[[steps]]` metadata with `pending`, `active`,
+`blocked`, or `done` status values.
 
 ```toml
 [documentation.plans]
 roots = ["docs/plans"]
 ```
+
+The read-only `plan` and `log` commands discover the package root by walking
+upward to `wn-dev-std.toml`, a `pyproject.toml` with `[tool.wn_dev_std]`, or a
+`.git` fallback boundary. They only operate on a compliant plan catalog.
 
 ## Documentation
 

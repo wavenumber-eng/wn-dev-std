@@ -16,6 +16,20 @@
       "description": "Compatibility alias for audit."
     },
     {
+      "name": "log",
+      "module": "wn_dev_std.cli.commands.log",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "log",
+      "description": "Read compliant plan logs."
+    },
+    {
+      "name": "plan",
+      "module": "wn_dev_std.cli.commands.plan",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "plan",
+      "description": "Read compliant plans."
+    },
+    {
       "name": "standard",
       "module": "wn_dev_std.cli.commands.standard",
       "design_doc": "docs/design/cli.html",

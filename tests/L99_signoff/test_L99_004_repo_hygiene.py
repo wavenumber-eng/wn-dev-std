@@ -212,12 +212,18 @@ def test_audit_and_plan_log_policy_is_documented() -> None:
         assert "TOML front matter" in normalized
         assert "plan_log" in normalized
         assert "complete" in normalized
+        assert "[[steps]]" in normalized
 
     for expected in (
         "Approved roots are allowed locations, not required folders",
         "docs.plans",
+        "plan",
+        "log",
         "rogue",
         "worklogs",
         "package root",
+        "wn-dev-std.toml",
+        "[tool.wn_dev_std]",
+        ".git",
     ):
         assert expected in audit_doc

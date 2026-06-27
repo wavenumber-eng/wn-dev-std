@@ -32,6 +32,24 @@ def test_docs_plans_audit_passes_pending_plan_with_dependency(tmp_path: Path) ->
     assert "2 plan(s)" in result.detail
 
 
+def test_docs_plans_audit_passes_plan_with_steps(tmp_path: Path) -> None:
+    write_plan(
+        tmp_path,
+        "docs/plans/pcb-a0/plan.md",
+        "pcb-a0",
+        "active",
+        steps=(
+            ("audit", "Audit models", "done", ()),
+            ("fix", "Fix model issues", "active", ("audit",)),
+            ("verify", "Run signoff", "pending", ("fix",)),
+        ),
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert result.passed
+
+
 def test_docs_plans_audit_fails_plan_like_file_without_front_matter(tmp_path: Path) -> None:
     write_file(tmp_path / "docs" / "plans" / "pcb_a0_plan.md", "# PCB A0\n")
 
@@ -73,6 +91,87 @@ def test_docs_plans_audit_fails_missing_dependency(tmp_path: Path) -> None:
 
     assert not result.passed
     assert "missing depends_on targets: pcb-a0" in result.detail
+
+
+def test_docs_plans_audit_fails_duplicate_step_ids(tmp_path: Path) -> None:
+    write_plan(
+        tmp_path,
+        "docs/plans/pcb-a0/plan.md",
+        "pcb-a0",
+        "active",
+        steps=(
+            ("audit", "Audit models", "done", ()),
+            ("audit", "Audit again", "pending", ()),
+        ),
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "duplicate step ids: audit" in result.detail
+
+
+def test_docs_plans_audit_fails_missing_step_dependency(tmp_path: Path) -> None:
+    write_plan(
+        tmp_path,
+        "docs/plans/pcb-a0/plan.md",
+        "pcb-a0",
+        "active",
+        steps=(("verify", "Run signoff", "pending", ("missing",)),),
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "missing depends_on targets: missing" in result.detail
+
+
+def test_docs_plans_audit_fails_multiple_active_steps(tmp_path: Path) -> None:
+    write_plan(
+        tmp_path,
+        "docs/plans/pcb-a0/plan.md",
+        "pcb-a0",
+        "active",
+        steps=(
+            ("audit", "Audit models", "active", ()),
+            ("fix", "Fix model issues", "active", ()),
+        ),
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "more than one active step" in result.detail
+
+
+def test_docs_plans_audit_fails_active_plan_with_all_steps_done(tmp_path: Path) -> None:
+    write_plan(
+        tmp_path,
+        "docs/plans/pcb-a0/plan.md",
+        "pcb-a0",
+        "active",
+        steps=(("audit", "Audit models", "done", ()),),
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "all steps are done but plan is still active" in result.detail
+
+
+def test_docs_plans_audit_fails_pending_plan_with_active_step(tmp_path: Path) -> None:
+    write_plan(
+        tmp_path,
+        "docs/plans/pcb-a0/plan.md",
+        "pcb-a0",
+        "pending",
+        steps=(("audit", "Audit models", "active", ()),),
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "pending plan cannot have active steps" in result.detail
 
 
 def test_docs_plans_audit_fails_orphan_log(tmp_path: Path) -> None:
@@ -183,6 +282,7 @@ def write_plan(
     status: str,
     *,
     depends_on: tuple[str, ...] = (),
+    steps: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (),
 ) -> None:
     front_matter = [
         'type = "plan"',
@@ -193,6 +293,19 @@ def write_plan(
     if depends_on:
         quoted = ", ".join(f'"{item}"' for item in depends_on)
         front_matter.append(f"depends_on = [{quoted}]")
+    for step_id, title, step_status, step_depends_on in steps:
+        front_matter.extend(
+            [
+                "",
+                "[[steps]]",
+                f'id = "{step_id}"',
+                f'title = "{title}"',
+                f'status = "{step_status}"',
+            ]
+        )
+        if step_depends_on:
+            quoted = ", ".join(f'"{item}"' for item in step_depends_on)
+            front_matter.append(f"depends_on = [{quoted}]")
     write_file(
         root / relative_path,
         "+++\n" + "\n".join(front_matter) + f"\n+++\n\n# {plan_id}\n",

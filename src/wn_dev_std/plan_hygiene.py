@@ -19,12 +19,25 @@ class PlanHygieneReport:
 
 
 @dataclass(frozen=True, slots=True)
+class PlanStepRecord:
+    """Parsed plan step record."""
+
+    step_id: str
+    title: str
+    status: str
+    depends_on: tuple[str, ...]
+
+
+@dataclass(frozen=True, slots=True)
 class PlanRecord:
     """Parsed plan document record."""
 
     plan_id: str
     relative_path: str
+    status: str
+    created: str
     depends_on: tuple[str, ...]
+    steps: tuple[PlanStepRecord, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -34,6 +47,18 @@ class LogRecord:
     log_id: str
     plan_id: str
     relative_path: str
+    created: str
+
+
+@dataclass(frozen=True, slots=True)
+class PlanCatalog:
+    """Validated plan and work-log catalog."""
+
+    root: Path
+    plan_roots: tuple[str, ...]
+    plans: tuple[PlanRecord, ...]
+    logs: tuple[LogRecord, ...]
+    failures: tuple[str, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -55,6 +80,7 @@ class PlanAuditState:
 DEFAULT_PLAN_ROOTS = ("docs/plans",)
 PLAN_DOCUMENT_TYPES = ("plan", "plan_log")
 PLAN_STATUSES = ("active", "pending", "blocked")
+PLAN_STEP_STATUSES = ("pending", "active", "blocked", "done")
 PLAN_LIKE_NAME_TOKENS = ("plan", "roadmap")
 LOG_LIKE_NAME_TOKENS = (
     "plan_log",
@@ -96,6 +122,29 @@ def check_plan_hygiene_policy(
     raw_config: Mapping[str, object] | None,
 ) -> PlanHygieneReport:
     """Check plan and work-log documents for the standard metadata contract."""
+    catalog = load_plan_catalog(root, raw_config)
+    if catalog.failures:
+        return PlanHygieneReport(False, _summarize_failures(catalog.failures))
+
+    existing_roots: list[Path] = []
+    for item in catalog.plan_roots:
+        plan_root = catalog.root / item
+        if plan_root.exists():
+            existing_roots.append(plan_root)
+    if not existing_roots:
+        return PlanHygieneReport(True, "no configured plan roots found")
+    return PlanHygieneReport(
+        True,
+        f"{len(catalog.plans)} plan(s) and {len(catalog.logs)} log(s) across "
+        f"{len(existing_roots)} plan root(s)",
+    )
+
+
+def load_plan_catalog(
+    root: Path,
+    raw_config: Mapping[str, object] | None,
+) -> PlanCatalog:
+    """Load and validate plan and work-log documents under a root."""
     resolved_root = root.resolve()
     config = _resolve_plan_config(raw_config)
     configured_roots = tuple((resolved_root / item).resolve() for item in config.roots)
@@ -106,19 +155,27 @@ def check_plan_hygiene_policy(
     )
     for path in _candidate_document_paths(resolved_root):
         _process_document(path, resolved_root, configured_roots, state)
-
     state.failures.extend(_reference_failures(state.plans, state.logs))
-    if state.failures:
-        return PlanHygieneReport(False, _summarize_failures(state.failures))
-
-    existing_roots = [path for path in configured_roots if path.exists()]
-    if not existing_roots:
-        return PlanHygieneReport(True, "no configured plan roots found")
-    return PlanHygieneReport(
-        True,
-        f"{len(state.plans)} plan(s) and {len(state.logs)} log(s) across "
-        f"{len(existing_roots)} plan root(s)",
+    return PlanCatalog(
+        resolved_root,
+        config.roots,
+        tuple(sorted(state.plans, key=lambda item: item.plan_id)),
+        tuple(sorted(state.logs, key=lambda item: (item.plan_id, item.created, item.log_id))),
+        tuple(state.failures),
     )
+
+
+def read_document_body(root: Path, relative_path: str) -> str:
+    """Read a Markdown document body without TOML front matter."""
+    path = root / relative_path
+    text = path.read_text(encoding="utf-8")
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "+++":
+        return text
+    for index, line in enumerate(lines[1:], start=1):
+        if line.strip() == "+++":
+            return "\n".join(lines[index + 1 :]).strip()
+    return ""
 
 
 def _process_document(
@@ -261,17 +318,19 @@ def _plan_record(
 ) -> PlanRecord | None:
     plan_id = _required_string(metadata, "id", relative_path, failures)
     status = _required_string(metadata, "status", relative_path, failures)
-    _require_created(metadata, relative_path, failures)
+    created = _created_value(metadata, relative_path, failures)
     depends_on = _optional_string_tuple(metadata.get("depends_on"), relative_path, failures)
+    steps = _step_records(metadata.get("steps"), relative_path, failures)
 
     if status == "complete":
         failures.append(f"{relative_path}: complete plans must be closed out and removed")
     elif status and status not in PLAN_STATUSES:
         failures.append(f"{relative_path}: invalid status {status!r}")
+    _validate_plan_step_state(relative_path, status, steps, failures)
 
     if not plan_id:
         return None
-    return PlanRecord(plan_id, relative_path, depends_on)
+    return PlanRecord(plan_id, relative_path, status, created, depends_on, steps)
 
 
 def _log_record(
@@ -281,10 +340,10 @@ def _log_record(
 ) -> LogRecord | None:
     log_id = _required_string(metadata, "id", relative_path, failures)
     plan_id = _required_string(metadata, "plan_id", relative_path, failures)
-    _require_created(metadata, relative_path, failures)
+    created = _created_value(metadata, relative_path, failures)
     if not log_id or not plan_id:
         return None
-    return LogRecord(log_id, plan_id, relative_path)
+    return LogRecord(log_id, plan_id, relative_path, created)
 
 
 def _reference_failures(plans: Sequence[PlanRecord], logs: Sequence[LogRecord]) -> list[str]:
@@ -355,17 +414,20 @@ def _required_string(
     return ""
 
 
-def _require_created(
+def _created_value(
     metadata: Mapping[str, object],
     relative_path: str,
     failures: list[str],
-) -> None:
+) -> str:
     value = metadata.get("created")
     if isinstance(value, str) and value.strip():
-        return
-    if isinstance(value, date | datetime):
-        return
+        return value.strip()
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
     failures.append(f"{relative_path}: missing created")
+    return ""
 
 
 def _optional_string_tuple(
@@ -385,6 +447,87 @@ def _optional_string_tuple(
             return ()
         items.append(item.strip())
     return tuple(items)
+
+
+def _step_records(
+    value: object,
+    relative_path: str,
+    failures: list[str],
+) -> tuple[PlanStepRecord, ...]:
+    if value is None:
+        return ()
+    if not isinstance(value, list):
+        failures.append(f"{relative_path}: steps must be an array of tables")
+        return ()
+
+    steps: list[PlanStepRecord] = []
+    for index, item in enumerate(cast(list[object], value), start=1):
+        if not isinstance(item, dict):
+            failures.append(f"{relative_path}: step {index} must be a table")
+            continue
+        step = _step_record(cast(Mapping[str, object], item), relative_path, index, failures)
+        if step is not None:
+            steps.append(step)
+    _validate_step_references(relative_path, steps, failures)
+    return tuple(steps)
+
+
+def _step_record(
+    metadata: Mapping[str, object],
+    relative_path: str,
+    index: int,
+    failures: list[str],
+) -> PlanStepRecord | None:
+    label = f"step {index}"
+    step_id = _required_string(metadata, "id", f"{relative_path}: {label}", failures)
+    title = _required_string(metadata, "title", f"{relative_path}: {label}", failures)
+    status = _required_string(metadata, "status", f"{relative_path}: {label}", failures)
+    depends_on = _optional_string_tuple(
+        metadata.get("depends_on"),
+        f"{relative_path}: {label}",
+        failures,
+    )
+    if status and status not in PLAN_STEP_STATUSES:
+        failures.append(f"{relative_path}: {label}: invalid status {status!r}")
+    if not step_id:
+        return None
+    return PlanStepRecord(step_id, title, status, depends_on)
+
+
+def _validate_step_references(
+    relative_path: str,
+    steps: Sequence[PlanStepRecord],
+    failures: list[str],
+) -> None:
+    step_ids = [step.step_id for step in steps]
+    duplicate_step_ids = _duplicates(step_ids)
+    if duplicate_step_ids:
+        failures.append(f"{relative_path}: duplicate step ids: " + ", ".join(duplicate_step_ids))
+    known_ids = set(step_ids)
+    for step in steps:
+        missing = [step_id for step_id in step.depends_on if step_id not in known_ids]
+        if missing:
+            failures.append(
+                f"{relative_path}: step {step.step_id}: missing depends_on targets: "
+                + ", ".join(missing)
+            )
+
+
+def _validate_plan_step_state(
+    relative_path: str,
+    plan_status: str,
+    steps: Sequence[PlanStepRecord],
+    failures: list[str],
+) -> None:
+    if not steps:
+        return
+    active_steps = [step.step_id for step in steps if step.status == "active"]
+    if len(active_steps) > 1:
+        failures.append(f"{relative_path}: more than one active step: " + ", ".join(active_steps))
+    if plan_status == "pending" and active_steps:
+        failures.append(f"{relative_path}: pending plan cannot have active steps")
+    if plan_status == "active" and all(step.status == "done" for step in steps):
+        failures.append(f"{relative_path}: all steps are done but plan is still active")
 
 
 def _mapping_value(value: object) -> Mapping[str, object] | None:

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import tomllib
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -34,6 +33,7 @@ from wn_dev_std.design_doc_status import check_design_doc_status_policy
 from wn_dev_std.native_complexity import check_lizard_gate, check_native_signoff_config
 from wn_dev_std.plan_hygiene import check_plan_hygiene_policy
 from wn_dev_std.pr_hygiene import check_pr_hygiene_policy
+from wn_dev_std.root_discovery import load_pyproject, load_standard_config
 from wn_dev_std.secret_hygiene import check_root_env_policy
 
 
@@ -92,8 +92,8 @@ def run_audit_checks(
 def _run_all_audit_checks(root: Path) -> tuple[CheckResult, ...]:
     """Run the full repository audit set before scope filtering."""
     resolved_root = root.resolve()
-    pyproject = _load_pyproject(resolved_root)
-    config = _load_standard_config(resolved_root, pyproject)
+    pyproject = load_pyproject(resolved_root)
+    config = load_standard_config(resolved_root, pyproject)
     profile = project_profile(config)
     checks = _common_checks(resolved_root, profile, config)
     if _needs_python_package_checks(profile):
@@ -351,42 +351,6 @@ def _check_uv_lock(root: Path) -> CheckResult:
         False,
         "uv.lock is required at the package or workspace root",
     )
-
-
-def _load_pyproject(root: Path) -> Mapping[str, object] | None:
-    path = root / "pyproject.toml"
-    if not path.exists():
-        return None
-    with path.open("rb") as handle:
-        return cast(Mapping[str, object], tomllib.load(handle))
-
-
-def _load_standard_config(
-    root: Path,
-    pyproject: Mapping[str, object] | None,
-) -> Mapping[str, object] | None:
-    standalone = root / "wn-dev-std.toml"
-    if standalone.exists():
-        with standalone.open("rb") as handle:
-            raw = cast(Mapping[str, object], tomllib.load(handle))
-        tool_raw = raw.get("tool")
-        if isinstance(tool_raw, dict):
-            tool = cast(Mapping[str, object], tool_raw)
-            config_raw = tool.get("wn_dev_std")
-            if isinstance(config_raw, dict):
-                return cast(Mapping[str, object], config_raw)
-        return raw
-
-    if pyproject is None:
-        return None
-    tool_raw = pyproject.get("tool")
-    if not isinstance(tool_raw, dict):
-        return None
-    tool = cast(Mapping[str, object], tool_raw)
-    config_raw = tool.get("wn_dev_std")
-    if not isinstance(config_raw, dict):
-        return None
-    return cast(Mapping[str, object], config_raw)
 
 
 def _compatibility_pruning_config(config: Mapping[str, object] | None) -> object | None:
