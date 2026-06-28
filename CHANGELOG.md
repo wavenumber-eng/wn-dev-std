@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026.6.28
+
+- Add structured plan exit criteria as a first-class plan metadata surface.
+- Require active/pending/blocked plans to declare `[[exit_criteria]]`.
+- Report exit-criteria status from `dev-std plan list` and
+  `dev-std plan show`.
+- Make newly created plans include a default pending signoff exit criterion.
+- Configure `wn-dev-std` as a PyPI-published package.
+
 ## 2026.6.27
 
 - Add `dev-std log show` for reading one compliant plan work log by globally

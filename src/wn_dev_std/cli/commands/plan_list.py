@@ -13,7 +13,11 @@ from wn_dev_std.cli.commands.plan_common import (
     print_catalog_failures,
 )
 from wn_dev_std.cli.types import SubparserRegistry
-from wn_dev_std.plan_hygiene import PlanRecord, PlanStepRecord
+from wn_dev_std.plan_hygiene import (
+    PlanExitCriterionRecord,
+    PlanRecord,
+    PlanStepRecord,
+)
 from wn_dev_std.plan_reader import PlanReadContext
 
 
@@ -57,6 +61,7 @@ def _plan_payload(plan: PlanRecord) -> dict[str, object]:
         "path": plan.relative_path,
         "depends_on": list(plan.depends_on),
         "steps": [_step_payload(step) for step in plan.steps],
+        "exit_criteria": [_exit_criterion_payload(criterion) for criterion in plan.exit_criteria],
     }
 
 
@@ -69,6 +74,14 @@ def _step_payload(step: PlanStepRecord) -> dict[str, object]:
     }
 
 
+def _exit_criterion_payload(criterion: PlanExitCriterionRecord) -> dict[str, object]:
+    return {
+        "id": criterion.criterion_id,
+        "title": criterion.title,
+        "status": criterion.status,
+    }
+
+
 def _format_plan_list_text(context: PlanReadContext) -> str:
     if not context.catalog.plans:
         return f"No compliant plans found under {context.catalog.root}"
@@ -76,7 +89,13 @@ def _format_plan_list_text(context: PlanReadContext) -> str:
     for plan in context.catalog.plans:
         depends = "" if not plan.depends_on else f" depends_on={','.join(plan.depends_on)}"
         step_count = "" if not plan.steps else f" steps={_step_summary(plan.steps)}"
-        lines.append(f"- {plan.plan_id} [{plan.status}] {plan.relative_path}{depends}{step_count}")
+        exit_count = (
+            "" if not plan.exit_criteria else f" exit={_exit_criteria_summary(plan.exit_criteria)}"
+        )
+        lines.append(
+            f"- {plan.plan_id} [{plan.status}] {plan.relative_path}"
+            f"{depends}{step_count}{exit_count}"
+        )
     return "\n".join(lines)
 
 
@@ -84,4 +103,13 @@ def _step_summary(steps: tuple[PlanStepRecord, ...]) -> str:
     counts: dict[str, int] = {}
     for step in steps:
         counts[step.status] = counts.get(step.status, 0) + 1
+    return ",".join(f"{status}:{counts[status]}" for status in sorted(counts))
+
+
+def _exit_criteria_summary(
+    criteria: tuple[PlanExitCriterionRecord, ...],
+) -> str:
+    counts: dict[str, int] = {}
+    for criterion in criteria:
+        counts[criterion.status] = counts.get(criterion.status, 0) + 1
     return ",".join(f"{status}:{counts[status]}" for status in sorted(counts))

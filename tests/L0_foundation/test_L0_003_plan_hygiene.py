@@ -59,6 +59,71 @@ def test_docs_plans_audit_fails_plan_like_file_without_front_matter(tmp_path: Pa
     assert "missing TOML front matter" in result.detail
 
 
+def test_docs_plans_audit_fails_plan_without_exit_criteria(tmp_path: Path) -> None:
+    write_plan(
+        tmp_path,
+        "docs/plans/pcb-a0/plan.md",
+        "pcb-a0",
+        "active",
+        exit_criteria=(),
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "missing exit_criteria" in result.detail
+
+
+def test_docs_plans_audit_fails_duplicate_exit_criteria_ids(tmp_path: Path) -> None:
+    write_plan(
+        tmp_path,
+        "docs/plans/pcb-a0/plan.md",
+        "pcb-a0",
+        "active",
+        exit_criteria=(
+            ("signoff", "Run signoff", "pending"),
+            ("signoff", "Run more signoff", "pending"),
+        ),
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "duplicate exit criterion ids: signoff" in result.detail
+
+
+def test_docs_plans_audit_fails_invalid_exit_criterion_status(tmp_path: Path) -> None:
+    write_plan(
+        tmp_path,
+        "docs/plans/pcb-a0/plan.md",
+        "pcb-a0",
+        "active",
+        exit_criteria=(("signoff", "Run signoff", "done"),),
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "invalid status 'done'" in result.detail
+
+
+def test_docs_plans_audit_fails_active_plan_with_all_exit_criteria_met(
+    tmp_path: Path,
+) -> None:
+    write_plan(
+        tmp_path,
+        "docs/plans/pcb-a0/plan.md",
+        "pcb-a0",
+        "active",
+        exit_criteria=(("signoff", "Run signoff", "met"),),
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "all exit criteria are met but plan is still active" in result.detail
+
+
 def test_docs_plans_audit_fails_any_markdown_under_plan_root_without_front_matter(
     tmp_path: Path,
 ) -> None:
@@ -333,7 +398,10 @@ def write_plan(
     *,
     depends_on: tuple[str, ...] = (),
     steps: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (),
+    exit_criteria: tuple[tuple[str, str, str], ...] | None = None,
 ) -> None:
+    if exit_criteria is None:
+        exit_criteria = (("signoff", "Exit criteria are reviewed", "pending"),)
     front_matter = [
         'type = "plan"',
         f'id = "{plan_id}"',
@@ -356,6 +424,16 @@ def write_plan(
         if step_depends_on:
             quoted = ", ".join(f'"{item}"' for item in step_depends_on)
             front_matter.append(f"depends_on = [{quoted}]")
+    for criterion_id, title, criterion_status in exit_criteria:
+        front_matter.extend(
+            [
+                "",
+                "[[exit_criteria]]",
+                f'id = "{criterion_id}"',
+                f'title = "{title}"',
+                f'status = "{criterion_status}"',
+            ]
+        )
     write_file(
         root / relative_path,
         "+++\n" + "\n".join(front_matter) + f"\n+++\n\n# {plan_id}\n",

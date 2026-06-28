@@ -74,6 +74,7 @@ def test_plan_list_json_is_machine_readable(tmp_path: Path) -> None:
     assert payload["marker"] == "wn-dev-std.toml"
     assert payload["plans"][0]["id"] == "pcb-a0"
     assert payload["plans"][0]["steps"][0]["id"] == "audit"
+    assert payload["plans"][0]["exit_criteria"][0]["id"] == "signoff"
 
 
 def test_plan_show_outputs_body(tmp_path: Path) -> None:
@@ -84,6 +85,7 @@ def test_plan_show_outputs_body(tmp_path: Path) -> None:
     assert result.returncode == 0
     assert "Plan: pcb-a0" in result.stdout
     assert "audit [done] Audit existing plans" in result.stdout
+    assert "signoff [pending] Focused signoff passes" in result.stdout
     assert "Body for PCB A0." in result.stdout
 
 
@@ -174,6 +176,11 @@ def write_compliant_plan_repo(root: Path) -> None:
             title = "Release package"
             status = "pending"
             depends_on = ["audit"]
+
+            [[exit_criteria]]
+            id = "signoff"
+            title = "Focused signoff passes"
+            status = "pending"
             +++
 
             # PCB A0

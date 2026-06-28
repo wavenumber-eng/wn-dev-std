@@ -69,7 +69,8 @@
   <p>
     Active plans and attached work logs use Markdown files with TOML front
     matter. The minimum plan fields are <code>type</code>, <code>id</code>,
-    <code>status</code>, and <code>created</code>. The minimum log fields are
+    <code>status</code>, <code>created</code>, and at least one
+    <code>[[exit_criteria]]</code> entry. The minimum log fields are
     <code>type</code>, <code>id</code>, <code>plan_id</code>, and
     <code>created</code>. Plan documents use <code>type = "plan"</code> and
     work logs use <code>type = "plan_log"</code>. Plans may declare
@@ -89,6 +90,11 @@ type = "plan"
 id = "pcb-a0-alignment"
 status = "active"
 created = "2026-06-27"
+
+[[exit_criteria]]
+id = "signoff"
+title = "Focused signoff passes"
+status = "pending"
 +++</code></pre>
   <p>
     Plan status values are <code>active</code>, <code>pending</code>, and
@@ -104,6 +110,15 @@ created = "2026-06-27"
     <code>dev-std log</code> commands can create, read, and update canonical
     plan, step, and log files when the active plan catalog is already
     compliant.
+  </p>
+  <p>
+    Exit criteria are the canonical answer to “are we done?” Each
+    <code>[[exit_criteria]]</code> entry has an <code>id</code>,
+    <code>title</code>, and <code>status</code>. Valid statuses are
+    <code>pending</code>, <code>met</code>, and <code>blocked</code>.
+    The docs-plan audit fails active plans without exit criteria and reports
+    plans whose criteria are all <code>met</code> while the plan still remains
+    <code>active</code>.
   </p>
 </body>
 </html>

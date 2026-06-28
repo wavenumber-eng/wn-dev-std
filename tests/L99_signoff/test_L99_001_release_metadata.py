@@ -52,7 +52,7 @@ def test_release_workflow_uses_github_release_published() -> None:
     assert "id-token: write" not in workflow
 
 
-def test_this_reference_package_is_not_configured_for_pypi_publish() -> None:
+def test_this_reference_package_is_configured_for_pypi_publish() -> None:
     tool = cast(Mapping[str, object], load_pyproject()["tool"])
     config = cast(Mapping[str, object], tool["wn_dev_std"])
-    assert config["distribution"] == "none"
+    assert config["distribution"] == "pypi"

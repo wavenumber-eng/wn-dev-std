@@ -24,7 +24,10 @@ def test_plan_create_writes_compliant_plan(tmp_path: Path) -> None:
     assert result.returncode == 0
     plan_path = tmp_path / "docs" / "plans" / "pcb-a0" / "plan.md"
     assert plan_path.exists()
-    assert 'id = "pcb-a0"' in plan_path.read_text(encoding="utf-8")
+    plan_text = plan_path.read_text(encoding="utf-8")
+    assert 'id = "pcb-a0"' in plan_text
+    assert "[[exit_criteria]]" in plan_text
+    assert 'title = "Focused signoff passes"' in plan_text
     audit = run_cli(tmp_path, "audit", "--scope", "docs.plans")
     assert audit.returncode == 0
     assert "1 plan(s)" in audit.stdout

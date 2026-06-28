@@ -40,6 +40,10 @@
       by id, <code>plan create</code> writes a new canonical plan,
       <code>plan status</code> updates the plan status, and
       <code>plan step</code> adds or updates structured step state. The command
+      also reports structured exit criteria from <code>[[exit_criteria]]</code>
+      metadata so users and agents can determine whether a plan is ready for
+      closeout. Newly created plans include a default pending exit criterion.
+      Dedicated exit-criterion mutation commands are a future slice. The command
       discovers the package root by walking upward to
       <code>wn-dev-std.toml</code>, a configured <code>pyproject.toml</code>,
       or a <code>.git</code> fallback boundary.

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "wn-dev-std"
-version = "2026.6.27"
+version = "2026.6.28"
 description = "Wavenumber development standards reference package and conformance checks."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
@@ -62,7 +62,7 @@ wn-dev-std = "wn_dev_std.cli.main:main"
 
 [tool.wn_dev_std]
 profile = "python-package"
-distribution = "none"
+distribution = "pypi"
 languages = ["python"]
 strict = true
 artifact_policy = "transient-dist"

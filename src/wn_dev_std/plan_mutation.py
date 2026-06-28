@@ -71,6 +71,15 @@ def create_plan(
     ]
     if depends_on:
         front_matter.append(f"depends_on = {_toml_string_array(depends_on)}")
+    front_matter.extend(
+        [
+            "",
+            "[[exit_criteria]]",
+            'id = "signoff"',
+            'title = "Focused signoff passes"',
+            'status = "pending"',
+        ]
+    )
     text = _front_matter_document(front_matter, _plan_body(title, body))
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")

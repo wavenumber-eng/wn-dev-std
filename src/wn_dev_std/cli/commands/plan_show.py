@@ -15,7 +15,12 @@ from wn_dev_std.cli.commands.plan_common import (
     string_attr,
 )
 from wn_dev_std.cli.types import SubparserRegistry
-from wn_dev_std.plan_hygiene import PlanRecord, PlanStepRecord, read_document_body
+from wn_dev_std.plan_hygiene import (
+    PlanExitCriterionRecord,
+    PlanRecord,
+    PlanStepRecord,
+    read_document_body,
+)
 
 
 def register(subparsers: SubparserRegistry) -> None:
@@ -57,6 +62,7 @@ def _plan_payload(plan: PlanRecord, body: str) -> dict[str, object]:
         "path": plan.relative_path,
         "depends_on": list(plan.depends_on),
         "steps": [_step_payload(step) for step in plan.steps],
+        "exit_criteria": [_exit_criterion_payload(criterion) for criterion in plan.exit_criteria],
         "body": body,
     }
 
@@ -67,6 +73,14 @@ def _step_payload(step: PlanStepRecord) -> dict[str, object]:
         "title": step.title,
         "status": step.status,
         "depends_on": list(step.depends_on),
+    }
+
+
+def _exit_criterion_payload(criterion: PlanExitCriterionRecord) -> dict[str, object]:
+    return {
+        "id": criterion.criterion_id,
+        "title": criterion.title,
+        "status": criterion.status,
     }
 
 
@@ -84,6 +98,10 @@ def _format_plan_show_text(plan: PlanRecord, body: str) -> str:
         for step in plan.steps:
             depends = "" if not step.depends_on else f" depends_on={','.join(step.depends_on)}"
             lines.append(f"- {step.step_id} [{step.status}] {step.title}{depends}")
+    if plan.exit_criteria:
+        lines.append("Exit criteria:")
+        for criterion in plan.exit_criteria:
+            lines.append(f"- {criterion.criterion_id} [{criterion.status}] {criterion.title}")
     if body:
         lines.extend(["", body])
     return "\n".join(lines)

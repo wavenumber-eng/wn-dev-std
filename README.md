@@ -10,9 +10,9 @@ kept in sync by Rack signoff.
 
 ## Status
 
-Initial Python support. This repository is a model/reference package and is not
-published to PyPI. C++, C#, JavaScript, and Zephyr profiles are present; C and
-Rust profiles will reuse the same base rules as they are added.
+Initial Python support. This repository is a model/reference package and is
+published to PyPI as `wn-dev-std`. C++, C#, JavaScript, and Zephyr profiles are
+present; C and Rust profiles will reuse the same base rules as they are added.
 
 ## Install
 
@@ -20,6 +20,13 @@ For normal tool use:
 
 ```bash
 uv tool install git+https://github.com/wavenumber-eng/wn-dev-std.git
+dev-std --version
+```
+
+or from PyPI:
+
+```bash
+uv tool install wn-dev-std
 dev-std --version
 ```
 
@@ -292,6 +299,8 @@ metadata, dependency references, orphan logs, and rogue plan-like or log-like
 files outside approved roots. Approved roots are allowed locations, not required
 folders, so packages with no active plans do not need empty placeholders. Plan
 documents use `type = "plan"` and work logs use `type = "plan_log"`.
+Plans must declare `[[exit_criteria]]` entries so closeout state is
+machine-readable.
 Markdown names with a standalone `log` token, such as `v1_1_log.md`, are treated
 as log-like and must either be compliant `plan_log` files or be renamed and
 classified as durable documentation. Completed work is closed out into durable
@@ -299,6 +308,12 @@ artifacts and removed; `complete` is not a valid resting status for active plan
 files.
 Multi-step plans may declare `[[steps]]` metadata with `pending`, `active`,
 `blocked`, or `done` status values.
+Exit criteria use `pending`, `met`, or `blocked` status values. Steps describe
+execution progress; exit criteria describe the conditions that must be true
+before the plan can be retired. `dev-std plan list` and `dev-std plan show`
+report exit-criterion status, and `docs.plans` fails active plans with no exit
+criteria or plans whose criteria are all met while the plan still remains
+active.
 
 ```toml
 [documentation.plans]

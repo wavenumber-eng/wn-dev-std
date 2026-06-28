@@ -30,6 +30,15 @@ class PlanStepRecord:
 
 
 @dataclass(frozen=True, slots=True)
+class PlanExitCriterionRecord:
+    """Parsed plan exit criterion record."""
+
+    criterion_id: str
+    title: str
+    status: str
+
+
+@dataclass(frozen=True, slots=True)
 class PlanRecord:
     """Parsed plan document record."""
 
@@ -39,6 +48,7 @@ class PlanRecord:
     created: str
     depends_on: tuple[str, ...]
     steps: tuple[PlanStepRecord, ...]
+    exit_criteria: tuple[PlanExitCriterionRecord, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -82,6 +92,7 @@ DEFAULT_PLAN_ROOTS = ("docs/plans",)
 PLAN_DOCUMENT_TYPES = ("plan", "plan_log")
 PLAN_STATUSES = ("active", "pending", "blocked")
 PLAN_STEP_STATUSES = ("pending", "active", "blocked", "done")
+PLAN_EXIT_CRITERION_STATUSES = ("pending", "met", "blocked")
 PLAN_LIKE_NAME_TOKENS = ("plan", "roadmap")
 LOG_LIKE_NAME_TOKENS = (
     "plan_log",
@@ -324,16 +335,30 @@ def _plan_record(
     created = _created_value(metadata, relative_path, failures)
     depends_on = _optional_string_tuple(metadata.get("depends_on"), relative_path, failures)
     steps = _step_records(metadata.get("steps"), relative_path, failures)
+    exit_criteria = _exit_criterion_records(
+        metadata.get("exit_criteria"),
+        relative_path,
+        failures,
+    )
 
     if status == "complete":
         failures.append(f"{relative_path}: complete plans must be closed out and removed")
     elif status and status not in PLAN_STATUSES:
         failures.append(f"{relative_path}: invalid status {status!r}")
     _validate_plan_step_state(relative_path, status, steps, failures)
+    _validate_plan_exit_criteria_state(relative_path, status, exit_criteria, failures)
 
     if not plan_id:
         return None
-    return PlanRecord(plan_id, relative_path, status, created, depends_on, steps)
+    return PlanRecord(
+        plan_id,
+        relative_path,
+        status,
+        created,
+        depends_on,
+        steps,
+        exit_criteria,
+    )
 
 
 def _log_record(
@@ -497,6 +522,55 @@ def _step_record(
     return PlanStepRecord(step_id, title, status, depends_on)
 
 
+def _exit_criterion_records(
+    value: object,
+    relative_path: str,
+    failures: list[str],
+) -> tuple[PlanExitCriterionRecord, ...]:
+    if value is None:
+        return ()
+    if not isinstance(value, list):
+        failures.append(f"{relative_path}: exit_criteria must be an array of tables")
+        return ()
+
+    criteria: list[PlanExitCriterionRecord] = []
+    for index, item in enumerate(cast(list[object], value), start=1):
+        if not isinstance(item, dict):
+            failures.append(f"{relative_path}: exit criterion {index} must be a table")
+            continue
+        criterion = _exit_criterion_record(
+            cast(Mapping[str, object], item),
+            relative_path,
+            index,
+            failures,
+        )
+        if criterion is not None:
+            criteria.append(criterion)
+    duplicate_ids = _duplicates([criterion.criterion_id for criterion in criteria])
+    if duplicate_ids:
+        failures.append(
+            f"{relative_path}: duplicate exit criterion ids: " + ", ".join(duplicate_ids)
+        )
+    return tuple(criteria)
+
+
+def _exit_criterion_record(
+    metadata: Mapping[str, object],
+    relative_path: str,
+    index: int,
+    failures: list[str],
+) -> PlanExitCriterionRecord | None:
+    label = f"exit criterion {index}"
+    criterion_id = _required_string(metadata, "id", f"{relative_path}: {label}", failures)
+    title = _required_string(metadata, "title", f"{relative_path}: {label}", failures)
+    status = _required_string(metadata, "status", f"{relative_path}: {label}", failures)
+    if status and status not in PLAN_EXIT_CRITERION_STATUSES:
+        failures.append(f"{relative_path}: {label}: invalid status {status!r}")
+    if not criterion_id:
+        return None
+    return PlanExitCriterionRecord(criterion_id, title, status)
+
+
 def _validate_step_references(
     relative_path: str,
     steps: Sequence[PlanStepRecord],
@@ -531,6 +605,21 @@ def _validate_plan_step_state(
         failures.append(f"{relative_path}: pending plan cannot have active steps")
     if plan_status == "active" and all(step.status == "done" for step in steps):
         failures.append(f"{relative_path}: all steps are done but plan is still active")
+
+
+def _validate_plan_exit_criteria_state(
+    relative_path: str,
+    plan_status: str,
+    exit_criteria: Sequence[PlanExitCriterionRecord],
+    failures: list[str],
+) -> None:
+    if plan_status not in PLAN_STATUSES:
+        return
+    if not exit_criteria:
+        failures.append(f"{relative_path}: missing exit_criteria")
+        return
+    if plan_status == "active" and all(criterion.status == "met" for criterion in exit_criteria):
+        failures.append(f"{relative_path}: all exit criteria are met but plan is still active")
 
 
 def _mapping_value(value: object) -> Mapping[str, object] | None:

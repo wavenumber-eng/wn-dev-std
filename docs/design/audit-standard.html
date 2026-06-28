@@ -67,7 +67,8 @@ roots = ["docs/pcb/plans", "docs/sch/plans"]</code></pre>
     Active plans and attached work logs are Markdown documents with TOML front
     matter. Plan metadata uses <code>type = "plan"</code>; log metadata uses
     <code>type = "plan_log"</code>. Logs must identify their owning plan with
-    <code>plan_id</code>.
+    <code>plan_id</code>. Every active/pending/blocked plan must define at
+    least one structured <code>[[exit_criteria]]</code> entry.
   </p>
   <pre><code>+++
 type = "plan_log"
@@ -101,6 +102,27 @@ depends_on = ["audit-existing-plans"]</code></pre>
     have more than one active step. A pending plan may not have an active step.
     If every structured step is <code>done</code>, the plan should be closed
     out instead of remaining <code>active</code>.
+  </p>
+
+  <h2>Plan Exit Criteria</h2>
+  <p>
+    Exit criteria are machine-readable closeout conditions for a plan. They are
+    distinct from steps: steps describe execution state, while exit criteria
+    describe the externally observable conditions that must be true before the
+    plan can be retired. Each exit criterion has an <code>id</code>,
+    <code>title</code>, and <code>status</code>.
+  </p>
+  <pre><code>[[exit_criteria]]
+id = "signoff"
+title = "Focused signoff passes"
+status = "pending"</code></pre>
+  <p>
+    Valid exit-criterion statuses are <code>pending</code>, <code>met</code>,
+    and <code>blocked</code>. The <code>docs.plans</code> audit fails a plan
+    with missing, malformed, duplicate, or invalid exit criteria. If every exit
+    criterion is <code>met</code> while the plan status remains
+    <code>active</code>, the audit fails so the plan is closed out instead of
+    lingering after its exit conditions are satisfied.
   </p>
 
   <h2>Rogue Detection</h2>
