@@ -331,6 +331,54 @@ def test_docs_plans_audit_fails_rogue_log_like_file(tmp_path: Path) -> None:
     assert "rogue plan/log-like document" in result.detail
 
 
+def test_docs_plans_audit_ignores_configured_legacy_paths(tmp_path: Path) -> None:
+    write_file(
+        tmp_path / "wn-dev-std.toml",
+        dedent(
+            """
+            [documentation.plans]
+            roots = ["docs/plans"]
+            ignore = ["docs/work_tickets", "src/fum_bringup/SPI_FLASH_PLAN.md"]
+            """
+        ).lstrip(),
+    )
+    write_plan(tmp_path, "docs/plans/pcb-a0/plan.md", "pcb-a0", "active")
+    write_file(
+        tmp_path / "docs" / "work_tickets" / "WT-005-log-panel-green-red.md",
+        "# Legacy work ticket\n",
+    )
+    write_file(
+        tmp_path / "src" / "fum_bringup" / "SPI_FLASH_PLAN.md",
+        "# Legacy bringup plan\n",
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert result.passed
+    assert "1 plan(s)" in result.detail
+
+
+def test_docs_plans_audit_ignore_does_not_hide_configured_plan_root(
+    tmp_path: Path,
+) -> None:
+    write_file(
+        tmp_path / "wn-dev-std.toml",
+        dedent(
+            """
+            [documentation.plans]
+            roots = ["docs/plans"]
+            ignore = ["docs/plans"]
+            """
+        ).lstrip(),
+    )
+    write_file(tmp_path / "docs" / "plans" / "bad_plan.md", "# Bad Plan\n")
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "missing TOML front matter" in result.detail
+
+
 def test_docs_plans_audit_uses_configured_plan_roots(tmp_path: Path) -> None:
     write_file(
         tmp_path / "wn-dev-std.toml",

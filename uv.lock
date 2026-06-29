@@ -529,7 +529,7 @@ wheels = [
 
 [[package]]
 name = "wn-dev-std"
-version = "2026.6.28"
+version = "2026.6.29"
 source = { editable = "." }
 dependencies = [
     { name = "wn-rack" },

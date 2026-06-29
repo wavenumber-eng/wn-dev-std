@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026.6.29
+
+- Add `[documentation.plans].ignore` for project-relative legacy paths that
+  should be skipped by the plan/log hygiene audit during migration.
+- Keep configured plan roots strict even when an ignored path overlaps a plan
+  root.
+- Document the plan-ignore migration setting.
+
 ## 2026.6.28
 
 - Add structured plan exit criteria as a first-class plan metadata surface.

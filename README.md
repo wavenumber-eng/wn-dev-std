@@ -318,7 +318,13 @@ active.
 ```toml
 [documentation.plans]
 roots = ["docs/plans"]
+ignore = ["docs/work_tickets", "src/fum_bringup"]
 ```
+
+`ignore` entries are project-relative files or directories that the
+plan/log audit skips while legacy material is being migrated. Ignore entries do
+not suppress checks inside configured plan roots; active plan roots remain
+strict.
 
 The `plan` and `log` commands discover the package root by walking upward to
 `wn-dev-std.toml`, a `pyproject.toml` with `[tool.wn_dev_std]`, or a `.git`

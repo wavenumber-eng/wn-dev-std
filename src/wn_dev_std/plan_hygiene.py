@@ -77,6 +77,7 @@ class PlanAuditConfig:
     """Resolved plan audit configuration."""
 
     roots: tuple[str, ...]
+    ignore: tuple[str, ...]
 
 
 @dataclass(frozen=True, slots=True)
@@ -160,13 +161,14 @@ def load_plan_catalog(
     resolved_root = root.resolve()
     config = _resolve_plan_config(raw_config)
     configured_roots = tuple((resolved_root / item).resolve() for item in config.roots)
+    ignored_roots = tuple((resolved_root / item).resolve() for item in config.ignore)
     state = PlanAuditState(
         failures=[],
         plans=[],
         logs=[],
     )
     for path in _candidate_document_paths(resolved_root):
-        _process_document(path, resolved_root, configured_roots, state)
+        _process_document(path, resolved_root, configured_roots, ignored_roots, state)
     state.failures.extend(_reference_failures(state.plans, state.logs))
     return PlanCatalog(
         resolved_root,
@@ -194,10 +196,15 @@ def _process_document(
     path: Path,
     root: Path,
     configured_roots: Sequence[Path],
+    ignored_roots: Sequence[Path],
     state: PlanAuditState,
 ) -> None:
     relative_path = path.relative_to(root).as_posix()
     inside_plan_root = any(_is_relative_to(path, plan_root) for plan_root in configured_roots)
+    inside_ignored_root = any(_is_relative_to(path, ignored_root) for ignored_root in ignored_roots)
+    if inside_ignored_root and not inside_plan_root:
+        return
+
     metadata, parse_error = _parse_front_matter(path)
     metadata_type = _metadata_type(metadata) if parse_error is None else ""
     plan_or_log_like = _is_plan_or_log_like_path(path)
@@ -258,10 +265,12 @@ def _resolve_plan_config(config: Mapping[str, object] | None) -> PlanAuditConfig
     documentation = _mapping_value(config.get("documentation") if config else None)
     plans = _mapping_value(documentation.get("plans") if documentation else None)
     raw_roots = plans.get("roots") if plans else None
+    raw_ignore = plans.get("ignore") if plans else None
     roots = _string_tuple(raw_roots)
-    if roots:
-        return PlanAuditConfig(roots)
-    return PlanAuditConfig(DEFAULT_PLAN_ROOTS)
+    ignore = _string_tuple(raw_ignore)
+    if not roots:
+        roots = DEFAULT_PLAN_ROOTS
+    return PlanAuditConfig(roots, ignore)
 
 
 def _candidate_document_paths(root: Path) -> list[Path]:
