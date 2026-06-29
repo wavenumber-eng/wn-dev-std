@@ -48,8 +48,9 @@ def test_release_workflow_uses_github_release_published() -> None:
     assert "types: [published]" in workflow
     assert "python -m build" in workflow
     assert "twine check dist/*" in workflow
+    assert "id-token: write" in workflow
+    assert "uv publish --trusted-publishing always" in workflow
     assert "pypa/gh-action-pypi-publish" not in workflow
-    assert "id-token: write" not in workflow
 
 
 def test_this_reference_package_is_configured_for_pypi_publish() -> None:

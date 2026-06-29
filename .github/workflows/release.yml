@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   validate:
@@ -34,6 +35,8 @@ jobs:
         run: uv run python -m build
       - name: Check package
         run: uv run twine check dist/*
+      - name: Publish package
+        run: uv publish --trusted-publishing always
       - name: Installed wheel smoke test
         shell: pwsh
         run: |
