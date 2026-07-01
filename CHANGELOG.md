@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026.7.1
+
+- Make the `zephyr-firmware` formatter policy inherit the upstream C++
+  clang-format baseline instead of using a separate Attach/right-pointer
+  formatter.
+- Update the Zephyr clang-format template and conformance tests so firmware
+  projects use Allman braces, left pointer alignment, sorted includes, and
+  preserved include blocks consistently with C++ projects.
+
 ## 2026.6.29
 
 - Add `[documentation.plans].ignore` for project-relative legacy paths that
