@@ -119,8 +119,10 @@ def test_zephyr_policy_is_documented_and_templated() -> None:
         "Xtensa",
     ):
         assert expected in zephyr_doc
-    assert "BreakBeforeBraces: Attach" in clang_format
-    assert "SortIncludes: Never" in clang_format
+    assert "BreakBeforeBraces: Allman" in clang_format
+    assert "PointerAlignment: Left" in clang_format
+    assert "SortIncludes: true" in clang_format
+    assert "IncludeBlocks: Preserve" in clang_format
     assert 'profile = "zephyr-firmware"' in signoff
     assert "max_cyclomatic_complexity = 10" in signoff
 

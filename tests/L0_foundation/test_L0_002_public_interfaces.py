@@ -576,11 +576,12 @@ def write_minimal_zephyr_project(root: Path) -> None:
         dedent(
             """
             BasedOnStyle: LLVM
-            BreakBeforeBraces: Attach
+            BreakBeforeBraces: Allman
             IndentWidth: 4
             ColumnLimit: 100
-            PointerAlignment: Right
-            SortIncludes: Never
+            PointerAlignment: Left
+            SortIncludes: true
+            IncludeBlocks: Preserve
             """
         ).lstrip(),
     )

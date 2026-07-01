@@ -17,7 +17,6 @@ from wn_dev_std.check_profiles import (
     CSHARP_REQUIRED_PATHS,
     JAVASCRIPT_WEB_REQUIRED_PATHS,
     MIXED_MODE_REQUIRED_PATHS,
-    ZEPHYR_CLANG_FORMAT_REQUIRED_SETTINGS,
     ZEPHYR_REQUIRED_PATHS,
     ProfileName,
     project_profile,
@@ -187,7 +186,7 @@ def _cpp_checks(root: Path) -> list[CheckResult]:
 def _zephyr_checks(root: Path) -> list[CheckResult]:
     return [
         _check_required_paths(root, "Zephyr files", ZEPHYR_REQUIRED_PATHS),
-        _check_zephyr_clang_format_policy(root),
+        _check_clang_format_policy(root),
         _check_clang_tidy_policy(root),
         _check_native_signoff_config(root),
         _check_lizard_complexity_policy(root),
@@ -410,10 +409,6 @@ def _check_dist_root_policy(root: Path) -> CheckResult:
 
 def _check_clang_format_policy(root: Path) -> CheckResult:
     return _check_clang_format_settings(root, CLANG_FORMAT_REQUIRED_SETTINGS)
-
-
-def _check_zephyr_clang_format_policy(root: Path) -> CheckResult:
-    return _check_clang_format_settings(root, ZEPHYR_CLANG_FORMAT_REQUIRED_SETTINGS)
 
 
 def _check_clang_format_settings(

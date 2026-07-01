@@ -146,14 +146,6 @@ CLANG_FORMAT_REQUIRED_SETTINGS = {
     "SortIncludes": "true",
     "IncludeBlocks": "Preserve",
 }
-ZEPHYR_CLANG_FORMAT_REQUIRED_SETTINGS = {
-    "BasedOnStyle": "LLVM",
-    "BreakBeforeBraces": "Attach",
-    "IndentWidth": "4",
-    "ColumnLimit": "100",
-    "PointerAlignment": "Right",
-    "SortIncludes": "Never",
-}
 
 
 def project_profile(config: Mapping[str, object] | None) -> ProfileName:
