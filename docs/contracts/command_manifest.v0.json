@@ -6,7 +6,7 @@
       "module": "wn_dev_std.cli.commands.adr",
       "design_doc": "docs/design/cli.html",
       "data_command": "adr",
-      "description": "Read compliant ADRs."
+      "description": "Read and create compliant ADRs."
     },
     {
       "name": "audit",
@@ -49,7 +49,7 @@
       "module": "wn_dev_std.cli.commands.requirement",
       "design_doc": "docs/design/cli.html",
       "data_command": "requirement",
-      "description": "Read compliant requirements."
+      "description": "Read and create compliant requirements."
     },
     {
       "name": "standard",

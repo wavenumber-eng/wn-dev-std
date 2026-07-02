@@ -24,13 +24,13 @@ def check_design_doc_status_policy(root: Path) -> DesignDocStatusReport:
     design_root = root / "docs" / "design"
     if not design_root.exists():
         return DesignDocStatusReport(
-            True,
-            "docs/design is absent; required documentation check owns this path",
+            False,
+            "docs/design is absent",
         )
 
     docs = sorted(design_root.rglob("*.html"))
     if not docs:
-        return DesignDocStatusReport(True, "no HTML design docs found")
+        return DesignDocStatusReport(False, "no HTML design docs found")
 
     statuses = _classify_design_docs(root, docs)
     failure = _status_failure_detail(statuses)

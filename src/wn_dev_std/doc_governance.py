@@ -94,6 +94,8 @@ def check_adr_policy(root: Path) -> DocGovernanceReport:
     resolved_root = root.resolve()
     failures: list[str] = []
     adrs = _load_records_for_type(resolved_root, "adr", ADR_STATUSES, failures)
+    if not adrs and not failures:
+        failures.append("no ADR documents found")
     return _report("ADR", adrs, failures)
 
 
@@ -107,6 +109,8 @@ def check_requirement_policy(root: Path) -> DocGovernanceReport:
         REQUIREMENT_STATUSES,
         failures,
     )
+    if not requirements and not failures:
+        failures.append("no requirement documents found")
     return _report("requirement", requirements, failures)
 
 

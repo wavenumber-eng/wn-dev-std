@@ -48,11 +48,11 @@ DEFAULT_IGNORES = (
 
 
 def check_domain_governance_policy(root: Path) -> DomainGovernanceReport:
-    """Check optional docs domain registry and file ownership coverage."""
+    """Check docs domain registry and file ownership coverage."""
     resolved_root = root.resolve()
     registry = _load_registry(resolved_root)
     if registry is None:
-        return DomainGovernanceReport(True, "no domain registry found")
+        return DomainGovernanceReport(False, "no domain registry found")
     failures: list[str] = []
     domain_ids = _validate_domains(resolved_root, registry, failures)
     matched_files = _validate_file_groups(resolved_root, registry, domain_ids, failures)

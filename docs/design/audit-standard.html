@@ -26,16 +26,19 @@
     by <code>docs.plans</code> are present. The initial mutation surface is
     non-destructive: <code>plan create</code>, <code>plan status</code>,
     <code>plan step add</code>, <code>plan step status</code>,
-    <code>log show</code>, and <code>log create</code>. Delete, retire, and
-    migration commands are future slices.
+    <code>log show</code>, <code>log create</code>, <code>adr create</code>,
+    and <code>requirement create</code>. Delete, retire, and migration commands
+    are future slices.
   </p>
   <p>
     Durable governance docs use adjacent scopes. <code>docs.adrs</code>
-    validates ADR metadata and standing-decision hygiene.
-    <code>docs.domains</code> validates an optional domain registry, domain
-    HTML coverage, and file-to-domain ownership under configured owned roots.
+    validates ADR metadata and standing-decision hygiene, including failure
+    when no ADR inventory exists. <code>docs.domains</code> validates the
+    domain registry, domain HTML coverage, and file-to-domain ownership under
+    configured owned roots, including failure when no registry exists.
     <code>docs.requirements</code> validates requirement metadata and
-    verification obligations. <code>docs.surfaces</code> validates optional
+    verification obligations, including failure when no requirement inventory
+    exists. <code>docs.surfaces</code> validates optional
     governed-surface manifests that connect public APIs, workflows, transforms,
     schemas, and other owned surfaces to implementation refs, verification refs,
     fixture/data refs, and typed exceptions. <code>docs.traceability</code>

@@ -30,10 +30,10 @@
     <h2>adr</h2>
     <p>
       Helpers for compliant ADR documents. <code>adr list</code> lists ADRs
-      from the discovered project root and <code>adr show</code> renders one
-      ADR by id. Text output is the default and JSON output follows the same
-      root, marker, path, metadata, and body conventions used by plan and log
-      read commands.
+      from the discovered project root, <code>adr show</code> renders one ADR
+      by id, and <code>adr create</code> writes a canonical ADR source file.
+      Text output is the default and JSON output follows the same root, marker,
+      path, metadata, and body conventions used by plan and log read commands.
     </p>
   </section>
 
@@ -86,8 +86,9 @@
     <p>
       Helpers for compliant requirement documents.
       <code>requirement list</code> lists requirements from the discovered
-      project root and <code>requirement show</code> renders one requirement by
-      id. Read commands fail when the governance catalog has metadata,
+      project root, <code>requirement show</code> renders one requirement by
+      id, and <code>requirement create</code> writes a canonical requirement
+      source file. Read commands fail when the governance catalog has metadata,
       traceability, or rogue legacy-document failures.
     </p>
   </section>

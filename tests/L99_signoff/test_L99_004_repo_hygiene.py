@@ -225,6 +225,8 @@ def test_audit_and_plan_log_policy_is_documented() -> None:
         "log",
         "log show",
         "log create",
+        "adr create",
+        "requirement create",
         "--body-file",
         "command-line length",
         "rogue",
@@ -252,6 +254,9 @@ def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:
         "docs.surfaces",
         "docs.traceability",
         "docs.links",
+        "no ADR inventory",
+        "no requirement inventory",
+        "no domain registry",
         "Rack evidence",
         "TOML front matter",
         "external_cpp_test",
@@ -273,6 +278,8 @@ def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:
         "docs.links",
         "governance html",
         "governance resolve",
+        "adr create",
+        "requirement create",
     ):
         assert expected in cli_doc
 

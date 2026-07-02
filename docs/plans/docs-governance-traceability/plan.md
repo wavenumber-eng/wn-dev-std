@@ -107,10 +107,16 @@ status = "done"
 depends_on = ["inventory-commands"]
 
 [[steps]]
+id = "governance-create-and-absence-audits"
+title = "Add ADR/requirement create commands and fail missing governance inventories"
+status = "done"
+depends_on = ["inventory-commands", "domain-registry"]
+
+[[steps]]
 id = "review-release"
 title = "Review behavior and decide whether to release this dev-std slice"
 status = "active"
-depends_on = ["generated-docs", "proving-target", "signoff-guidance", "inventory-commands", "domain-registry", "governed-surfaces", "parity-evidence", "rack-evidence-interface", "marker-discovery", "bootstrap-guidance", "dev-std-marker", "html-generation", "governance-link-resolver", "plan-step-log-governance"]
+depends_on = ["generated-docs", "proving-target", "signoff-guidance", "inventory-commands", "domain-registry", "governed-surfaces", "parity-evidence", "rack-evidence-interface", "marker-discovery", "bootstrap-guidance", "dev-std-marker", "html-generation", "governance-link-resolver", "plan-step-log-governance", "governance-create-and-absence-audits"]
 
 [[steps]]
 id = "external-review"
@@ -264,6 +270,16 @@ title = "dev-std plan/log read, show, create, and mutation commands surface step
 status = "met"
 
 [[exit_criteria]]
+id = "governance-create-commands"
+title = "dev-std adr create and requirement create write canonical TOML-front-matter Markdown documents"
+status = "met"
+
+[[exit_criteria]]
+id = "missing-governance-inventory-audits"
+title = "docs.adrs, docs.requirements, docs.domains, and docs.design fail when their required inventory is absent"
+status = "met"
+
+[[exit_criteria]]
 id = "review-tests"
 title = "Focused unit tests, full pytest, ruff, pyright, and scoped governance audits pass before review"
 status = "met"
@@ -363,18 +379,17 @@ they migrate.
 ## Domain Registry Goal
 
 The domain registry is a traceability tool, not a mandatory source tree shape.
-It should let a package declare the domains it uses, the purpose and status of
-each domain, the owned roots that are candidates for coverage checks, and the
-file groups that associate files with one primary domain plus optional
-supporting domains. Language and classification metadata are allowed but
-freeform. The initial audit should be inclusion-first: only configured owned
-roots are checked for unowned files, with explicit ignore patterns for generated,
-vendor, transient, or build-output paths.
+It lets a package declare the domains it uses, the purpose and status of each
+domain, the owned roots that are candidates for coverage checks, and the file
+groups that associate files with one primary domain plus optional supporting
+domains. Language and classification metadata are allowed but freeform. The
+audit is inclusion-first: only configured owned roots are checked for unowned
+files, with explicit ignore patterns for generated, vendor, transient, or
+build-output paths.
 
-When a domain registry exists, ADR and requirement metadata must reference a
-registered domain. Without a registry, ADR/requirement audits may fall back to
-path-derived domains so small packages can adopt the basics before adding full
-domain coverage.
+When the <code>docs.domains</code> scope is enabled, the package must have a
+domain registry. ADR and requirement metadata must reference a registered
+domain.
 
 Each registered domain should have a browseable HTML coverage page. The page may
 be generated from the registry or hand-authored, but it must include standard
@@ -513,6 +528,8 @@ branch:
 - `docs.links` failed on raw ADR/requirement Markdown links from HTML plus
   missing local design links, giving concrete migration targets for generated
   governance pages and stale references.
-- `docs.domains` and `docs.surfaces` passed in permissive mode because
-  data_models has not yet added the optional domain registry or governed
-  surface manifest.
+- `docs.domains` passed in the original permissive mode because data_models had
+  not yet added a domain registry. The current strict rule now reports missing
+  domain registries as an actionable migration signal.
+- `docs.surfaces` passed in permissive mode because data_models has not yet
+  added a governed surface manifest.

@@ -35,6 +35,13 @@ def test_docs_adr_audit_passes_canonical_domain_adr(tmp_path: Path) -> None:
     assert "1 ADR document" in result.detail
 
 
+def test_docs_adr_audit_fails_when_no_adrs_exist(tmp_path: Path) -> None:
+    result = scope_result(tmp_path, "docs.adrs")
+
+    assert not result.passed
+    assert "no ADR documents found" in result.detail
+
+
 def test_docs_adr_audit_fails_stale_accepted_adr_language(tmp_path: Path) -> None:
     write_file(
         tmp_path / "docs" / "viz" / "adr" / "viz-adr-0001-view-state.md",
@@ -114,6 +121,13 @@ def test_docs_requirement_audit_passes_verified_requirement(tmp_path: Path) -> N
     result = scope_result(tmp_path, "docs.requirements")
 
     assert result.passed
+
+
+def test_docs_requirement_audit_fails_when_no_requirements_exist(tmp_path: Path) -> None:
+    result = scope_result(tmp_path, "docs.requirements")
+
+    assert not result.passed
+    assert "no requirement documents found" in result.detail
 
 
 def test_docs_requirement_audit_fails_active_requirement_without_verification(
@@ -209,8 +223,12 @@ def test_docs_governance_audits_ignore_readme_index_pages(tmp_path: Path) -> Non
     adr_result = scope_result(tmp_path, "docs.adrs")
     requirement_result = scope_result(tmp_path, "docs.requirements")
 
-    assert adr_result.passed
-    assert requirement_result.passed
+    assert not adr_result.passed
+    assert not requirement_result.passed
+    assert "README.md" not in adr_result.detail
+    assert "README.md" not in requirement_result.detail
+    assert "no ADR documents found" in adr_result.detail
+    assert "no requirement documents found" in requirement_result.detail
 
 
 def test_docs_traceability_audit_validates_external_refs(tmp_path: Path) -> None:
@@ -322,6 +340,20 @@ def test_docs_links_audit_fails_html_link_to_raw_governance_markdown(tmp_path: P
 
     assert not result.passed
     assert "must link generated governance pages" in result.detail
+
+
+def test_docs_domain_audit_fails_when_no_domain_registry_exists(tmp_path: Path) -> None:
+    result = scope_result(tmp_path, "docs.domains")
+
+    assert not result.passed
+    assert "no domain registry found" in result.detail
+
+
+def test_docs_design_audit_fails_when_no_design_docs_exist(tmp_path: Path) -> None:
+    result = scope_result(tmp_path, "docs.design")
+
+    assert not result.passed
+    assert "docs/design is absent" in result.detail
 
 
 def scope_result(root: Path, scope: str) -> CheckResult:

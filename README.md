@@ -136,6 +136,8 @@ dev-std log list pcb-a0
 dev-std log show pcb-a0-2026-06-27-001
 dev-std log create pcb-a0 audit --body "Captured cleanup notes."
 dev-std log create pcb-a0 audit --body-file notes.md
+dev-std adr create core-adr-0001 --domain core --title "Record Decisions"
+dev-std requirement create core-req-0001 --domain core --title "Audit Requirements"
 ```
 
 Generate governance browse pages and resolve stable governance refs in

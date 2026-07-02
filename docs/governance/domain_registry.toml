@@ -1,0 +1,18 @@
+[domain_governance]
+owned_roots = ["docs/core"]
+ignore = []
+
+[[domains]]
+id = "core"
+title = "Core Development Standard"
+status = "active"
+purpose = "Own the baseline development-standard governance contract."
+html = "docs/core/design/index.html"
+
+[[file_groups]]
+primary_domain = "core"
+paths = [
+  "docs/core/adr/*.md",
+  "docs/core/requirements/*.md",
+  "docs/core/design/*.html",
+]

@@ -51,6 +51,16 @@ def string_attr(args: argparse.Namespace, name: str) -> str:
     raise TypeError(f"expected {name} to be a string")
 
 
+def optional_string_attr(args: argparse.Namespace, name: str) -> str | None:
+    """Return an optional argparse string attribute."""
+    value = getattr(args, name)
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return value
+    raise TypeError(f"expected {name} to be a string")
+
+
 def context_from_args(args: argparse.Namespace) -> GovernanceReadContext:
     """Load governance catalog using root discovery."""
     raw_root = getattr(args, "root", None)

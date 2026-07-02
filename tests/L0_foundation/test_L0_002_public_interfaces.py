@@ -534,6 +534,7 @@ def write_minimal_cpp_repo(
             root / "tests" / "L99_signoff" / "test_lizard_complexity.py",
             "def test_lizard_complexity_gate_is_configured():\n    assert 'lizard'\n",
         )
+    write_minimal_governance(root)
 
 
 def write_minimal_zephyr_project(root: Path) -> None:
@@ -622,6 +623,7 @@ def write_minimal_zephyr_project(root: Path) -> None:
         root / "tests" / "L99_signoff" / "test_lizard_complexity.py",
         "def test_lizard_complexity_gate_is_configured():\n    assert 'lizard'\n",
     )
+    write_minimal_governance(root)
 
 
 def write_minimal_csharp_project(root: Path) -> None:
@@ -682,6 +684,7 @@ def write_minimal_csharp_project(root: Path) -> None:
         root / "tests" / "app.tests" / "app.tests.csproj",
         '<Project Sdk="Microsoft.NET.Sdk" />\n',
     )
+    write_minimal_governance(root)
 
 
 def write_minimal_web_files(root: Path) -> None:
@@ -734,6 +737,7 @@ def write_minimal_web_files(root: Path) -> None:
             """
         ).lstrip(),
     )
+    write_minimal_governance(root)
 
 
 def write_minimal_javascript_web_project(root: Path) -> None:
@@ -783,6 +787,80 @@ def write_minimal_python_js_project(root: Path) -> None:
             build-backend = "hatchling.build"
             """
         ).lstrip(),
+    )
+
+
+def write_minimal_governance(root: Path) -> None:
+    write_file(
+        root / "docs" / "design" / "governance.html",
+        '<!doctype html><html><body data-doc-status="accepted"><h1>Governance</h1></body></html>\n',
+    )
+    write_file(
+        root / "docs" / "core" / "adr" / "core-adr-0001-governance.md",
+        dedent(
+            """
+            +++
+            type = "adr"
+            id = "core-adr-0001"
+            domain = "core"
+            status = "accepted"
+            title = "Governance Baseline"
+            created = "2026-07-02"
+            +++
+
+            # Governance Baseline
+            """
+        ).lstrip(),
+    )
+    write_file(
+        root / "docs" / "core" / "requirements" / "core-req-0001-governance.md",
+        dedent(
+            """
+            +++
+            type = "requirement"
+            id = "core-req-0001"
+            domain = "core"
+            status = "draft"
+            title = "Governance Baseline"
+            created = "2026-07-02"
+            +++
+
+            # Governance Baseline
+            """
+        ).lstrip(),
+    )
+    write_file(
+        root / "docs" / "governance" / "domain_registry.toml",
+        dedent(
+            """
+            [domain_governance]
+            owned_roots = ["docs/core"]
+
+            [[domains]]
+            id = "core"
+            title = "Core"
+            status = "active"
+            purpose = "Own baseline governance documents."
+            html = "docs/core/design/index.html"
+
+            [[file_groups]]
+            primary_domain = "core"
+            paths = [
+              "docs/core/adr/*.md",
+              "docs/core/requirements/*.md",
+              "docs/core/design/*.html",
+            ]
+            """
+        ).lstrip(),
+    )
+    write_file(
+        root / "docs" / "core" / "design" / "index.html",
+        (
+            '<!doctype html><html><body data-doc-status="accepted" data-domain="core" '
+            'data-domain-status="active"><h1>Core</h1>'
+            '<a href="../../governance/domain_registry.toml">'
+            "docs/governance/domain_registry.toml</a></body></html>\n"
+        ),
     )
 
 

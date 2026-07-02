@@ -149,7 +149,9 @@ design_refs = ["docs/core/design/index.html"]
     <code>deprecated</code>, and <code>superseded</code>. Accepted ADRs should
     describe the standing decision and its stable context. They must not carry
     active plan closeout language, open-question sections, or release-specific
-    cleanup instructions that belong in a plan or issue.
+    cleanup instructions that belong in a plan or issue. The
+    <code>docs.adrs</code> audit fails when no ADR inventory exists, and
+    <code>dev-std adr create</code> can create a canonical starting document.
   </p>
 
   <h2>Requirement Metadata</h2>
@@ -185,6 +187,9 @@ target = "tests/test_transform_docs.py::test_docs_exist"
     audit validates those verification refs directly: local verification
     targets must stay inside the audited repo root and must resolve, while
     external refs must name their owning repository.
+    The <code>docs.requirements</code> audit fails when no requirement inventory
+    exists, and <code>dev-std requirement create</code> can create a canonical
+    draft requirement.
   </p>
 
   <h2>Traceability Refs</h2>
@@ -323,7 +328,7 @@ output = "docs/generated/governance"</code></pre>
 
   <h2>Domain Registry</h2>
   <p>
-    Packages may declare a domain registry at
+    Packages declare a domain registry at
     <code>docs/governance/domain_registry.toml</code>. The registry is
     inclusion-first: <code>[domain_governance].owned_roots</code> identifies
     the project roots whose files must be associated with a domain, and
@@ -352,7 +357,8 @@ paths = ["src/core/**", "tests/core/**", "docs/core/**"]</code></pre>
     enumerations in the initial registry contract. Each registered domain must
     have a browseable HTML page with <code>data-domain</code>,
     <code>data-domain-status</code>, and a visible reference to the registry
-    source.
+    source. The <code>docs.domains</code> audit fails when no domain registry
+    exists.
   </p>
 
   <h2>Governed Surface Manifest</h2>
