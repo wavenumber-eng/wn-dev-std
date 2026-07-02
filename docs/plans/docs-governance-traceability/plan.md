@@ -103,7 +103,7 @@ depends_on = ["html-generation", "traceability"]
 [[steps]]
 id = "plan-step-log-governance"
 title = "Require structured plan steps and attach each plan log to a plan step"
-status = "pending"
+status = "done"
 depends_on = ["inventory-commands"]
 
 [[steps]]
@@ -251,17 +251,17 @@ status = "pending"
 [[exit_criteria]]
 id = "plan-step-required"
 title = "docs.plans fails every compliant plan that does not declare at least one structured [[steps]] entry"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "plan-log-step-link"
 title = "docs.plans fails every plan_log that does not declare step_id pointing to an existing step in its owning plan"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "plan-log-step-tooling"
 title = "dev-std plan/log read, show, create, and mutation commands surface step_id consistently in text and JSON"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "review-tests"
@@ -321,18 +321,17 @@ compliance before read operations, human-readable text output by default, and
 machine-readable JSON with a consistent top-level shape. The goal is one
 predictable inventory surface across plans, logs, ADRs, and requirements.
 
-The next plan/log governance ratchet should make structured plan steps
-mandatory. Every compliant plan should declare at least one `[[steps]]` entry,
-even for short plans. Work logs should carry `step_id` in addition to `plan_id`,
-and the audit should verify that the referenced step exists in the owning plan.
-This keeps session history attached to the execution state it explains and
-makes stale or orphaned log notes visible in signoff.
+The plan/log governance ratchet makes structured plan steps mandatory. Every
+compliant plan must declare at least one `[[steps]]` entry, even for short
+plans. Work logs carry `step_id` in addition to `plan_id`, and the audit
+verifies that the referenced step exists in the owning plan. This keeps session
+history attached to the execution state it explains and makes stale or orphaned
+log notes visible in signoff.
 
 Generated governance HTML should expose that same relationship directly. Plan
 pages should render a step-centered section, and each step should include a
 collapsible log block showing logs whose metadata references that step. This is
-usable before strict `step_id` enforcement lands and becomes the expected review
-surface once every log is step-linked.
+the expected review surface now that every log is step-linked.
 
 ## Adoption Boundary
 

@@ -133,6 +133,7 @@ def test_log_list_outputs_logs_for_plan(tmp_path: Path) -> None:
 
     assert result.returncode == 0
     assert "pcb-a0-log" in result.stdout
+    assert "step=audit" in result.stdout
     assert "docs/plans/pcb-a0/logs/2026-06-27.md" in result.stdout
 
 
@@ -144,6 +145,7 @@ def test_log_show_outputs_body(tmp_path: Path) -> None:
     assert result.returncode == 0
     assert "Log: pcb-a0-log" in result.stdout
     assert "Plan: pcb-a0" in result.stdout
+    assert "Step: audit" in result.stdout
     assert "docs/plans/pcb-a0/logs/2026-06-27.md" in result.stdout
     assert "Work log body." in result.stdout
 
@@ -157,6 +159,7 @@ def test_log_show_json_is_machine_readable(tmp_path: Path) -> None:
     payload = json.loads(result.stdout)
     assert payload["id"] == "pcb-a0-log"
     assert payload["plan_id"] == "pcb-a0"
+    assert payload["step_id"] == "audit"
     assert payload["body"] == "Work log body."
 
 
@@ -234,6 +237,7 @@ def write_compliant_plan_repo(root: Path) -> None:
             type = "plan_log"
             id = "pcb-a0-log"
             plan_id = "pcb-a0"
+            step_id = "audit"
             created = "2026-06-27T12:00:00-04:00"
             +++
 

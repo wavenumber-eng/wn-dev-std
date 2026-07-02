@@ -69,10 +69,12 @@
   <p>
     Active plans and attached work logs use Markdown files with TOML front
     matter. The minimum plan fields are <code>type</code>, <code>id</code>,
-    <code>status</code>, <code>created</code>, and at least one
+    <code>status</code>, <code>created</code>, at least one
+    <code>[[steps]]</code> entry, and at least one
     <code>[[exit_criteria]]</code> entry. The minimum log fields are
-    <code>type</code>, <code>id</code>, <code>plan_id</code>, and
-    <code>created</code>. Plan documents use <code>type = "plan"</code> and
+    <code>type</code>, <code>id</code>, <code>plan_id</code>,
+    <code>step_id</code>, and <code>created</code>. Plan documents use
+    <code>type = "plan"</code> and
     work logs use <code>type = "plan_log"</code>. Plans may declare
     <code>depends_on</code> when one plan must finish before another can
     proceed.
@@ -103,10 +105,11 @@ status = "pending"
     <code>complete</code> status.
   </p>
   <p>
-    Multi-step plans may declare <code>[[steps]]</code> metadata with
-    <code>id</code>, <code>title</code>, <code>status</code>, and optional
+    Plans must declare <code>[[steps]]</code> metadata with <code>id</code>,
+    <code>title</code>, <code>status</code>, and optional
     <code>depends_on</code>. Structured steps are the canonical current state
-    for multi-step plans. The <code>dev-std plan</code> and
+    for active plan work, and logs must reference a step with
+    <code>step_id</code>. The <code>dev-std plan</code> and
     <code>dev-std log</code> commands can create, read, and update canonical
     plan, step, and log files when the active plan catalog is already
     compliant.

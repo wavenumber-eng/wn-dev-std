@@ -65,6 +65,7 @@ def _log_payload(catalog: PlanCatalog, log: LogRecord) -> dict[str, object]:
     return {
         "id": log.log_id,
         "plan_id": log.plan_id,
+        "step_id": log.step_id,
         "created": log.created,
         "path": log.relative_path,
         "body": read_document_body(catalog.root, log.relative_path),
@@ -80,7 +81,7 @@ def _format_log_list_text(
         return f"No compliant logs found for plan {plan_id}"
     lines = [f"Logs for {plan_id} under {context.catalog.root}:"]
     for log in logs:
-        lines.append(f"- {log.log_id} [{log.created}] {log.relative_path}")
+        lines.append(f"- {log.log_id} step={log.step_id} [{log.created}] {log.relative_path}")
     return "\n".join(lines)
 
 

@@ -57,6 +57,7 @@ class LogRecord:
 
     log_id: str
     plan_id: str
+    step_id: str
     relative_path: str
     created: str
 
@@ -377,18 +378,20 @@ def _log_record(
 ) -> LogRecord | None:
     log_id = _required_string(metadata, "id", relative_path, failures)
     plan_id = _required_string(metadata, "plan_id", relative_path, failures)
+    step_id = _required_string(metadata, "step_id", relative_path, failures)
     created = _created_value(metadata, relative_path, failures)
-    if not log_id or not plan_id:
+    if not log_id or not plan_id or not step_id:
         return None
-    return LogRecord(log_id, plan_id, relative_path, created)
+    return LogRecord(log_id, plan_id, step_id, relative_path, created)
 
 
 def _reference_failures(plans: Sequence[PlanRecord], logs: Sequence[LogRecord]) -> list[str]:
     plan_ids = {plan.plan_id for plan in plans}
+    plan_steps = {plan.plan_id: {step.step_id for step in plan.steps} for plan in plans}
     return (
         _duplicate_reference_failures(plans, logs)
         + _dependency_reference_failures(plans, plan_ids)
-        + _log_reference_failures(logs, plan_ids)
+        + _log_reference_failures(logs, plan_ids, plan_steps)
     )
 
 
@@ -420,11 +423,20 @@ def _dependency_reference_failures(
     return failures
 
 
-def _log_reference_failures(logs: Sequence[LogRecord], plan_ids: set[str]) -> list[str]:
+def _log_reference_failures(
+    logs: Sequence[LogRecord],
+    plan_ids: set[str],
+    plan_steps: Mapping[str, set[str]],
+) -> list[str]:
     failures: list[str] = []
     for log in logs:
         if log.plan_id not in plan_ids:
             failures.append(f"{log.relative_path}: unknown plan_id {log.plan_id!r}")
+            continue
+        if log.step_id not in plan_steps.get(log.plan_id, set()):
+            failures.append(
+                f"{log.relative_path}: unknown step_id {log.step_id!r} for plan {log.plan_id!r}"
+            )
     orphaned_logs = [log.relative_path for log in logs if log.plan_id not in plan_ids]
     if orphaned_logs and not plan_ids:
         failures.append("orphan logs without any active plan: " + ", ".join(orphaned_logs))
@@ -606,6 +618,7 @@ def _validate_plan_step_state(
     failures: list[str],
 ) -> None:
     if not steps:
+        failures.append(f"{relative_path}: missing steps")
         return
     active_steps = [step.step_id for step in steps if step.status == "active"]
     if len(active_steps) > 1:

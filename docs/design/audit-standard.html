@@ -85,20 +85,23 @@ roots = ["docs/pcb/plans", "docs/sch/plans"]</code></pre>
     Active plans and attached work logs are Markdown documents with TOML front
     matter. Plan metadata uses <code>type = "plan"</code>; log metadata uses
     <code>type = "plan_log"</code>. Logs must identify their owning plan with
-    <code>plan_id</code>. Every active/pending/blocked plan must define at
-    least one structured <code>[[exit_criteria]]</code> entry.
+    <code>plan_id</code> and the owning plan step with <code>step_id</code>.
+    Every active/pending/blocked plan must define at least one structured
+    <code>[[steps]]</code> entry and at least one structured
+    <code>[[exit_criteria]]</code> entry.
   </p>
   <pre><code>+++
 type = "plan_log"
 id = "pcb-a0-2026-06-27-001"
 plan_id = "pcb-a0"
+step_id = "audit-existing-plans"
 created = "2026-06-27T12:00:00-04:00"
 +++</code></pre>
 
   <h2>Plan Steps</h2>
   <p>
-    Multi-step plans may declare structured <code>[[steps]]</code> metadata.
-    Step metadata is the canonical current execution state for the plan; prose
+    Plans must declare structured <code>[[steps]]</code> metadata. Step
+    metadata is the canonical current execution state for the plan; prose
     checklists are allowed only as explanatory text. Each step has an
     <code>id</code>, <code>title</code>, <code>status</code>, and optional
     <code>depends_on</code> references to other step ids in the same plan.
@@ -120,6 +123,12 @@ depends_on = ["audit-existing-plans"]</code></pre>
     have more than one active step. A pending plan may not have an active step.
     If every structured step is <code>done</code>, the plan should be closed
     out instead of remaining <code>active</code>.
+  </p>
+  <p>
+    Work logs must carry a <code>step_id</code> that references an existing
+    step in the owning plan. The <code>docs.plans</code> audit fails missing
+    or unknown step links so log history stays attached to plan execution
+    state.
   </p>
 
   <h2>Plan Exit Criteria</h2>

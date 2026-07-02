@@ -74,6 +74,21 @@ def test_docs_plans_audit_fails_plan_without_exit_criteria(tmp_path: Path) -> No
     assert "missing exit_criteria" in result.detail
 
 
+def test_docs_plans_audit_fails_plan_without_steps(tmp_path: Path) -> None:
+    write_plan(
+        tmp_path,
+        "docs/plans/pcb-a0/plan.md",
+        "pcb-a0",
+        "active",
+        steps=(),
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "missing steps" in result.detail
+
+
 def test_docs_plans_audit_fails_duplicate_exit_criteria_ids(tmp_path: Path) -> None:
     write_plan(
         tmp_path,
@@ -272,6 +287,38 @@ def test_docs_plans_audit_fails_orphan_log(tmp_path: Path) -> None:
     assert "unknown plan_id 'pcb-a0'" in result.detail
 
 
+def test_docs_plans_audit_fails_log_without_step_id(tmp_path: Path) -> None:
+    write_plan(tmp_path, "docs/plans/pcb-a0/plan.md", "pcb-a0", "active")
+    write_log(
+        tmp_path,
+        "docs/plans/pcb-a0/log/2026-06-27T120000Z.md",
+        "pcb-a0-log",
+        "pcb-a0",
+        step_id="",
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "missing step_id" in result.detail
+
+
+def test_docs_plans_audit_fails_log_with_unknown_step_id(tmp_path: Path) -> None:
+    write_plan(tmp_path, "docs/plans/pcb-a0/plan.md", "pcb-a0", "active")
+    write_log(
+        tmp_path,
+        "docs/plans/pcb-a0/log/2026-06-27T120000Z.md",
+        "pcb-a0-log",
+        "pcb-a0",
+        step_id="missing",
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "unknown step_id 'missing' for plan 'pcb-a0'" in result.detail
+
+
 def test_docs_plans_audit_fails_log_file_without_front_matter(tmp_path: Path) -> None:
     write_plan(tmp_path, "docs/plans/pcb-a0/plan.md", "pcb-a0", "active")
     write_file(tmp_path / "docs" / "plans" / "pcb-a0" / "logs" / "2026-06-27.md", "notes\n")
@@ -445,9 +492,11 @@ def write_plan(
     status: str,
     *,
     depends_on: tuple[str, ...] = (),
-    steps: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (),
+    steps: tuple[tuple[str, str, str, tuple[str, ...]], ...] | None = None,
     exit_criteria: tuple[tuple[str, str, str], ...] | None = None,
 ) -> None:
+    if steps is None:
+        steps = (("work", "Execute plan work", "pending", ()),)
     if exit_criteria is None:
         exit_criteria = (("signoff", "Exit criteria are reviewed", "pending"),)
     front_matter = [
@@ -488,7 +537,15 @@ def write_plan(
     )
 
 
-def write_log(root: Path, relative_path: str, log_id: str, plan_id: str) -> None:
+def write_log(
+    root: Path,
+    relative_path: str,
+    log_id: str,
+    plan_id: str,
+    *,
+    step_id: str | None = "work",
+) -> None:
+    step_line = f'step_id = "{step_id}"' if step_id is not None and step_id else ""
     write_file(
         root / relative_path,
         dedent(
@@ -497,6 +554,7 @@ def write_log(root: Path, relative_path: str, log_id: str, plan_id: str) -> None
             type = "plan_log"
             id = "{log_id}"
             plan_id = "{plan_id}"
+            {step_line}
             created = "2026-06-27T12:00:00-04:00"
             +++
 

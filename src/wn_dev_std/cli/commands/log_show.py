@@ -60,6 +60,7 @@ def _log_payload(log: LogRecord, body: str) -> dict[str, object]:
     return {
         "id": log.log_id,
         "plan_id": log.plan_id,
+        "step_id": log.step_id,
         "created": log.created,
         "path": log.relative_path,
         "body": body,
@@ -70,6 +71,7 @@ def _format_log_show_text(log: LogRecord, body: str) -> str:
     lines = [
         f"Log: {log.log_id}",
         f"Plan: {log.plan_id}",
+        f"Step: {log.step_id}",
         f"Created: {log.created}",
         f"Path: {log.relative_path}",
     ]

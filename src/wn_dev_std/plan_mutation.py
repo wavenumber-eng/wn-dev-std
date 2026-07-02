@@ -74,6 +74,11 @@ def create_plan(
     front_matter.extend(
         [
             "",
+            "[[steps]]",
+            'id = "work"',
+            'title = "Execute plan work"',
+            'status = "pending"',
+            "",
             "[[exit_criteria]]",
             'id = "signoff"',
             'title = "Focused signoff passes"',
@@ -164,6 +169,7 @@ def set_plan_step_status(
 def create_plan_log(
     context: PlanReadContext,
     plan_id: str,
+    step_id: str,
     body: str,
     log_id: str | None = None,
     created: str | None = None,
@@ -171,6 +177,8 @@ def create_plan_log(
     """Create a log entry attached to a plan."""
     _ensure_catalog_compliant(context)
     plan = _required_plan(context, plan_id)
+    if not any(step.step_id == step_id for step in plan.steps):
+        raise PlanMutationError(f"step not found: {step_id}")
     created_value = created or datetime.now().astimezone().isoformat(timespec="seconds")
     resolved_log_id = log_id or f"{plan_id}-{_safe_file_stem(created_value)}"
     if not resolved_log_id.strip():
@@ -185,9 +193,10 @@ def create_plan_log(
         'type = "plan_log"',
         f"id = {_toml_string(resolved_log_id)}",
         f"plan_id = {_toml_string(plan_id)}",
+        f"step_id = {_toml_string(step_id)}",
         f"created = {_toml_string(created_value)}",
     ]
-    text = _front_matter_document(front_matter, body.strip())
+    text = _front_matter_document(front_matter, _log_body(body, step_id))
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
     return PlanMutationResult(path, f"created log {resolved_log_id} for plan {plan_id}")
@@ -382,6 +391,11 @@ def _plan_body(title: str, body: str | None) -> str:
     if body and body.strip():
         lines.extend(["", body.strip()])
     return "\n".join(lines)
+
+
+def _log_body(body: str, step_id: str) -> str:
+    lines = [f"# Log: {step_id}", "", body.strip()]
+    return "\n".join(lines).strip()
 
 
 def _toml_string(value: str) -> str:

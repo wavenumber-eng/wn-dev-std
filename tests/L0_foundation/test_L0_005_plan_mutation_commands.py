@@ -26,6 +26,8 @@ def test_plan_create_writes_compliant_plan(tmp_path: Path) -> None:
     assert plan_path.exists()
     plan_text = plan_path.read_text(encoding="utf-8")
     assert 'id = "pcb-a0"' in plan_text
+    assert "[[steps]]" in plan_text
+    assert 'id = "work"' in plan_text
     assert "[[exit_criteria]]" in plan_text
     assert 'title = "Focused signoff passes"' in plan_text
     audit = run_cli(tmp_path, "audit", "--scope", "docs.plans")
@@ -84,6 +86,18 @@ def test_plan_step_add_and_status_update(tmp_path: Path) -> None:
     assert audit.returncode == 0
 
 
+def test_plan_step_list_json_exposes_step_ids(tmp_path: Path) -> None:
+    write_plan_config(tmp_path)
+    create_plan(tmp_path)
+
+    result = run_cli(tmp_path, "plan", "step", "list", "pcb-a0", "--format", "json")
+
+    assert result.returncode == 0
+    payload = json.loads(result.stdout)
+    assert payload["plan_id"] == "pcb-a0"
+    assert payload["steps"][0]["id"] == "work"
+
+
 def test_log_create_writes_attached_log(tmp_path: Path) -> None:
     write_plan_config(tmp_path)
     create_plan(tmp_path)
@@ -93,6 +107,7 @@ def test_log_create_writes_attached_log(tmp_path: Path) -> None:
         "log",
         "create",
         "pcb-a0",
+        "work",
         "--id",
         "pcb-a0-log",
         "--created",
@@ -106,7 +121,53 @@ def test_log_create_writes_attached_log(tmp_path: Path) -> None:
     assert listed.returncode == 0
     payload = json.loads(listed.stdout)
     assert payload["logs"][0]["id"] == "pcb-a0-log"
-    assert payload["logs"][0]["body"] == "Created the cleanup log."
+    assert payload["logs"][0]["step_id"] == "work"
+    assert payload["logs"][0]["body"] == "# Log: work\n\nCreated the cleanup log."
+
+
+def test_log_create_reads_body_file(tmp_path: Path) -> None:
+    write_plan_config(tmp_path)
+    create_plan(tmp_path)
+    body_path = tmp_path / "body.md"
+    body_path.write_text("Longer log body from a file.\n", encoding="utf-8")
+
+    result = run_cli(
+        tmp_path,
+        "log",
+        "create",
+        "pcb-a0",
+        "work",
+        "--id",
+        "pcb-a0-file-log",
+        "--created",
+        "2026-06-27T12:00:00-04:00",
+        "--body-file",
+        str(body_path),
+    )
+
+    assert result.returncode == 0
+    shown = run_cli(tmp_path, "log", "show", "pcb-a0-file-log", "--format", "json")
+    assert shown.returncode == 0
+    payload = json.loads(shown.stdout)
+    assert payload["body"] == "# Log: work\n\nLonger log body from a file."
+
+
+def test_log_create_rejects_unknown_step(tmp_path: Path) -> None:
+    write_plan_config(tmp_path)
+    create_plan(tmp_path)
+
+    result = run_cli(
+        tmp_path,
+        "log",
+        "create",
+        "pcb-a0",
+        "missing",
+        "--body",
+        "Created the cleanup log.",
+    )
+
+    assert result.returncode == 1
+    assert "step not found: missing" in result.stdout
 
 
 def test_mutation_commands_fail_on_noncompliant_catalog(tmp_path: Path) -> None:
