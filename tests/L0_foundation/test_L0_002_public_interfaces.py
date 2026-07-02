@@ -792,6 +792,17 @@ def write_minimal_python_js_project(root: Path) -> None:
 
 def write_minimal_governance(root: Path) -> None:
     write_file(
+        root / "docs" / "build.html",
+        (
+            '<!doctype html><html><body data-doc="build" data-doc-status="accepted">'
+            "<h1>Build</h1><h2>Tools And Setup</h2><p>Tool setup.</p>"
+            "<h2>Commands And Invocation</h2><p>Run build command.</p>"
+            "<h2>Outputs And Artifacts</h2><p>Output artifacts.</p>"
+            "<h2>Validation And Signoff</h2><p>Test and signoff.</p>"
+            "</body></html>\n"
+        ),
+    )
+    write_file(
         root / "docs" / "design" / "governance.html",
         '<!doctype html><html><body data-doc-status="accepted"><h1>Governance</h1></body></html>\n',
     )
@@ -850,6 +861,20 @@ def write_minimal_governance(root: Path) -> None:
               "docs/core/requirements/*.md",
               "docs/core/design/*.html",
             ]
+            """
+        ).lstrip(),
+    )
+    write_file(
+        root / "docs" / "governance" / "release.toml",
+        dedent(
+            """
+            [[channels]]
+            id = "internal"
+            kind = "internal"
+            status = "active"
+            owner = "release"
+            process_doc = "docs/setup.html"
+            build_doc = "docs/setup.html"
             """
         ).lstrip(),
     )

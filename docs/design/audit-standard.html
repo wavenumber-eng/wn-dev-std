@@ -33,7 +33,9 @@
   <p>
     Durable governance docs use adjacent scopes. <code>docs.adrs</code>
     validates ADR metadata and standing-decision hygiene, including failure
-    when no ADR inventory exists. <code>docs.domains</code> validates the
+    when no ADR inventory exists. <code>docs.build</code> validates the
+    canonical build document and its minimal setup, invocation, output, and
+    validation topics. <code>docs.domains</code> validates the
     domain registry, domain HTML coverage, and file-to-domain ownership under
     configured owned roots, including failure when no registry exists.
     <code>docs.requirements</code> validates requirement metadata and
@@ -41,7 +43,10 @@
     exists. <code>docs.surfaces</code> validates optional
     governed-surface manifests that connect public APIs, workflows, transforms,
     schemas, and other owned surfaces to implementation refs, verification refs,
-    fixture/data refs, and typed exceptions. <code>docs.traceability</code>
+    fixture/data refs, and typed exceptions. <code>docs.artifacts</code>,
+    <code>docs.vendors</code>, and <code>docs.release</code> validate
+    artifact, vendored-code, and release-channel catalogs.
+    <code>docs.traceability</code>
     validates typed local and external refs across issues, plans, ADRs,
     requirements, design docs, source, schemas, and tests.
     <code>docs.links</code> validates local documentation links in Markdown and
@@ -248,6 +253,41 @@ status = "pending"</code></pre>
     missing generated hrefs, or stale relative hrefs.
   </p>
 
+  <h2>Artifact, Vendor, And Release Governance</h2>
+  <p>
+    <code>docs.build</code> requires a canonical build document at
+    <code>docs/build.html</code> or <code>docs/build.md</code>.
+    HTML build docs must include <code>data-doc="build"</code> and
+    <code>data-doc-status="accepted"</code>. Markdown build docs must use TOML
+    front matter with <code>type = "build_doc"</code>, <code>id</code>,
+    <code>title</code>, and <code>status = "accepted"</code>.
+  </p>
+  <p>
+    The document must cover required tools or setup, build commands or
+    invocation, outputs or artifacts, and validation or signoff. The check is
+    intentionally content-light: it ensures a durable build entry point exists
+    without trying to parse every project-specific build system.
+  </p>
+  <p>
+    <code>docs.artifacts</code> validates
+    <code>docs/governance/artifacts.toml</code> when tracked artifact-like files
+    are present. It covers committed runtime artifacts, app/plugin bundles,
+    generated source, public reference assets, fixture data, oracle outputs,
+    vendored runtime artifacts, and release evidence. Default audit is
+    tracked-file-first and does not fail ignored local build output.
+  </p>
+  <p>
+    <code>docs.vendors</code> validates
+    <code>docs/governance/vendors.toml</code> for committed vendored source
+    under roots such as <code>vendor/</code> and <code>third_party/</code>.
+    <code>docs.release</code> validates
+    <code>docs/governance/release.toml</code> when a package config declares a
+    non-<code>none</code> distribution such as <code>pypi</code>. Each release
+    channel must link both a <code>process_doc</code> and a
+    <code>build_doc</code> so setup, tool invocation, packaging, and publishing
+    responsibilities are explicitly documented.
+  </p>
+
   <h2>Signoff Adoption</h2>
   <p>
     Existing repositories should add governance scopes incrementally. A package
@@ -256,7 +296,10 @@ status = "pending"</code></pre>
     and then add <code>docs.traceability</code> and <code>docs.links</code> as
     the repo is converted. Repos with declared API, transform, serialization,
     porting, or workflow surfaces should add <code>docs.surfaces</code> once
-    the first governed-surface manifest exists. The checks are designed to fail
+    the first governed-surface manifest exists. Repos with committed artifacts,
+    vendored source, or configured release channels should add
+    <code>docs.artifacts</code>, <code>docs.vendors</code>, and
+    <code>docs.release</code> as applicable. The checks are designed to fail
     loudly with concrete file paths so migration work can be planned rather
     than silently ignored.
   </p>
@@ -280,7 +323,11 @@ docs/domains/&lt;domain&gt;.html</code></pre>
   --scope docs.adrs \
   --scope docs.requirements \
   --scope docs.domains \
+  --scope docs.build \
   --scope docs.surfaces \
+  --scope docs.artifacts \
+  --scope docs.vendors \
+  --scope docs.release \
   --scope docs.traceability \
   --scope docs.links</code></pre>
   <p>

@@ -108,15 +108,38 @@ def test_audit_docs_plans_scope_runs() -> None:
 def test_audit_docs_governance_scopes_run() -> None:
     for scope in (
         "docs.adrs",
+        "docs.artifacts",
+        "docs.build",
         "docs.domains",
+        "docs.release",
         "docs.requirements",
         "docs.surfaces",
         "docs.traceability",
+        "docs.vendors",
         "docs.links",
     ):
         result = run_cli("audit", "--scope", scope)
         assert result.returncode == 0
         assert scope in result.stdout
+
+
+def test_audit_default_all_includes_governance_scopes() -> None:
+    result = run_cli("audit", "--format", "json")
+
+    assert result.returncode == 0
+    for scope in (
+        "docs.adrs",
+        "docs.artifacts",
+        "docs.build",
+        "docs.domains",
+        "docs.release",
+        "docs.requirements",
+        "docs.surfaces",
+        "docs.traceability",
+        "docs.vendors",
+        "docs.links",
+    ):
+        assert f'"scope": "{scope}"' in result.stdout
 
 
 def test_check_remains_audit_compatibility_alias() -> None:

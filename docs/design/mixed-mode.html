@@ -49,11 +49,17 @@
 
   <h2>Artifact Policy</h2>
   <p>
-    Mixed-mode packages may commit distributable runtime artifacts only under
+    Mixed-mode packages that commit distributable runtime artifacts should use
     grouped paths such as <code>dist/native/windows-x64/</code>,
     <code>dist/native/linux-x64/</code>, <code>dist/native/macos-arm64/</code>,
     and <code>dist/wasm/browser/</code>. Root-level files in
     <code>dist/</code> are limited to documentation or manifests.
+  </p>
+  <p>
+    These grouped paths are not mandatory for every mixed/native package. Some
+    packages use <code>dist/native/**</code> or <code>dist/wasm/**</code> only
+    as ignored local staging until a release channel explicitly promotes an
+    artifact.
   </p>
   <p>
     Local build state remains ignored. Examples include <code>build/</code>,

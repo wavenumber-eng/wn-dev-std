@@ -4,6 +4,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from wn_dev_std.artifact_governance import (
+    check_artifact_governance_policy,
+    check_release_governance_policy,
+    check_vendor_governance_policy,
+)
+from wn_dev_std.build_doc_governance import check_build_doc_policy
 from wn_dev_std.checks_types import CheckResult
 from wn_dev_std.doc_governance import (
     check_adr_policy,
@@ -18,18 +24,35 @@ from wn_dev_std.surface_governance import check_surface_governance_policy
 def governance_doc_checks(root: Path) -> list[CheckResult]:
     """Run durable governance-document checks."""
     adr_result = check_adr_policy(root)
+    artifact_result = check_artifact_governance_policy(root)
+    build_result = check_build_doc_policy(root)
     domain_result = check_domain_governance_policy(root)
+    release_result = check_release_governance_policy(root)
     requirement_result = check_requirement_policy(root)
     surface_result = check_surface_governance_policy(root)
     traceability_result = check_traceability_policy(root)
+    vendor_result = check_vendor_governance_policy(root)
     link_result = check_link_policy(root)
     return [
         CheckResult("docs.adrs", adr_result.passed, adr_result.detail, "docs.adrs"),
+        CheckResult(
+            "docs.artifacts",
+            artifact_result.passed,
+            artifact_result.detail,
+            "docs.artifacts",
+        ),
+        CheckResult("docs.build", build_result.passed, build_result.detail, "docs.build"),
         CheckResult(
             "docs.domains",
             domain_result.passed,
             domain_result.detail,
             "docs.domains",
+        ),
+        CheckResult(
+            "docs.release",
+            release_result.passed,
+            release_result.detail,
+            "docs.release",
         ),
         CheckResult(
             "docs.requirements",
@@ -48,6 +71,12 @@ def governance_doc_checks(root: Path) -> list[CheckResult]:
             traceability_result.passed,
             traceability_result.detail,
             "docs.traceability",
+        ),
+        CheckResult(
+            "docs.vendors",
+            vendor_result.passed,
+            vendor_result.detail,
+            "docs.vendors",
         ),
         CheckResult("docs.links", link_result.passed, link_result.detail, "docs.links"),
     ]

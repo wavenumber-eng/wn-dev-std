@@ -34,8 +34,33 @@
     },
     "artifact_policy": {
       "type": "string",
-      "enum": ["transient-dist", "committed-grouped-dist", "committed-extension-dist"],
+      "enum": ["transient-dist", "committed-grouped-dist", "committed-extension-dist", "committed-app-package", "custom"],
       "description": "Whether dist/ is transient packaging output or committed grouped runtime artifacts."
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Governance catalog path overrides.",
+      "properties": {
+        "catalogs": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "artifacts": {
+              "type": "string",
+              "description": "Relative path to artifact governance catalog. Defaults to docs/governance/artifacts.toml."
+            },
+            "vendors": {
+              "type": "string",
+              "description": "Relative path to vendored-code governance catalog. Defaults to docs/governance/vendors.toml."
+            },
+            "release": {
+              "type": "string",
+              "description": "Relative path to release-channel governance catalog. Defaults to docs/governance/release.toml."
+            }
+          }
+        }
+      }
     },
     "documentation": {
       "type": "object",

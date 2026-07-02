@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026.7.2
+
+- Add durable governance audits for ADRs, requirements, domains, governed
+  surfaces, traceability refs, generated governance links, artifacts, vendors,
+  release channels, and build docs.
+- Add canonical `docs/build.html` / `docs/build.md` build-document governance
+  with required setup, invocation, output, and signoff coverage.
+- Add artifact, vendor, and release governance catalogs under
+  `docs/governance/`, with tracked-file-first audits that avoid local build
+  output false positives.
+- Add generated governance HTML and link resolution for plans, logs, ADRs,
+  requirements, and governance catalogs.
+- Add ADR and requirement create/list/show commands and stricter plan/log
+  lifecycle checks with structured steps, exit criteria, and step-linked logs.
+
 ## 2026.7.1
 
 - Make the `zephyr-firmware` formatter policy inherit the upstream C++

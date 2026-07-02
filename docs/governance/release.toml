@@ -1,0 +1,12 @@
+[[channels]]
+id = "pypi"
+kind = "pypi"
+status = "active"
+owner = "release"
+process_doc = "docs/setup.html"
+build_doc = "docs/build.html"
+
+[[channels.verification_refs]]
+kind = "local_pytest"
+target = "tests/L99_signoff/test_L99_001_release_metadata.py::test_this_reference_package_is_configured_for_pypi_publish"
+rationale = "Release metadata signoff confirms this package is configured for PyPI publishing."

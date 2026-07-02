@@ -484,9 +484,11 @@ rationale = "Python and C++ APIs should cover the same behavior."</code></pre>
   <p>
     The intended signoff integration is a plain audit invocation from the
     package root. Repositories should prefer a generic command such as
-    <code>dev-std audit . --scope docs.plans --scope docs.adrs --scope docs.requirements --scope docs.domains --scope docs.surfaces --scope docs.traceability --scope docs.links</code>
+    <code>dev-std audit . --scope docs.plans --scope docs.adrs --scope docs.requirements --scope docs.domains --scope docs.build --scope docs.surfaces --scope docs.traceability --scope docs.links</code>
     over local bespoke scanners unless they need stricter project-specific
-    policy.
+    policy. Packages with committed artifacts, vendored source, or configured
+    release channels should also add <code>docs.artifacts</code>,
+    <code>docs.vendors</code>, and <code>docs.release</code>.
   </p>
 </body>
 </html>

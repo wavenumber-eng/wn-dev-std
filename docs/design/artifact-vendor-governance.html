@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Artifact And Vendor Governance</title>
+</head>
+<body data-design="artifact-vendor-governance" data-doc-status="accepted">
+  <h1>Artifact And Vendor Governance</h1>
+  <p>
+    Artifact and vendor governance separates source-controlled project intent
+    from transient local build state. The standard gives packages a way to
+    identify committed binaries, release bundles, vendored source, generated
+    source, public reference assets, private fixture sets, and release channels
+    without treating every local compiler output as a durable artifact.
+  </p>
+
+  <h2>Catalogs</h2>
+  <p>
+    <code>dev-std.toml</code> remains the package policy switchboard. Detailed
+    inventories live in authored governance catalogs under
+    <code>docs/governance/</code>.
+  </p>
+  <ul>
+    <li><code>artifacts.toml</code> governs committed or otherwise intentional artifacts.</li>
+    <li><code>vendors.toml</code> governs committed vendored source and vendor drops.</li>
+    <li><code>release.toml</code> governs release channels and publishing processes.</li>
+  </ul>
+
+  <h2>Artifact Classes</h2>
+  <p>
+    Artifact governance distinguishes transient build output, package
+    distribution output, committed runtime artifacts, application/plugin
+    bundles, fixture data, public reference assets, vendored runtime artifacts,
+    generated source, oracle outputs, and release evidence.
+  </p>
+  <p>
+    Default audit is tracked-file-first. Ignored local paths such as
+    <code>build/</code>, <code>output/</code>, <code>temp/</code>,
+    <code>rack_results/</code>, and local staging under <code>dist/</code> do
+    not fail the default audit. Explicit release or evidence modes may inspect
+    produced outputs, checksums, licenses, and channel inclusion.
+  </p>
+
+  <h2>Vendored Code</h2>
+  <p>
+    Vendored source under roots such as <code>vendor/</code> or
+    <code>third_party/</code> requires a machine-readable vendor entry. Vendor
+    entries identify upstream name, version or commit, source URL or archive,
+    checksum when available, license file, local patches or pruning, consumers,
+    update command, and owner.
+  </p>
+
+  <h2>Generated Source</h2>
+  <p>
+    Committed generated source is an artifact class. Its catalog entry records
+    the source of truth, regeneration command, retention policy, and
+    verification refs. This keeps generated code visible without asking normal
+    source-domain audits to treat it as hand-owned implementation.
+  </p>
+
+  <h2>Release Channels</h2>
+  <p>
+    A configured package distribution such as <code>pypi</code> requires a
+    release catalog. Release channels describe the publication process for
+    PyPI, GitHub releases, native or WASM bundles, app/plugin packages, object
+    store uploads, and future package-manager automation.
+  </p>
+  <p>
+    Each release channel must identify both a <code>process_doc</code> and a
+    <code>build_doc</code>. The process document explains how the channel is
+    published. The build document explains required tools, setup, invocation,
+    packaging outputs, and the distinction between local build output and
+    promoted release artifacts. A package may use the same document for both
+    fields when the setup and release process are intentionally combined.
+    Canonical package build documentation is audited by <code>docs.build</code>
+    and should normally live at <code>docs/build.html</code> or
+    <code>docs/build.md</code>.
+  </p>
+  <p>
+    Native and WASM paths such as <code>dist/native/windows-x64/</code> and
+    <code>dist/wasm/browser/</code> are useful conventions when a package
+    promotes those outputs. They are not mandatory for every mixed/native
+    package.
+  </p>
+
+  <h2>Audit Scopes</h2>
+  <ul>
+    <li><code>docs.artifacts</code> validates artifact catalog coverage.</li>
+    <li><code>docs.vendors</code> validates vendored-code catalog coverage.</li>
+    <li><code>docs.release</code> validates release-channel governance.</li>
+  </ul>
+</body>
+</html>

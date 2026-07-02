@@ -73,6 +73,7 @@ def generate_governance_html(
     governance_catalog = load_governance_catalog(resolved_root)
     _raise_for_catalog_failures(plan_catalog, governance_catalog)
     docs = _documents_from_catalogs(plan_catalog, governance_catalog)
+    docs = (*docs, *_catalog_documents(resolved_root))
     link_index = _link_index(docs)
     default_css = _copy_default_css(resolved_output)
     all_css_hrefs = (default_css, *css_hrefs)
@@ -133,6 +134,111 @@ def _documents_from_catalogs(
             )
         )
     return tuple(sorted(docs, key=lambda item: (item.kind, item.record_id)))
+
+
+def _catalog_documents(root: Path) -> tuple[GovernanceHtmlDocument, ...]:
+    catalog_specs = (
+        ("artifact_catalog", "artifacts", "Artifact Governance Catalog", "artifacts"),
+        ("vendor_catalog", "vendors", "Vendor Governance Catalog", "vendors"),
+        ("release_catalog", "release", "Release Governance Catalog", "channels"),
+    )
+    docs: list[GovernanceHtmlDocument] = []
+    for kind, record_id, title, table_key in catalog_specs:
+        path = root / "docs" / "governance" / f"{record_id}.toml"
+        if not path.exists():
+            continue
+        payload = _load_toml_catalog(path)
+        docs.append(
+            GovernanceHtmlDocument(
+                kind,
+                record_id,
+                "governance",
+                "active",
+                title,
+                path.relative_to(root).as_posix(),
+                {
+                    "id": record_id,
+                    "status": "active",
+                    "type": kind,
+                    "source": path.relative_to(root).as_posix(),
+                },
+                _catalog_markdown(title, table_key, payload),
+            )
+        )
+    return tuple(docs)
+
+
+def _load_toml_catalog(path: Path) -> Mapping[str, object]:
+    with path.open("rb") as handle:
+        return cast(Mapping[str, object], tomllib.load(handle))
+
+
+def _catalog_markdown(
+    title: str,
+    table_key: str,
+    payload: Mapping[str, object],
+) -> str:
+    rows = _catalog_rows(payload.get(table_key))
+    if not rows:
+        return f"## {title}\n\nNo `{table_key}` entries are registered."
+    columns = _catalog_columns(rows)
+    lines = [
+        f"## {title}",
+        "",
+        f"Registered `{table_key}` entries.",
+        "",
+        "| " + " | ".join(columns) + " |",
+        "| " + " | ".join("---" for _ in columns) + " |",
+    ]
+    for row in rows:
+        lines.append("| " + " | ".join(_catalog_cell(row.get(column)) for column in columns) + " |")
+    return "\n".join(lines)
+
+
+def _catalog_rows(value: object) -> tuple[Mapping[str, object], ...]:
+    if not isinstance(value, list):
+        return ()
+    rows: list[Mapping[str, object]] = []
+    for item in cast(list[object], value):
+        if isinstance(item, dict):
+            rows.append(cast(Mapping[str, object], item))
+    return tuple(rows)
+
+
+def _catalog_columns(rows: Sequence[Mapping[str, object]]) -> tuple[str, ...]:
+    priority = ("id", "kind", "status", "tracked", "included_in_release", "owner")
+    keys: list[str] = []
+    for key in priority:
+        if any(key in row for row in rows):
+            keys.append(key)
+    for row in rows:
+        for key in row:
+            if key not in keys:
+                keys.append(key)
+    return tuple(keys)
+
+
+def _catalog_cell(value: object) -> str:
+    if isinstance(value, list):
+        rendered_items = [_catalog_list_item(item) for item in cast(list[object], value)]
+        return ", ".join(rendered_items)
+    if isinstance(value, dict):
+        typed_value = cast(Mapping[str, object], value)
+        return ", ".join(f"{key}={item}" for key, item in typed_value.items())
+    if value is None:
+        return ""
+    return str(value)
+
+
+def _catalog_list_item(item: object) -> str:
+    if not isinstance(item, dict):
+        return str(item)
+    typed_item = cast(Mapping[str, object], item)
+    for key in ("id", "target", "kind"):
+        value = typed_item.get(key)
+        if value is not None:
+            return str(value)
+    return "table"
 
 
 def _document_from_source(

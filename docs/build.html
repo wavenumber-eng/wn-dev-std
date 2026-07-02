@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Build</title>
+</head>
+<body data-doc="build" data-doc-status="accepted">
+  <h1>Build</h1>
+
+  <h2>Tools And Setup</h2>
+  <p>
+    This package is a Python package built with <code>uv</code>, Hatchling,
+    Ruff, Pyright, pytest, and the local Python hygiene signoff script. Install
+    development dependencies with <code>uv sync --group dev</code>.
+  </p>
+
+  <h2>Commands And Invocation</h2>
+  <pre><code>uv run pytest
+uv run ruff check .
+uv run pyright
+uv run python tests/support_scripts/py_signoff.py
+uv run dev-std audit .</code></pre>
+
+  <h2>Outputs And Artifacts</h2>
+  <p>
+    Normal Python package builds produce transient wheel and sdist output under
+    <code>dist/</code>. Those outputs are not committed. Governance HTML under
+    <code>docs/generated/</code> is derivative output and should be regenerated
+    from the authored Markdown, HTML, and TOML governance sources.
+  </p>
+
+  <h2>Validation And Signoff</h2>
+  <p>
+    Release signoff runs tests, lint, type checking, Python hygiene, and
+    <code>dev-std audit</code>. The release process is documented separately in
+    <code>docs/setup.html</code> and the release notes under
+    <code>docs/releases/</code>.
+  </p>
+</body>
+</html>
