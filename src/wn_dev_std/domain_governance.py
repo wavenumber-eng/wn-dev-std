@@ -115,6 +115,9 @@ def _validate_domain_html(
         failures.append(f"{label}: missing html")
         return
     path = (root / html_path).resolve()
+    if not _is_within_root(root, path):
+        failures.append(f"{label}: html target escapes repository root {html_path!r}")
+        return
     if not path.exists():
         failures.append(f"{label}: missing html target {html_path!r}")
         return
@@ -288,6 +291,14 @@ def _mapping_tuple(value: object) -> tuple[Mapping[str, object], ...]:
 
 def _rel(root: Path, path: Path) -> str:
     return path.resolve().relative_to(root).as_posix()
+
+
+def _is_within_root(root: Path, target: Path) -> bool:
+    try:
+        target.relative_to(root.resolve())
+    except ValueError:
+        return False
+    return True
 
 
 def _summarize_failures(label: str, failures: list[str], limit: int = 10) -> str:

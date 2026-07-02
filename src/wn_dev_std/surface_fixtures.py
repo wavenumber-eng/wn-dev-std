@@ -75,8 +75,9 @@ def _validate_fixture_entries(
         _validate_fixture_id(label, fixture_id, seen_ids, failures)
         _validate_fixture_status(label, status, failures)
         _validate_fixture_path_presence(label, kind, path, failures)
-        if fixture_id and path:
+        if fixture_id:
             fixture_paths[fixture_id] = path
+        if path:
             fixture_paths[path] = path
         _validate_fixture_path(root, label, path, status, failures)
     _validate_unused_active_fixtures(

@@ -370,13 +370,23 @@ def _ref_html(
             f'href="{html.escape(link_index[value])}">{html.escape(value)}</a>'
         )
     if value.startswith("docs/") or value.startswith("tests/") or value.startswith("src/"):
-        target = root / value
+        file_part = _file_ref_target(value)
+        target = root / file_part
         href = _relative_href(output_path, target) if target.exists() else value
         return (
             f'<a class="dev-std-gov-ref dev-std-gov-ref-file" '
             f'href="{html.escape(href)}">{html.escape(value)}</a>'
         )
     return html.escape(value)
+
+
+def _file_ref_target(value: str) -> str:
+    end = len(value)
+    for marker in ("::", "#", "?"):
+        marker_index = value.find(marker)
+        if marker_index >= 0:
+            end = min(end, marker_index)
+    return value[:end]
 
 
 def _link_index(docs: Sequence[GovernanceHtmlDocument]) -> dict[str, str]:

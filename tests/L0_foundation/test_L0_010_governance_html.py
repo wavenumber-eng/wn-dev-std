@@ -40,6 +40,7 @@ def test_generate_governance_html_writes_pages_with_data_tags(tmp_path: Path) ->
     assert "../adr/core-adr-0001.html" in text
     assert 'class="dev-std-gov-evidence-table"' in text
     assert 'class="dev-std-gov-evidence-key">target</th>' in text
+    assert 'href="../../../../tests/test_demo.py">tests/test_demo.py::test_demo</a>' in text
     assert '<div class="dev-std-gov-body">' in text
     assert '<h1 class="dev-std-gov-h dev-std-gov-h1">Demo Requirement</h1>' in text
 

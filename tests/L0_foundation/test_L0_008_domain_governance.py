@@ -53,6 +53,21 @@ def test_docs_domains_audit_fails_missing_domain_html(tmp_path: Path) -> None:
     assert "missing html target" in result.detail
 
 
+def test_docs_domains_audit_fails_domain_html_escape(tmp_path: Path) -> None:
+    outside = tmp_path.parent / "outside-domain.html"
+    outside.write_text(
+        '<html><body data-domain="core" data-domain-status="active">'
+        "docs/governance/domain_registry.toml</body></html>\n",
+        encoding="utf-8",
+    )
+    write_domain_repo(tmp_path, domain_html="../outside-domain.html")
+
+    result = scope_result(tmp_path)
+
+    assert not result.passed
+    assert "html target escapes repository root" in result.detail
+
+
 def test_docs_domains_audit_fails_unknown_adr_domain(tmp_path: Path) -> None:
     write_domain_repo(tmp_path)
     write_file(
@@ -90,6 +105,7 @@ def write_domain_repo(
     *,
     include_domain_html: bool = True,
     include_api_domain: bool = False,
+    domain_html: str = "docs/domains/core.html",
 ) -> None:
     write_file(root / "dev-std.toml", 'profile = "python-package"\n')
     write_file(root / "src" / "core" / "core.py", "VALUE = 1\n")
@@ -163,7 +179,7 @@ def write_domain_repo(
             title = "Core"
             status = "active"
             purpose = "Own core source, tests, and governance."
-            html = "docs/domains/core.html"
+            html = "{domain_html}"
 
             [[file_groups]]
             primary_domain = "core"

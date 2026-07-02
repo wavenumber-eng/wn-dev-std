@@ -213,6 +213,43 @@ def test_docs_surfaces_audit_allows_logical_fixture_case_refs(tmp_path: Path) ->
         fixture_ref_target="case:synthetic:roundtrip:001",
         fixture_catalog_kind="fixture_case",
         fixture_catalog_id="case:synthetic:roundtrip:001",
+        fixture_catalog_path="",
+    )
+
+    result = scope_result(tmp_path)
+
+    assert result.passed
+
+
+def test_docs_surfaces_audit_fails_missing_logical_fixture_case_ref(tmp_path: Path) -> None:
+    write_surface_repo(
+        tmp_path,
+        include_fixture_catalog=True,
+        fixture_ref_kind="fixture_case",
+        fixture_ref_target="case:synthetic:roundtrip:missing",
+        fixture_catalog_kind="fixture_case",
+        fixture_catalog_id="case:synthetic:roundtrip:001",
+        fixture_catalog_path="",
+    )
+
+    result = scope_result(tmp_path)
+
+    assert not result.passed
+    assert "unregistered surface fixture 'case:synthetic:roundtrip:missing'" in result.detail
+
+
+def test_docs_surfaces_audit_allows_mixed_logical_and_physical_fixtures(
+    tmp_path: Path,
+) -> None:
+    write_surface_repo(
+        tmp_path,
+        include_fixture_catalog=True,
+        include_extra_logical_fixture=True,
+        fixture_ref_kind="fixture_case",
+        fixture_ref_target="case:synthetic:roundtrip:001",
+        fixture_catalog_kind="fixture_case",
+        fixture_catalog_id="case:synthetic:roundtrip:001",
+        fixture_catalog_path="",
     )
 
     result = scope_result(tmp_path)
@@ -234,6 +271,7 @@ def write_surface_repo(
     include_fixture_catalog: bool = False,
     include_unused_fixture: bool = False,
     include_archived_fixture: bool = False,
+    include_extra_logical_fixture: bool = False,
     fixture_ref_kind: str = "fixture_file",
     fixture_ref_target: str = "tests/fixtures/core.json",
     fixture_catalog_kind: str = "fixture_file",
@@ -271,6 +309,7 @@ def write_surface_repo(
             include_fixture_catalog=include_fixture_catalog,
             include_unused_fixture=include_unused_fixture,
             include_archived_fixture=include_archived_fixture,
+            include_extra_logical_fixture=include_extra_logical_fixture,
             fixture_ref_kind=fixture_ref_kind,
             fixture_ref_target=fixture_ref_target,
             fixture_catalog_kind=fixture_catalog_kind,
@@ -292,6 +331,7 @@ def surface_manifest(
     include_fixture_catalog: bool,
     include_unused_fixture: bool,
     include_archived_fixture: bool,
+    include_extra_logical_fixture: bool,
     fixture_ref_kind: str,
     fixture_ref_target: str,
     fixture_catalog_kind: str,
@@ -313,6 +353,7 @@ def surface_manifest(
     fixtures = fixture_catalog_block(
         include_unused_fixture,
         include_archived_fixture,
+        include_extra_logical_fixture,
         fixture_catalog_kind,
         fixture_catalog_id,
         fixture_catalog_path,
@@ -333,6 +374,18 @@ def surface_manifest(
             issue_refs = ["wavenumber-eng/example#12"]
             """
         )
+    extra_fixture_ref = ""
+    if include_extra_logical_fixture:
+        extra_fixture_ref = dedent(
+            """
+
+            [[surfaces.fixture_refs]]
+            kind = "fixture_file"
+            target = "tests/fixtures/core.json"
+            coverage_mode = "regression"
+            rationale = "Exercises a path-backed fixture beside logical cases."
+            """
+        )
     return dedent(
         f"""
         [[surfaces]]
@@ -348,6 +401,7 @@ def surface_manifest(
         target = "{fixture_ref_target}"
         coverage_mode = "regression"
         rationale = "Exercises a stable fixture."
+        {extra_fixture_ref}
         {verification}
         {exception}
         {fixtures}
@@ -373,6 +427,7 @@ def verification_block(target: str, kind: str, repo: str) -> str:
 def fixture_catalog_block(
     include_unused_fixture: bool,
     include_archived_fixture: bool,
+    include_extra_logical_fixture: bool,
     fixture_catalog_kind: str,
     fixture_catalog_id: str,
     fixture_catalog_path: str,
@@ -404,6 +459,20 @@ def fixture_catalog_block(
             purpose = "Historical fixture retained for provenance."
             """
         )
+    extra_logical = ""
+    if include_extra_logical_fixture:
+        extra_logical = dedent(
+            """
+
+            [[fixtures]]
+            id = "tests/fixtures/core.json"
+            kind = "fixture_file"
+            path = "tests/fixtures/core.json"
+            status = "active"
+            purpose = "Path-backed fixture retained beside logical cases."
+            """
+        )
+    path_line = f'path = "{fixture_catalog_path}"' if fixture_catalog_path else ""
     return dedent(
         f"""
 
@@ -414,11 +483,12 @@ def fixture_catalog_block(
         [[fixtures]]
         id = "{fixture_catalog_id}"
         kind = "{fixture_catalog_kind}"
-        path = "{fixture_catalog_path}"
+        {path_line}
         status = "active"
         purpose = "Core API fixture."
         {unused}
         {archived}
+        {extra_logical}
         """
     )
 
