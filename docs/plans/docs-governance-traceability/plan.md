@@ -67,7 +67,7 @@ depends_on = ["governed-surfaces"]
 [[steps]]
 id = "rack-evidence-interface"
 title = "Define optional Rack runtime evidence export/link contract for traceability audits"
-status = "pending"
+status = "done"
 depends_on = ["governed-surfaces"]
 
 [[steps]]
@@ -199,7 +199,7 @@ status = "pending"
 [[exit_criteria]]
 id = "rack-evidence-interface"
 title = "Docs define an optional Rack evidence export/link interface for test ids, lanes, concerns, case ids, fixtures used, artifacts produced, results, and run metadata"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "minimal-bootstrap"

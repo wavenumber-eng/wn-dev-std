@@ -316,5 +316,23 @@ rationale = "Python and C++ APIs should cover the same behavior."</code></pre>
     exception or issue so reviewers can distinguish intentional differences
     from missing test coverage.
   </p>
+
+  <h2>Rack Evidence Interface</h2>
+  <p>
+    <code>dev-std</code> owns committed governance contracts.
+    <code>wn-rack</code> owns runtime test execution evidence. Projects may
+    later connect the two through generated Rack evidence artifacts, but those
+    artifacts are derivative reports rather than the authored source of truth.
+  </p>
+  <p>
+    A Rack evidence export should identify the test id, runtime or
+    implementation lane, concerns, case id, fixture/data ids used, artifacts
+    produced, result status, run id, timestamp, and whether each relationship
+    was declared, statically inferred, or runtime observed. Initial
+    <code>dev-std</code> audits validate committed refs and manifests without
+    requiring Rack runtime evidence. Future strict modes may compare declared
+    verification and fixture refs against Rack evidence from the same signoff
+    run.
+  </p>
 </body>
 </html>

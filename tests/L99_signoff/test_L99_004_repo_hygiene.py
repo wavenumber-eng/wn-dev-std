@@ -250,6 +250,7 @@ def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:
         "docs.surfaces",
         "docs.traceability",
         "docs.links",
+        "Rack evidence",
         "TOML front matter",
         "external_cpp_test",
     ):

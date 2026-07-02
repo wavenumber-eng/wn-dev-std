@@ -197,6 +197,13 @@ status = "pending"</code></pre>
     present.
   </p>
   <p>
+    Runtime Rack evidence is intentionally separate from the committed
+    governance manifest. <code>dev-std</code> checks the declared contract;
+    <code>wn-rack</code> may later export observed test, fixture, artifact, and
+    result evidence that stricter signoff modes compare against the declared
+    refs.
+  </p>
+  <p>
     <code>docs.traceability</code> validates simple string ref arrays and typed
     ref tables. Local refs must resolve when they point at repo files. External
     source and test refs must name the owning repository so cross-repo and
