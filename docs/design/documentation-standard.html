@@ -252,5 +252,51 @@ paths = ["src/core/**", "tests/core/**", "docs/core/**"]</code></pre>
     <code>data-domain-status</code>, and a visible reference to the registry
     source.
   </p>
+
+  <h2>Governed Surface Manifest</h2>
+  <p>
+    Packages may declare governed surfaces at
+    <code>docs/governance/governed_surfaces.toml</code>. A governed surface is
+    a public API, CLI command, workflow, transform, serializer, schema, WASM
+    endpoint, importer/exporter behavior, or other contract surface that must
+    be verified or explicitly excepted. The manifest is committed source text;
+    generated SQLite, JSON, or HTML reports may be derived from it but are not
+    the reviewed source of truth.
+  </p>
+  <pre><code>[[surfaces]]
+id = "core.api.list_core"
+domain = "core"
+kind = "public_function"
+status = "active"
+purpose = "List core records."
+implementation_refs = ["src/core/api.py#list_core"]
+
+[[surfaces.verification_refs]]
+kind = "local_pytest"
+target = "tests/test_core.py::test_core"
+coverage_mode = "regression"
+rationale = "Covers the public surface."
+
+[[surfaces.fixture_refs]]
+kind = "fixture_file"
+target = "tests/fixtures/core.json"
+coverage_mode = "regression"
+rationale = "Exercises a stable fixture."
+
+[[exceptions]]
+id = "core.api.native.deferred"
+surface_ref = "core.api.native"
+status = "deferred"
+rationale = "Tracked until the native lane exists."
+issue_refs = ["wavenumber-eng/example#12"]</code></pre>
+  <p>
+    Active and implemented surfaces must declare
+    <code>[[surfaces.verification_refs]]</code> or have a matching
+    <code>[[exceptions]]</code> entry. Verification refs and fixture refs must
+    include <code>kind</code>, <code>target</code>,
+    <code>coverage_mode</code>, and <code>rationale</code>. Local refs must
+    resolve. External refs must identify their owning repository. Exceptions
+    with deferred or missing-capability status must include issue refs.
+  </p>
 </body>
 </html>

@@ -35,11 +35,15 @@
     <code>docs.domains</code> validates an optional domain registry, domain
     HTML coverage, and file-to-domain ownership under configured owned roots.
     <code>docs.requirements</code> validates requirement metadata and
-    verification obligations. <code>docs.traceability</code> validates typed
-    local and external refs across issues, plans, ADRs, requirements, design
-    docs, source, schemas, and tests. <code>docs.links</code> validates local
-    documentation links in Markdown and HTML. These scopes are opt-in ratchets
-    during migration and can later be included in package signoff.
+    verification obligations. <code>docs.surfaces</code> validates optional
+    governed-surface manifests that connect public APIs, workflows, transforms,
+    schemas, and other owned surfaces to implementation refs, verification refs,
+    fixture/data refs, and typed exceptions. <code>docs.traceability</code>
+    validates typed local and external refs across issues, plans, ADRs,
+    requirements, design docs, source, schemas, and tests.
+    <code>docs.links</code> validates local documentation links in Markdown and
+    HTML. These scopes are opt-in ratchets during migration and can later be
+    included in package signoff.
   </p>
 
   <h2>Package Root Boundary</h2>
@@ -181,6 +185,15 @@ status = "pending"</code></pre>
 
   <h2>Traceability And Links</h2>
   <p>
+    <code>docs.surfaces</code> validates
+    <code>docs/governance/governed_surfaces.toml</code> when present. Active
+    and implemented surfaces must have structured verification refs or a typed
+    exception. Local implementation, test, and fixture refs must resolve;
+    external refs must name the owning repository. Surface domains must exist
+    in <code>docs/governance/domain_registry.toml</code> when that registry is
+    present.
+  </p>
+  <p>
     <code>docs.traceability</code> validates simple string ref arrays and typed
     ref tables. Local refs must resolve when they point at repo files. External
     source and test refs must name the owning repository so cross-repo and
@@ -200,8 +213,11 @@ status = "pending"</code></pre>
     can start with <code>dev-std audit . --scope docs.adrs</code> or
     <code>dev-std audit . --scope docs.requirements</code> in its local signoff
     and then add <code>docs.traceability</code> and <code>docs.links</code> as
-    the repo is converted. The checks are designed to fail loudly with concrete
-    file paths so migration work can be planned rather than silently ignored.
+    the repo is converted. Repos with declared API, transform, serialization,
+    porting, or workflow surfaces should add <code>docs.surfaces</code> once
+    the first governed-surface manifest exists. The checks are designed to fail
+    loudly with concrete file paths so migration work can be planned rather
+    than silently ignored.
   </p>
 </body>
 </html>

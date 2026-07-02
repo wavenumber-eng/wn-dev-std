@@ -247,6 +247,7 @@ def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:
         "docs.adrs",
         "docs.domains",
         "docs.requirements",
+        "docs.surfaces",
         "docs.traceability",
         "docs.links",
         "TOML front matter",
@@ -257,6 +258,7 @@ def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:
         "docs.adrs",
         "docs.domains",
         "docs.requirements",
+        "docs.surfaces",
         "docs.traceability",
         "docs.links",
     ):
@@ -267,6 +269,7 @@ def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:
         "docs.adrs",
         "docs.domains",
         "docs.requirements",
+        "docs.surfaces",
         "docs.traceability",
         "docs.links",
     ):

@@ -55,7 +55,7 @@ depends_on = ["cli-audit", "traceability"]
 [[steps]]
 id = "governed-surfaces"
 title = "Define governed surface, implementation ref, verification ref, fixture/data ref, and exception manifests"
-status = "pending"
+status = "done"
 depends_on = ["domain-registry", "traceability"]
 
 [[steps]]
@@ -174,17 +174,17 @@ status = "met"
 [[exit_criteria]]
 id = "governed-surfaces"
 title = "Governed surface manifests can declare public APIs, workflows, transforms, serializers, schemas, CLI commands, WASM endpoints, and other surfaces that require verification or exceptions"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "verification-fixtures"
 title = "Verification refs can link governed surfaces to local or external tests, coverage modes, fixture/data refs, oracle/reference lanes, and sufficiency rationale"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "typed-exceptions"
 title = "Exceptions are typed, issue-linked where appropriate, auditable, and distinguish accepted divergence from missing or deferred work"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "port-parity"

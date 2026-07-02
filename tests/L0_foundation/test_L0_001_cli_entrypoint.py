@@ -83,6 +83,7 @@ def test_audit_docs_governance_scopes_run() -> None:
         "docs.adrs",
         "docs.domains",
         "docs.requirements",
+        "docs.surfaces",
         "docs.traceability",
         "docs.links",
     ):

@@ -47,6 +47,7 @@ AUDIT_SCOPES = (
     "docs.links",
     "docs.plans",
     "docs.requirements",
+    "docs.surfaces",
     "docs.traceability",
     "language",
     "ci",
