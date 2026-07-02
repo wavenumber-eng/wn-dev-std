@@ -12,8 +12,8 @@ def test_governance_markdown_renders_headings_and_strong_text() -> None:
         """.strip()
     )
 
-    assert '<h2 class="governance-heading governance-heading-2">API Requirements</h2>' in html
-    assert '<strong class="governance-strong">Requirement</strong>' in html
+    assert '<h2 class="dev-std-gov-h dev-std-gov-h2">API Requirements</h2>' in html
+    assert '<strong class="dev-std-gov-strong">Requirement</strong>' in html
     assert "## API Requirements" not in html
     assert "**Requirement**" not in html
 
@@ -34,7 +34,7 @@ def test_governance_markdown_renders_tables_lists_and_code() -> None:
         """.strip()
     )
 
-    assert '<table class="governance-table">' in html
-    assert '<ul class="governance-list">' in html
-    assert '<code class="governance-inline-code">two</code>' in html
-    assert '<pre class="governance-code-block">' in html
+    assert '<table class="dev-std-gov-table">' in html
+    assert '<ul class="dev-std-gov-list">' in html
+    assert '<code class="dev-std-gov-code-inline">two</code>' in html
+    assert '<pre class="dev-std-gov-code-block">' in html

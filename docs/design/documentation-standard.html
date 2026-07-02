@@ -210,8 +210,8 @@ target = "src/cpp/altium_monkey/pcbdoc.hpp:KeepoutRestrictionMask"</code></pre>
     TOML-front-matter Markdown remains the source format for ADRs and
     requirements because it is easy to diff and merge. Repositories may
     generate HTML browse pages from that source. Generated governance pages
-    should carry <code>data-governance-type</code>,
-    <code>data-governance-id</code>, and <code>data-governance-source</code>
+    should carry <code>data-dev-std-gov-type</code>,
+    <code>data-dev-std-gov-id</code>, and <code>data-dev-std-gov-source</code>
     attributes so audits can connect the browse page back to the source
     document.
   </p>
@@ -225,10 +225,10 @@ target = "src/cpp/altium_monkey/pcbdoc.hpp:KeepoutRestrictionMask"</code></pre>
     <code>dev-std governance html --output &lt;dir&gt;</code> generates an
     index plus per-record pages for compliant plans, logs, ADRs, and
     requirements. Generated pages include
-    <code>data-governance-type</code>, <code>data-governance-id</code>,
-    <code>data-governance-source</code>,
-    <code>data-governance-status</code>, and
-    <code>data-governance-domain</code> where the source metadata provides the
+    <code>data-dev-std-gov-type</code>, <code>data-dev-std-gov-id</code>,
+    <code>data-dev-std-gov-source</code>,
+    <code>data-dev-std-gov-status</code>, and
+    <code>data-dev-std-gov-domain</code> where the source metadata provides the
     value. The command accepts repeated <code>--css</code> arguments so
     consumers can inject project-specific styles without editing generated
     files.
@@ -244,9 +244,9 @@ target = "src/cpp/altium_monkey/pcbdoc.hpp:KeepoutRestrictionMask"</code></pre>
     The generator renders the supported Markdown body subset into semantic HTML
     rather than a literal preformatted block. Headings, paragraphs, strong text,
     inline code, links, unordered lists, fenced code blocks, and simple pipe
-    tables receive stable <code>governance-*</code> classes such as
-    <code>governance-heading</code>, <code>governance-paragraph</code>,
-    <code>governance-strong</code>, and <code>governance-table</code> so
+    tables receive stable <code>dev-std-gov-*</code> classes such as
+    <code>dev-std-gov-h</code>, <code>dev-std-gov-p</code>,
+    <code>dev-std-gov-strong</code>, and <code>dev-std-gov-table</code> so
     projects can override presentation with their own CSS.
   </p>
   <p>
@@ -259,18 +259,18 @@ target = "src/cpp/altium_monkey/pcbdoc.hpp:KeepoutRestrictionMask"</code></pre>
   </p>
   <p>
     The page structure is intentionally stable for styling and future behavior:
-    <code>main#governance-page</code>, <code>section#governance-metadata</code>,
-    and <code>section#governance-body</code> wrap the main regions. Metadata
-    rows carry <code>data-governance-field</code> plus typed value classes such
-    as <code>governance-metadata-value-string</code> and
-    <code>governance-metadata-value-list</code>. This makes CSS-only
+    <code>main#dev-std-gov-page</code>, <code>section#dev-std-gov-meta</code>,
+    and <code>section#dev-std-gov-body</code> wrap the main regions. Metadata
+    rows carry <code>data-dev-std-gov-field</code> plus typed value classes such
+    as <code>dev-std-gov-meta-val-string</code> and
+    <code>dev-std-gov-meta-val-list</code>. This makes CSS-only
     customization and later collapsible behavior possible without changing the
     source Markdown contract.
   </p>
   <p>
     Typed table metadata such as <code>verification_refs</code>,
     <code>implementation_refs</code>, and exception refs renders as
-    <code>governance-evidence-table</code> content instead of opaque raw
+    <code>dev-std-gov-evidence-table</code> content instead of opaque raw
     strings. Targets and known ids are linked when the generator can resolve
     them, giving reviewers a browseable path from requirement or ADR evidence
     to tests, implementation files, and related governance records.

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Sequence
 from typing import Protocol
 
 
@@ -13,6 +14,7 @@ class SubparserRegistry(Protocol):
         self,
         name: str,
         *,
+        aliases: Sequence[str] = (),
         help: str | None = None,
         description: str | None = None,
     ) -> argparse.ArgumentParser:

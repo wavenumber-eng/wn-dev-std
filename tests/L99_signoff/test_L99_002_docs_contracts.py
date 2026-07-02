@@ -28,21 +28,38 @@ def object_sequence(value: object) -> Sequence[Mapping[str, object]]:
     raise TypeError("expected list of objects")
 
 
+def string_sequence(value: object) -> Sequence[str]:
+    if not isinstance(value, list):
+        raise TypeError("expected list of strings")
+    items: list[str] = []
+    for item in cast(list[object], value):
+        if not isinstance(item, str):
+            raise TypeError("expected list of strings")
+        items.append(item)
+    return items
+
+
 def test_command_manifest_matches_cli_and_design_doc() -> None:
     manifest = load_json_mapping(ROOT / "docs" / "contracts" / "command_manifest.v0.json")
     commands = object_sequence(manifest["commands"])
     manifest_names = {cast(str, command["name"]) for command in commands}
+    manifest_aliases = {
+        alias for command in commands for alias in string_sequence(command.get("aliases", []))
+    }
     parser = build_parser()
     help_text = parser.format_help()
     design_doc = (ROOT / "docs" / "design" / "cli.html").read_text(encoding="utf-8")
     parser_commands = parser_command_names(parser)
 
-    assert parser_commands <= manifest_names
+    assert parser_commands <= manifest_names | manifest_aliases
     for command in commands:
         name = cast(str, command["name"])
         module = cast(str, command["module"])
         assert name in help_text
         assert f'data-command="{name}"' in design_doc
+        for alias in string_sequence(command.get("aliases", [])):
+            assert alias in help_text
+            assert alias in design_doc
         imported = importlib.import_module(module)
         assert hasattr(imported, "register")
 

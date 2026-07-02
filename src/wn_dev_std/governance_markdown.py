@@ -47,7 +47,7 @@ def render_governance_markdown(markdown: str) -> str:
             index += 1
     _flush_paragraph(paragraph, blocks)
     _flush_list(list_items, blocks)
-    return '<div class="governance-body">\n' + "\n".join(blocks) + "\n</div>"
+    return '<div class="dev-std-gov-body">\n' + "\n".join(blocks) + "\n</div>"
 
 
 def _consume_code_block(lines: list[str], index: int, blocks: list[str]) -> int:
@@ -60,7 +60,7 @@ def _consume_code_block(lines: list[str], index: int, blocks: list[str]) -> int:
     language_class = f" language-{html.escape(language)}" if language else ""
     code = html.escape("\n".join(code_lines))
     blocks.append(
-        f'<pre class="governance-code-block"><code class="governance-code{language_class}">'
+        f'<pre class="dev-std-gov-code-block"><code class="dev-std-gov-code{language_class}">'
         f"{code}</code></pre>"
     )
     return cursor + 1 if cursor < len(lines) else cursor
@@ -79,7 +79,7 @@ def _consume_table(lines: list[str], index: int, blocks: list[str]) -> int:
         cells = "".join(f"<td>{_inline_html(cell)}</td>" for cell in row)
         body_rows.append(f"<tr>{cells}</tr>")
     blocks.append(
-        '<table class="governance-table">'
+        '<table class="dev-std-gov-table">'
         f"<thead><tr>{head}</tr></thead>"
         f"<tbody>{''.join(body_rows)}</tbody>"
         "</table>"
@@ -112,7 +112,7 @@ def _heading_html(stripped: str) -> str:
         return ""
     level = len(match.group(1))
     content = _inline_html(match.group(2).strip())
-    return f'<h{level} class="governance-heading governance-heading-{level}">{content}</h{level}>'
+    return f'<h{level} class="dev-std-gov-h dev-std-gov-h{level}">{content}</h{level}>'
 
 
 def _is_unordered_list_item(stripped: str) -> bool:
@@ -123,26 +123,26 @@ def _flush_paragraph(paragraph: list[str], blocks: list[str]) -> None:
     if not paragraph:
         return
     content = _inline_html(" ".join(paragraph))
-    blocks.append(f'<p class="governance-paragraph">{content}</p>')
+    blocks.append(f'<p class="dev-std-gov-p">{content}</p>')
     paragraph.clear()
 
 
 def _flush_list(list_items: list[str], blocks: list[str]) -> None:
     if not list_items:
         return
-    items = "".join(f'<li class="governance-list-item">{item}</li>' for item in list_items)
-    blocks.append(f'<ul class="governance-list">{items}</ul>')
+    items = "".join(f'<li class="dev-std-gov-list-item">{item}</li>' for item in list_items)
+    blocks.append(f'<ul class="dev-std-gov-list">{items}</ul>')
     list_items.clear()
 
 
 def _inline_html(text: str) -> str:
     escaped = html.escape(text)
     linked = LINK_RE.sub(_link_replacement, escaped)
-    coded = INLINE_CODE_RE.sub(r'<code class="governance-inline-code">\1</code>', linked)
-    return STRONG_RE.sub(r'<strong class="governance-strong">\1</strong>', coded)
+    coded = INLINE_CODE_RE.sub(r'<code class="dev-std-gov-code-inline">\1</code>', linked)
+    return STRONG_RE.sub(r'<strong class="dev-std-gov-strong">\1</strong>', coded)
 
 
 def _link_replacement(match: re.Match[str]) -> str:
     label = match.group(1)
     href = match.group(2)
-    return f'<a class="governance-link" href="{href}">{label}</a>'
+    return f'<a class="dev-std-gov-link" href="{href}">{label}</a>'

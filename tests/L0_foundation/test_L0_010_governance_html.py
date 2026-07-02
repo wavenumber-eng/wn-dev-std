@@ -26,19 +26,21 @@ def test_generate_governance_html_writes_pages_with_data_tags(tmp_path: Path) ->
     assert adr_page.exists()
     assert req_page.exists()
     text = req_page.read_text(encoding="utf-8")
-    assert 'data-governance-type="requirement"' in text
-    assert 'data-governance-id="core-req-0001"' in text
-    assert 'data-governance-source="docs/core/requirements/core-req-0001-demo.md"' in text
+    assert 'data-dev-std-gov-type="requirement"' in text
+    assert 'data-dev-std-gov-id="core-req-0001"' in text
+    assert 'data-dev-std-gov-source="docs/core/requirements/core-req-0001-demo.md"' in text
     assert '<link rel="stylesheet" href="governance.css">' in text
-    assert '<main id="governance-page" class="governance-page governance-page-requirement">' in text
-    assert 'id="governance-metadata"' in text
-    assert 'data-governance-field="status"' in text
-    assert 'class="governance-metadata-value governance-metadata-value-string"' in text
+    assert (
+        '<main id="dev-std-gov-page" class="dev-std-gov-page dev-std-gov-page-requirement">' in text
+    )
+    assert 'id="dev-std-gov-meta"' in text
+    assert 'data-dev-std-gov-field="status"' in text
+    assert 'class="dev-std-gov-meta-val dev-std-gov-meta-val-string"' in text
     assert "../adr/core-adr-0001.html" in text
-    assert 'class="governance-evidence-table"' in text
-    assert 'class="governance-evidence-key">target</th>' in text
-    assert '<div class="governance-body">' in text
-    assert '<h1 class="governance-heading governance-heading-1">Demo Requirement</h1>' in text
+    assert 'class="dev-std-gov-evidence-table"' in text
+    assert 'class="dev-std-gov-evidence-key">target</th>' in text
+    assert '<div class="dev-std-gov-body">' in text
+    assert '<h1 class="dev-std-gov-h dev-std-gov-h1">Demo Requirement</h1>' in text
 
 
 def test_generate_governance_html_fails_noncompliant_catalog(tmp_path: Path) -> None:

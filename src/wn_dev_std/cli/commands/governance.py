@@ -13,6 +13,7 @@ def register(subparsers: SubparserRegistry) -> None:
     """Register the governance command."""
     parser = subparsers.add_parser(
         "governance",
+        aliases=["gov"],
         help="Generate governance documentation",
         description="Generate browseable governance documentation.",
     )

@@ -182,7 +182,7 @@ def _write_index_page(
 ) -> None:
     output_root.mkdir(parents=True, exist_ok=True)
     items = "\n".join(
-        '<li class="governance-index-item">'
+        '<li class="dev-std-gov-index-item">'
         f'<a href="{html.escape(_relative_href(output_root / "index.html", page.output_path))}">'
         f"{html.escape(page.kind)}: {html.escape(page.record_id)}</a>"
         f" <code>{html.escape(page.source_path)}</code></li>"
@@ -194,13 +194,14 @@ def _write_index_page(
         '  <meta charset="utf-8">\n'
         "  <title>Governance Index</title>\n"
         f"{css}</head>\n"
-        '<body data-governance-index="true">\n'
-        '  <main class="governance-page governance-index-page">\n'
-        '    <header class="governance-page-header">\n'
-        '      <h1 class="governance-title">Governance Index</h1>\n'
+        '<body data-dev-std-gov-index="true">\n'
+        '  <main class="dev-std-gov-page dev-std-gov-index-page">\n'
+        '    <header class="dev-std-gov-header">\n'
+        '      <h1 class="dev-std-gov-title">Governance Index</h1>\n'
         "    </header>\n"
-        '    <section id="governance-index" class="governance-section governance-index-section">\n'
-        f'      <ul class="governance-index-items">\n{items}\n      </ul>\n'
+        '    <section id="dev-std-gov-index" '
+        'class="dev-std-gov-section dev-std-gov-index-section">\n'
+        f'      <ul class="dev-std-gov-index-items">\n{items}\n      </ul>\n'
         "    </section>\n"
         "  </main>\n"
         "</body>\n</html>\n"
@@ -225,19 +226,19 @@ def _document_html(
         f"  <title>{html.escape(doc.title)}</title>\n"
         f"{css}</head>\n"
         f"<body {data_attrs}>\n"
-        f'  <main id="governance-page" class="governance-page governance-page-{doc.kind}">\n'
-        '    <header id="governance-summary" class="governance-page-header governance-summary">\n'
-        f'      <h1 class="governance-title">{html.escape(doc.title)}</h1>\n'
-        f'      <p class="governance-source"><code>{html.escape(doc.source_path)}</code></p>\n'
+        f'  <main id="dev-std-gov-page" class="dev-std-gov-page dev-std-gov-page-{doc.kind}">\n'
+        '    <header id="dev-std-gov-summary" class="dev-std-gov-header dev-std-gov-summary">\n'
+        f'      <h1 class="dev-std-gov-title">{html.escape(doc.title)}</h1>\n'
+        f'      <p class="dev-std-gov-source"><code>{html.escape(doc.source_path)}</code></p>\n'
         "    </header>\n"
-        '    <section id="governance-metadata" class="governance-section governance-metadata" '
-        'data-governance-section="metadata">\n'
-        '      <h2 class="governance-section-title">Metadata</h2>\n'
-        f'      <table class="governance-metadata-table">\n{metadata_rows}\n      </table>\n'
+        '    <section id="dev-std-gov-meta" class="dev-std-gov-section dev-std-gov-meta" '
+        'data-dev-std-gov-section="metadata">\n'
+        '      <h2 class="dev-std-gov-section-title">Metadata</h2>\n'
+        f'      <table class="dev-std-gov-meta-table">\n{metadata_rows}\n      </table>\n'
         "    </section>\n"
-        '    <section id="governance-body" class="governance-section governance-document-body" '
-        'data-governance-section="body">\n'
-        '      <h2 class="governance-section-title">Body</h2>\n'
+        '    <section id="dev-std-gov-body" class="dev-std-gov-section dev-std-gov-doc-body" '
+        'data-dev-std-gov-section="body">\n'
+        '      <h2 class="dev-std-gov-section-title">Body</h2>\n'
         f"      {render_governance_markdown(doc.body)}\n"
         "    </section>\n"
         "  </main>\n"
@@ -247,11 +248,11 @@ def _document_html(
 
 def _data_attrs(doc: GovernanceHtmlDocument) -> str:
     attrs = {
-        "data-governance-type": doc.kind,
-        "data-governance-id": doc.record_id,
-        "data-governance-source": doc.source_path,
-        "data-governance-status": doc.status,
-        "data-governance-domain": doc.domain,
+        "data-dev-std-gov-type": doc.kind,
+        "data-dev-std-gov-id": doc.record_id,
+        "data-dev-std-gov-source": doc.source_path,
+        "data-dev-std-gov-status": doc.status,
+        "data-dev-std-gov-domain": doc.domain,
     }
     return " ".join(f'{key}="{html.escape(value)}"' for key, value in attrs.items() if value)
 
@@ -267,9 +268,9 @@ def _metadata_rows(
         escaped_key = html.escape(key)
         value_kind = _value_kind(value)
         rows.append(
-            f'        <tr class="governance-metadata-row" data-governance-field="{escaped_key}">'
-            f'<th class="governance-metadata-key">{escaped_key}</th>'
-            f'<td class="governance-metadata-value governance-metadata-value-{value_kind}">'
+            f'        <tr class="dev-std-gov-meta-row" data-dev-std-gov-field="{escaped_key}">'
+            f'<th class="dev-std-gov-meta-key">{escaped_key}</th>'
+            f'<td class="dev-std-gov-meta-val dev-std-gov-meta-val-{value_kind}">'
             f"{_metadata_value_html(root, output_path, key, value, link_index)}</td>"
             "</tr>"
         )
@@ -291,8 +292,8 @@ def _metadata_value_html(
             for item in cast(list[object], value)
         ]
         return (
-            '<ul class="governance-metadata-list">'
-            + "".join(f'<li class="governance-metadata-list-item">{item}</li>' for item in items)
+            '<ul class="dev-std-gov-meta-list">'
+            + "".join(f'<li class="dev-std-gov-meta-list-item">{item}</li>' for item in items)
             + "</ul>"
         )
     return f"<code>{html.escape(str(value))}</code>"
@@ -312,7 +313,7 @@ def _table_array_value_html(
 ) -> str:
     items = [cast(Mapping[str, object], item) for item in value if isinstance(item, dict)]
     rows = "".join(_evidence_row_html(root, output_path, item, link_index) for item in items)
-    return f'<table class="governance-evidence-table"><tbody>{rows}</tbody></table>'
+    return f'<table class="dev-std-gov-evidence-table"><tbody>{rows}</tbody></table>'
 
 
 def _evidence_row_html(
@@ -323,13 +324,13 @@ def _evidence_row_html(
 ) -> str:
     cells = "".join(
         "<tr>"
-        f'<th class="governance-evidence-key">{html.escape(key)}</th>'
-        f'<td class="governance-evidence-value">'
+        f'<th class="dev-std-gov-evidence-key">{html.escape(key)}</th>'
+        f'<td class="dev-std-gov-evidence-value">'
         f"{_evidence_value_html(root, output_path, key, raw_value, link_index)}</td>"
         "</tr>"
         for key, raw_value in sorted(item.items())
     )
-    return f'<tr class="governance-evidence-item"><td colspan="2"><table>{cells}</table></td></tr>'
+    return f'<tr class="dev-std-gov-evidence-item"><td colspan="2"><table>{cells}</table></td></tr>'
 
 
 def _evidence_value_html(
@@ -347,8 +348,8 @@ def _evidence_value_html(
             for item in cast(list[object], value)
         ]
         return (
-            '<ul class="governance-metadata-list">'
-            + "".join(f'<li class="governance-metadata-list-item">{item}</li>' for item in items)
+            '<ul class="dev-std-gov-meta-list">'
+            + "".join(f'<li class="dev-std-gov-meta-list-item">{item}</li>' for item in items)
             + "</ul>"
         )
     return f"<code>{html.escape(str(value))}</code>"
@@ -362,14 +363,14 @@ def _ref_html(
 ) -> str:
     if value in link_index:
         return (
-            f'<a class="governance-ref governance-ref-local" '
+            f'<a class="dev-std-gov-ref dev-std-gov-ref-local" '
             f'href="{html.escape(link_index[value])}">{html.escape(value)}</a>'
         )
     if value.startswith("docs/") or value.startswith("tests/") or value.startswith("src/"):
         target = root / value
         href = _relative_href(output_path, target) if target.exists() else value
         return (
-            f'<a class="governance-ref governance-ref-file" '
+            f'<a class="dev-std-gov-ref dev-std-gov-ref-file" '
             f'href="{html.escape(href)}">{html.escape(value)}</a>'
         )
     return html.escape(value)
