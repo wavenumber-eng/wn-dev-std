@@ -194,7 +194,7 @@ status = "met"
 [[exit_criteria]]
 id = "fixture-data-hygiene"
 title = "Fixture/data refs distinguish registered fixtures, physical discovered data, ignored/generated/archived data, missing backing files, orphaned fixtures, and unused corpus files"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "rack-evidence-interface"

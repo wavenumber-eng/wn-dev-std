@@ -257,6 +257,7 @@ def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:
         "generic signoff",
         "governance html",
         "data-governance-type",
+        "fixture_governance",
     ):
         assert expected in audit_doc or expected in documentation_doc
     for expected in (

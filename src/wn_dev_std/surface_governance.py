@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
 
+from wn_dev_std.surface_fixtures import validate_fixture_catalog
+
 
 @dataclass(frozen=True, slots=True)
 class SurfaceGovernanceReport:
@@ -71,6 +73,13 @@ def check_surface_governance_policy(root: Path) -> SurfaceGovernanceReport:
         payload,
         _surface_ids(surfaces),
         exception_ids,
+        failures,
+    )
+    validate_fixture_catalog(
+        resolved_root,
+        manifest_path,
+        payload,
+        _surface_fixture_targets(surfaces),
         failures,
     )
     if failures:
@@ -311,6 +320,16 @@ def _validate_parity_relationships(
 
 def _surface_ids(surfaces: tuple[Mapping[str, object], ...]) -> set[str]:
     return {surface_id for surface in surfaces if (surface_id := _string_value(surface.get("id")))}
+
+
+def _surface_fixture_targets(surfaces: tuple[Mapping[str, object], ...]) -> set[str]:
+    targets: set[str] = set()
+    for surface in surfaces:
+        for ref in _table_array(surface.get("fixture_refs")):
+            target = _string_value(ref.get("target"))
+            if target:
+                targets.add(target)
+    return targets
 
 
 def _validate_unique_relationship_id(

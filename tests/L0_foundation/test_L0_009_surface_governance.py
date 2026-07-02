@@ -128,6 +128,43 @@ def test_docs_surfaces_audit_allows_exception_tracked_divergence(
     assert result.passed
 
 
+def test_docs_surfaces_audit_passes_registered_used_fixture(tmp_path: Path) -> None:
+    write_surface_repo(tmp_path, include_fixture_catalog=True)
+
+    result = scope_result(tmp_path)
+
+    assert result.passed
+
+
+def test_docs_surfaces_audit_fails_unregistered_discovered_fixture(
+    tmp_path: Path,
+) -> None:
+    write_surface_repo(tmp_path, include_fixture_catalog=True)
+    write_file(tmp_path / "tests" / "fixtures" / "extra.json", "{}\n")
+
+    result = scope_result(tmp_path)
+
+    assert not result.passed
+    assert "discovered unregistered fixture 'tests/fixtures/extra.json'" in result.detail
+
+
+def test_docs_surfaces_audit_fails_unused_active_fixture(tmp_path: Path) -> None:
+    write_surface_repo(tmp_path, include_fixture_catalog=True, include_unused_fixture=True)
+
+    result = scope_result(tmp_path)
+
+    assert not result.passed
+    assert "unused active fixture 'tests/fixtures/unused.json'" in result.detail
+
+
+def test_docs_surfaces_audit_allows_archived_missing_fixture(tmp_path: Path) -> None:
+    write_surface_repo(tmp_path, include_fixture_catalog=True, include_archived_fixture=True)
+
+    result = scope_result(tmp_path)
+
+    assert result.passed
+
+
 def scope_result(root: Path) -> CheckResult:
     results = run_audit_checks(root, ("docs.surfaces",))
     assert len(results) == 1
@@ -139,6 +176,9 @@ def write_surface_repo(
     *,
     include_verification: bool = True,
     include_exception: bool = False,
+    include_fixture_catalog: bool = False,
+    include_unused_fixture: bool = False,
+    include_archived_fixture: bool = False,
     surface_domain: str = "core",
     test_target: str = "tests/test_core.py::test_core",
     verification_kind: str = "local_pytest",
@@ -167,6 +207,9 @@ def write_surface_repo(
         surface_manifest(
             include_verification=include_verification,
             include_exception=include_exception,
+            include_fixture_catalog=include_fixture_catalog,
+            include_unused_fixture=include_unused_fixture,
+            include_archived_fixture=include_archived_fixture,
             surface_domain=surface_domain,
             test_target=test_target,
             verification_kind=verification_kind,
@@ -179,6 +222,9 @@ def surface_manifest(
     *,
     include_verification: bool,
     include_exception: bool,
+    include_fixture_catalog: bool,
+    include_unused_fixture: bool,
+    include_archived_fixture: bool,
     surface_domain: str,
     test_target: str,
     verification_kind: str,
@@ -191,6 +237,9 @@ def surface_manifest(
     )
     if not include_verification:
         verification = ""
+    fixtures = fixture_catalog_block(include_unused_fixture, include_archived_fixture)
+    if not include_fixture_catalog:
+        fixtures = ""
     exception = ""
     if include_exception:
         exception = dedent(
@@ -221,6 +270,7 @@ def surface_manifest(
         rationale = "Exercises a stable fixture."
         {verification}
         {exception}
+        {fixtures}
         """
     ).lstrip()
 
@@ -236,6 +286,51 @@ def verification_block(target: str, kind: str, repo: str) -> str:
         {repo_line}
         coverage_mode = "regression"
         rationale = "Covers the public surface."
+        """
+    )
+
+
+def fixture_catalog_block(include_unused_fixture: bool, include_archived_fixture: bool) -> str:
+    unused = ""
+    if include_unused_fixture:
+        unused = dedent(
+            """
+
+            [[fixtures]]
+            id = "fixture.unused"
+            kind = "json"
+            path = "tests/fixtures/unused.json"
+            status = "active"
+            purpose = "Intentionally unused fixture for audit tests."
+            """
+        )
+    archived = ""
+    if include_archived_fixture:
+        archived = dedent(
+            """
+
+            [[fixtures]]
+            id = "fixture.archived"
+            kind = "json"
+            path = "tests/fixtures/archived.json"
+            status = "archived"
+            purpose = "Historical fixture retained for provenance."
+            """
+        )
+    return dedent(
+        f"""
+
+        [fixture_governance]
+        discovery_roots = ["tests/fixtures"]
+
+        [[fixtures]]
+        id = "fixture.core"
+        kind = "json"
+        path = "tests/fixtures/core.json"
+        status = "active"
+        purpose = "Core API fixture."
+        {unused}
+        {archived}
         """
     )
 

@@ -302,6 +302,17 @@ target = "tests/fixtures/core.json"
 coverage_mode = "regression"
 rationale = "Exercises a stable fixture."
 
+[fixture_governance]
+discovery_roots = ["tests/fixtures"]
+ignore = ["tests/fixtures/archive/**"]
+
+[[fixtures]]
+id = "fixture.core"
+kind = "json"
+path = "tests/fixtures/core.json"
+status = "active"
+purpose = "Core API fixture."
+
 [[exceptions]]
 id = "core.api.native.deferred"
 surface_ref = "core.api.native"
@@ -334,6 +345,16 @@ rationale = "Python and C++ APIs should cover the same behavior."</code></pre>
     divergence in either parity behavior or fixture coverage must point to an
     exception or issue so reviewers can distinguish intentional differences
     from missing test coverage.
+  </p>
+  <p>
+    Optional <code>[fixture_governance]</code> and <code>[[fixtures]]</code>
+    sections let a repository distinguish registered fixtures, physically
+    discovered fixture files, ignored/generated/archived data, missing backing
+    files, and unused active fixtures. When a fixture catalog is present,
+    surface fixture refs must target a registered fixture id or registered
+    path. Active fixtures must have backing files and be referenced by at least
+    one governed surface. Archived and ignored fixtures document provenance but
+    do not need to be used by active verification.
   </p>
 
   <h2>Rack Evidence Interface</h2>
