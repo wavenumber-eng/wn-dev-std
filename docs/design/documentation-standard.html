@@ -237,6 +237,15 @@ target = "src/cpp/altium_monkey/pcbdoc.hpp:KeepoutRestrictionMask"</code></pre>
     <code>tests/</code> are linked when the target exists. Raw Markdown remains
     the source of truth; generated HTML is a review and navigation artifact.
   </p>
+  <p>
+    The generator renders the supported Markdown body subset into semantic HTML
+    rather than a literal preformatted block. Headings, paragraphs, strong text,
+    inline code, links, unordered lists, fenced code blocks, and simple pipe
+    tables receive stable <code>governance-*</code> classes such as
+    <code>governance-heading</code>, <code>governance-paragraph</code>,
+    <code>governance-strong</code>, and <code>governance-table</code> so
+    projects can override presentation with their own CSS.
+  </p>
 
   <h2>Domain Registry</h2>
   <p>

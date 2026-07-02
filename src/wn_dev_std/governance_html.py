@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import cast
 
 from wn_dev_std.doc_governance import GovernanceCatalog, load_governance_catalog
+from wn_dev_std.governance_markdown import render_governance_markdown
 from wn_dev_std.plan_hygiene import PlanCatalog, load_plan_catalog
 from wn_dev_std.root_discovery import load_pyproject, load_standard_config
 
@@ -217,7 +218,7 @@ def _document_html(
         f"  <h1>{html.escape(doc.title)}</h1>\n"
         f"  <p><code>{html.escape(doc.source_path)}</code></p>\n"
         f"  <table>\n{metadata_rows}\n  </table>\n"
-        f'  <pre class="governance-body">{html.escape(doc.body)}</pre>\n'
+        f"  {render_governance_markdown(doc.body)}\n"
         "</body>\n</html>\n"
     )
 

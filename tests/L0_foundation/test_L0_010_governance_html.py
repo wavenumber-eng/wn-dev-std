@@ -30,6 +30,8 @@ def test_generate_governance_html_writes_pages_with_data_tags(tmp_path: Path) ->
     assert 'data-governance-source="docs/core/requirements/core-req-0001-demo.md"' in text
     assert '<link rel="stylesheet" href="governance.css">' in text
     assert "../adr/core-adr-0001.html" in text
+    assert '<div class="governance-body">' in text
+    assert '<h1 class="governance-heading governance-heading-1">Demo Requirement</h1>' in text
 
 
 def test_generate_governance_html_fails_noncompliant_catalog(tmp_path: Path) -> None:
