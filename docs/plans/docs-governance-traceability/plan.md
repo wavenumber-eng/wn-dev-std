@@ -229,7 +229,7 @@ status = "met"
 [[exit_criteria]]
 id = "review-tests"
 title = "Focused unit tests, full pytest, ruff, pyright, and scoped governance audits pass before review"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "data-models-proving"
