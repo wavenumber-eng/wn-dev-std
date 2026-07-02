@@ -61,7 +61,7 @@ depends_on = ["domain-registry", "traceability"]
 [[steps]]
 id = "parity-evidence"
 title = "Support cross-language parity and fixture/data coverage relationships for porting work"
-status = "pending"
+status = "done"
 depends_on = ["governed-surfaces"]
 
 [[steps]]
@@ -189,7 +189,7 @@ status = "met"
 [[exit_criteria]]
 id = "port-parity"
 title = "Traceability model supports cross-language/source-to-target parity relationships, including exact parity, semantic parity, subset/superset fixture coverage, and accepted divergence"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "fixture-data-hygiene"

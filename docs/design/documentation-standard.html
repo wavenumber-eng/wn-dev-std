@@ -288,7 +288,16 @@ id = "core.api.native.deferred"
 surface_ref = "core.api.native"
 status = "deferred"
 rationale = "Tracked until the native lane exists."
-issue_refs = ["wavenumber-eng/example#12"]</code></pre>
+issue_refs = ["wavenumber-eng/example#12"]
+
+[[parity_relationships]]
+id = "core.api.py_cpp"
+source_surface_ref = "core.py.list_core"
+target_surface_ref = "core.cpp.list_core"
+mode = "semantic_parity"
+fixture_coverage = "equal"
+status = "active"
+rationale = "Python and C++ APIs should cover the same behavior."</code></pre>
   <p>
     Active and implemented surfaces must declare
     <code>[[surfaces.verification_refs]]</code> or have a matching
@@ -297,6 +306,15 @@ issue_refs = ["wavenumber-eng/example#12"]</code></pre>
     <code>coverage_mode</code>, and <code>rationale</code>. Local refs must
     resolve. External refs must identify their owning repository. Exceptions
     with deferred or missing-capability status must include issue refs.
+  </p>
+  <p>
+    Optional <code>[[parity_relationships]]</code> entries connect two governed
+    surfaces across implementation lanes or runtimes. They must name source and
+    target surface refs, a parity <code>mode</code>, a
+    <code>fixture_coverage</code> relationship, status, and rationale. Accepted
+    divergence in either parity behavior or fixture coverage must point to an
+    exception or issue so reviewers can distinguish intentional differences
+    from missing test coverage.
   </p>
 </body>
 </html>

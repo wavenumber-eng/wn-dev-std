@@ -189,8 +189,11 @@ status = "pending"</code></pre>
     <code>docs/governance/governed_surfaces.toml</code> when present. Active
     and implemented surfaces must have structured verification refs or a typed
     exception. Local implementation, test, and fixture refs must resolve;
-    external refs must name the owning repository. Surface domains must exist
-    in <code>docs/governance/domain_registry.toml</code> when that registry is
+    external refs must name the owning repository. Optional parity
+    relationships must reference known surfaces, declare parity and fixture
+    coverage modes, and track accepted divergence with an exception or issue.
+    Surface domains must exist in
+    <code>docs/governance/domain_registry.toml</code> when that registry is
     present.
   </p>
   <p>

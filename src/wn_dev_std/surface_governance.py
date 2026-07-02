@@ -28,6 +28,21 @@ EXTERNAL_REF_KINDS = {
     "external_pytest",
     "external_cpp_test",
 }
+PARITY_MODES = {
+    "exact_parity",
+    "semantic_parity",
+    "subset",
+    "superset",
+    "accepted_divergence",
+}
+FIXTURE_COVERAGE_MODES = {
+    "equal",
+    "source_subset",
+    "source_superset",
+    "semantic",
+    "not_applicable",
+    "accepted_divergence",
+}
 
 
 def check_surface_governance_policy(root: Path) -> SurfaceGovernanceReport:
@@ -41,7 +56,7 @@ def check_surface_governance_policy(root: Path) -> SurfaceGovernanceReport:
     domain_ids = _domain_ids(resolved_root)
     surfaces = _table_array(payload.get("surfaces"))
     exceptions = _table_array(payload.get("exceptions"))
-    exception_surface_refs = _validate_exceptions(
+    exception_surface_refs, exception_ids = _validate_exceptions(
         resolved_root,
         manifest_path,
         exceptions,
@@ -49,6 +64,14 @@ def check_surface_governance_policy(root: Path) -> SurfaceGovernanceReport:
     )
     _validate_surfaces(
         resolved_root, manifest_path, surfaces, domain_ids, exception_surface_refs, failures
+    )
+    _validate_parity_relationships(
+        resolved_root,
+        manifest_path,
+        payload,
+        _surface_ids(surfaces),
+        exception_ids,
+        failures,
     )
     if failures:
         return SurfaceGovernanceReport(False, _summarize_failures("surface", failures))
@@ -232,19 +255,115 @@ def _validate_exceptions(
     manifest_path: Path,
     exceptions: tuple[Mapping[str, object], ...],
     failures: list[str],
-) -> set[str]:
+) -> tuple[set[str], set[str]]:
     refs: set[str] = set()
+    ids: set[str] = set()
     for index, exception in enumerate(exceptions, start=1):
         label = f"{_rel(root, manifest_path)}: exceptions[{index}]"
-        _required_string(exception, "id", label, failures)
+        exception_id = _required_string(exception, "id", label, failures)
         surface_ref = _required_string(exception, "surface_ref", label, failures)
         status = _required_string(exception, "status", label, failures)
         _required_string(exception, "rationale", label, failures)
         if status in EXCEPTION_STATUSES_REQUIRING_ISSUES:
             _validate_issue_refs(exception, label, failures)
+        if exception_id:
+            if exception_id in ids:
+                failures.append(f"{label}: duplicate exception id {exception_id!r}")
+            ids.add(exception_id)
         if surface_ref:
             refs.add(surface_ref)
-    return refs
+    return refs, ids
+
+
+def _validate_parity_relationships(
+    root: Path,
+    manifest_path: Path,
+    payload: Mapping[str, object],
+    surface_ids: set[str],
+    exception_ids: set[str],
+    failures: list[str],
+) -> None:
+    relationships = _table_array(payload.get("parity_relationships"))
+    if payload.get("parity_relationships") is not None and not relationships:
+        failures.append(f"{_rel(root, manifest_path)}: parity_relationships must be tables")
+        return
+    seen: set[str] = set()
+    for index, relationship in enumerate(relationships, start=1):
+        label = f"{_rel(root, manifest_path)}: parity_relationships[{index}]"
+        relationship_id = _required_string(relationship, "id", label, failures)
+        source = _required_string(relationship, "source_surface_ref", label, failures)
+        target = _required_string(relationship, "target_surface_ref", label, failures)
+        mode = _required_string(relationship, "mode", label, failures)
+        fixture_coverage = _required_string(relationship, "fixture_coverage", label, failures)
+        _required_string(relationship, "status", label, failures)
+        _required_string(relationship, "rationale", label, failures)
+        _validate_unique_relationship_id(label, relationship_id, seen, failures)
+        _validate_surface_ref(label, "source_surface_ref", source, surface_ids, failures)
+        _validate_surface_ref(label, "target_surface_ref", target, surface_ids, failures)
+        _validate_enum(label, "mode", mode, PARITY_MODES, failures)
+        _validate_enum(
+            label, "fixture_coverage", fixture_coverage, FIXTURE_COVERAGE_MODES, failures
+        )
+        _validate_divergence_tracking(
+            label, relationship, mode, fixture_coverage, exception_ids, failures
+        )
+
+
+def _surface_ids(surfaces: tuple[Mapping[str, object], ...]) -> set[str]:
+    return {surface_id for surface in surfaces if (surface_id := _string_value(surface.get("id")))}
+
+
+def _validate_unique_relationship_id(
+    label: str,
+    relationship_id: str,
+    seen: set[str],
+    failures: list[str],
+) -> None:
+    if not relationship_id:
+        return
+    if relationship_id in seen:
+        failures.append(f"{label}: duplicate parity relationship id {relationship_id!r}")
+    seen.add(relationship_id)
+
+
+def _validate_surface_ref(
+    label: str,
+    key: str,
+    value: str,
+    surface_ids: set[str],
+    failures: list[str],
+) -> None:
+    if value and value not in surface_ids:
+        failures.append(f"{label}: unknown {key} {value!r}")
+
+
+def _validate_enum(
+    label: str,
+    key: str,
+    value: str,
+    allowed: set[str],
+    failures: list[str],
+) -> None:
+    if value and value not in allowed:
+        failures.append(f"{label}: invalid {key} {value!r}")
+
+
+def _validate_divergence_tracking(
+    label: str,
+    relationship: Mapping[str, object],
+    mode: str,
+    fixture_coverage: str,
+    exception_ids: set[str],
+    failures: list[str],
+) -> None:
+    if "accepted_divergence" not in {mode, fixture_coverage}:
+        return
+    exception_ref = _string_value(relationship.get("exception_ref"))
+    issue_refs = _string_array(relationship.get("issue_refs"))
+    if exception_ref and exception_ref not in exception_ids:
+        failures.append(f"{label}: unknown exception_ref {exception_ref!r}")
+    if not exception_ref and not issue_refs:
+        failures.append(f"{label}: accepted divergence requires exception_ref or issue_refs")
 
 
 def _validate_issue_refs(

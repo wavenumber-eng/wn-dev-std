@@ -80,6 +80,54 @@ def test_docs_surfaces_audit_fails_external_ref_without_repo(tmp_path: Path) -> 
     assert "external refs require repo" in result.detail
 
 
+def test_docs_surfaces_audit_passes_parity_relationship(tmp_path: Path) -> None:
+    write_parity_repo(tmp_path)
+
+    result = scope_result(tmp_path)
+
+    assert result.passed
+
+
+def test_docs_surfaces_audit_fails_unknown_parity_surface(tmp_path: Path) -> None:
+    write_parity_repo(tmp_path, target_surface_ref="core.cpp.missing")
+
+    result = scope_result(tmp_path)
+
+    assert not result.passed
+    assert "unknown target_surface_ref 'core.cpp.missing'" in result.detail
+
+
+def test_docs_surfaces_audit_fails_untracked_accepted_divergence(
+    tmp_path: Path,
+) -> None:
+    write_parity_repo(
+        tmp_path,
+        parity_mode="accepted_divergence",
+        fixture_coverage="accepted_divergence",
+        include_parity_exception_ref=False,
+    )
+
+    result = scope_result(tmp_path)
+
+    assert not result.passed
+    assert "accepted divergence requires exception_ref or issue_refs" in result.detail
+
+
+def test_docs_surfaces_audit_allows_exception_tracked_divergence(
+    tmp_path: Path,
+) -> None:
+    write_parity_repo(
+        tmp_path,
+        parity_mode="accepted_divergence",
+        fixture_coverage="accepted_divergence",
+        include_parity_exception_ref=True,
+    )
+
+    result = scope_result(tmp_path)
+
+    assert result.passed
+
+
 def scope_result(root: Path) -> CheckResult:
     results = run_audit_checks(root, ("docs.surfaces",))
     assert len(results) == 1
@@ -190,6 +238,109 @@ def verification_block(target: str, kind: str, repo: str) -> str:
         rationale = "Covers the public surface."
         """
     )
+
+
+def write_parity_repo(
+    root: Path,
+    *,
+    target_surface_ref: str = "core.cpp.list_core",
+    parity_mode: str = "semantic_parity",
+    fixture_coverage: str = "equal",
+    include_parity_exception_ref: bool = False,
+) -> None:
+    write_file(root / "dev-std.toml", 'profile = "python-package"\n')
+    write_file(root / "src" / "core" / "api.py", "def list_core():\n    return []\n")
+    write_file(root / "tests" / "test_core.py", "def test_core():\n    assert True\n")
+    write_file(root / "tests" / "fixtures" / "core.json", "{}\n")
+    write_file(root / "docs" / "domains" / "core.html", '<html data-domain="core"></html>\n')
+    write_file(
+        root / "docs" / "governance" / "domain_registry.toml",
+        dedent(
+            """
+            [[domains]]
+            id = "core"
+            title = "Core"
+            status = "active"
+            purpose = "Own core behavior."
+            html = "docs/domains/core.html"
+            """
+        ).lstrip(),
+    )
+    write_file(
+        root / "docs" / "governance" / "governed_surfaces.toml",
+        parity_manifest(
+            target_surface_ref=target_surface_ref,
+            parity_mode=parity_mode,
+            fixture_coverage=fixture_coverage,
+            include_parity_exception_ref=include_parity_exception_ref,
+        ),
+    )
+
+
+def parity_manifest(
+    *,
+    target_surface_ref: str,
+    parity_mode: str,
+    fixture_coverage: str,
+    include_parity_exception_ref: bool,
+) -> str:
+    exception_ref = (
+        'exception_ref = "core.cpp.list_core.divergence"' if include_parity_exception_ref else ""
+    )
+    return dedent(
+        f"""
+        [[surfaces]]
+        id = "core.py.list_core"
+        domain = "core"
+        kind = "public_function"
+        status = "active"
+        purpose = "Python list core records API."
+        implementation_refs = ["src/core/api.py#list_core"]
+
+        [[surfaces.verification_refs]]
+        kind = "local_pytest"
+        target = "tests/test_core.py::test_core"
+        coverage_mode = "regression"
+        rationale = "Covers the Python surface."
+
+        [[surfaces.fixture_refs]]
+        kind = "fixture_file"
+        target = "tests/fixtures/core.json"
+        coverage_mode = "regression"
+        rationale = "Exercises a stable fixture."
+
+        [[surfaces]]
+        id = "core.cpp.list_core"
+        domain = "core"
+        kind = "public_function"
+        status = "active"
+        purpose = "C++ list core records API."
+        implementation_refs = ["src/core/api.py#list_core"]
+
+        [[surfaces.verification_refs]]
+        kind = "external_cpp_test"
+        repo = "wavenumber-eng/example"
+        target = "tests/cpp/test_core.cpp::test_core"
+        coverage_mode = "regression"
+        rationale = "Covers the C++ surface."
+
+        [[exceptions]]
+        id = "core.cpp.list_core.divergence"
+        surface_ref = "core.cpp.list_core"
+        status = "accepted_divergence"
+        rationale = "Documented fixture equivalence is intentionally semantic."
+
+        [[parity_relationships]]
+        id = "core.list_core.py_cpp"
+        source_surface_ref = "core.py.list_core"
+        target_surface_ref = "{target_surface_ref}"
+        mode = "{parity_mode}"
+        fixture_coverage = "{fixture_coverage}"
+        status = "active"
+        rationale = "Python and C++ list APIs should cover the same behavior."
+        {exception_ref}
+        """
+    ).lstrip()
 
 
 def write_file(path: Path, text: str) -> None:
