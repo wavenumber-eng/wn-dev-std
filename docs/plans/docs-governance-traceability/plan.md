@@ -234,7 +234,7 @@ status = "met"
 [[exit_criteria]]
 id = "data-models-proving"
 title = "Governance audits are tested against toolz/data_models first and produce useful actionable signals before release"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "altium-monkey-cpp-review"
@@ -430,3 +430,25 @@ present. Requirements should link ADRs, verification refs, implementation refs,
 design docs, schemas, issues, and related requirements. Cross-links should be
 resolved to generated HTML pages when possible and fall back to clearly labeled
 external or unresolved references when they cannot be resolved locally.
+
+## Proving Result
+
+The local `dev-std audit` command was run against
+`C:\eli\agent-worktrees\3d-viz-rework\toolz\data_models` with the docs plans,
+ADR, requirements, domains, surfaces, traceability, and links scopes. The run
+proved useful failure signals without requiring data_models cleanup in this
+branch:
+
+- `docs.plans` passed with 3 plans and 0 logs across 8 configured plan roots.
+- `docs.traceability` passed for the compliant active plan documents.
+- `docs.adrs` failed on legacy ADR Markdown missing TOML front matter, with 88
+  total ADR metadata failures reported by the summarized output.
+- `docs.requirements` failed on legacy requirement Markdown missing TOML front
+  matter, with 28 total requirement metadata failures reported by the
+  summarized output.
+- `docs.links` failed on raw ADR/requirement Markdown links from HTML plus
+  missing local design links, giving concrete migration targets for generated
+  governance pages and stale references.
+- `docs.domains` and `docs.surfaces` passed in permissive mode because
+  data_models has not yet added the optional domain registry or governed
+  surface manifest.
