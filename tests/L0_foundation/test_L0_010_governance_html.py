@@ -12,7 +12,7 @@ def test_generate_governance_html_writes_pages_with_data_tags(tmp_path: Path) ->
     report = generate_governance_html(
         tmp_path,
         tmp_path / "docs" / "generated" / "governance",
-        css_hrefs=("governance.css",),
+        css_hrefs=("../styles.css",),
     )
 
     assert len(report.pages) == 3
@@ -29,7 +29,8 @@ def test_generate_governance_html_writes_pages_with_data_tags(tmp_path: Path) ->
     assert 'data-dev-std-gov-type="requirement"' in text
     assert 'data-dev-std-gov-id="core-req-0001"' in text
     assert 'data-dev-std-gov-source="docs/core/requirements/core-req-0001-demo.md"' in text
-    assert '<link rel="stylesheet" href="governance.css">' in text
+    assert '<link rel="stylesheet" href="../governance.css">' in text
+    assert '<link rel="stylesheet" href="../../styles.css">' in text
     assert (
         '<main id="dev-std-gov-page" class="dev-std-gov-page dev-std-gov-page-requirement">' in text
     )

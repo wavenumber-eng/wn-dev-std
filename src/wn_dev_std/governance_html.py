@@ -170,7 +170,8 @@ def _write_document_page(
     output_path = output_root / doc.kind / f"{_safe_filename(doc.record_id)}.html"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(
-        _document_html(root, output_path, doc, link_index, css_hrefs), encoding="utf-8"
+        _document_html(root, output_root, output_path, doc, link_index, css_hrefs),
+        encoding="utf-8",
     )
     return GovernanceHtmlPage(doc.kind, doc.record_id, doc.source_path, output_path)
 
@@ -188,7 +189,8 @@ def _write_index_page(
         f" <code>{html.escape(page.source_path)}</code></li>"
         for page in pages
     )
-    css = _css_links(css_hrefs)
+    output_path = output_root / "index.html"
+    css = _css_links(output_root, output_path, css_hrefs)
     text = (
         '<!doctype html>\n<html lang="en">\n<head>\n'
         '  <meta charset="utf-8">\n'
@@ -206,11 +208,12 @@ def _write_index_page(
         "  </main>\n"
         "</body>\n</html>\n"
     )
-    (output_root / "index.html").write_text(text, encoding="utf-8")
+    output_path.write_text(text, encoding="utf-8")
 
 
 def _document_html(
     root: Path,
+    output_root: Path,
     output_path: Path,
     doc: GovernanceHtmlDocument,
     link_index: Mapping[str, str],
@@ -218,7 +221,7 @@ def _document_html(
 ) -> str:
     data_attrs = _data_attrs(doc)
     metadata_rows = _metadata_rows(root, output_path, doc, link_index)
-    css = _css_links(css_hrefs)
+    css = _css_links(output_root, output_path, css_hrefs)
     return (
         '<!doctype html>\n<html lang="en">\n<head>\n'
         '  <meta charset="utf-8">\n'
@@ -380,10 +383,30 @@ def _link_index(docs: Sequence[GovernanceHtmlDocument]) -> dict[str, str]:
     return {doc.record_id: f"../{doc.kind}/{_safe_filename(doc.record_id)}.html" for doc in docs}
 
 
-def _css_links(css_hrefs: Sequence[str]) -> str:
+def _css_links(output_root: Path, output_path: Path, css_hrefs: Sequence[str]) -> str:
     if not css_hrefs:
         return ""
-    return "".join(f'  <link rel="stylesheet" href="{html.escape(href)}">\n' for href in css_hrefs)
+    return "".join(
+        '  <link rel="stylesheet" '
+        f'href="{html.escape(_css_href(output_root, output_path, href))}">\n'
+        for href in css_hrefs
+    )
+
+
+def _css_href(output_root: Path, output_path: Path, href: str) -> str:
+    if _is_external_href(href):
+        return href.replace("\\", "/")
+    target = output_root / href
+    return _relative_href(output_path, target)
+
+
+def _is_external_href(href: str) -> bool:
+    return (
+        "://" in href
+        or href.startswith(("/", "#"))
+        or href.startswith("data:")
+        or href.startswith("mailto:")
+    )
 
 
 def _copy_default_css(output_root: Path) -> str:
