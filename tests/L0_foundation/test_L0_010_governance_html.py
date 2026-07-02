@@ -15,16 +15,25 @@ def test_generate_governance_html_writes_pages_with_data_tags(tmp_path: Path) ->
         css_hrefs=("../styles.css",),
     )
 
-    assert len(report.pages) == 3
+    assert len(report.pages) == 4
     index = tmp_path / "docs" / "generated" / "governance" / "index.html"
     plan_page = tmp_path / "docs" / "generated" / "governance" / "plan" / "demo-plan.html"
+    log_page = tmp_path / "docs" / "generated" / "governance" / "plan_log" / "demo-log.html"
     adr_page = tmp_path / "docs" / "generated" / "governance" / "adr" / "core-adr-0001.html"
     req_page = tmp_path / "docs" / "generated" / "governance" / "requirement" / "core-req-0001.html"
     assert index.exists()
     assert (tmp_path / "docs" / "generated" / "governance" / "governance.css").exists()
     assert plan_page.exists()
+    assert log_page.exists()
     assert adr_page.exists()
     assert req_page.exists()
+    plan_text = plan_page.read_text(encoding="utf-8")
+    assert 'id="dev-std-gov-plan-steps"' in plan_text
+    assert 'data-dev-std-gov-step-id="implement"' in plan_text
+    assert '<details class="dev-std-gov-step-logs" open>' in plan_text
+    assert '../plan_log/demo-log.html">demo-log</a>' in plan_text
+    assert '<div class="dev-std-gov-log-body">' in plan_text
+    assert "Implemented the demo step." in plan_text
     text = req_page.read_text(encoding="utf-8")
     assert 'data-dev-std-gov-type="requirement"' in text
     assert 'data-dev-std-gov-id="core-req-0001"' in text
@@ -73,6 +82,11 @@ def write_governance_repo(root: Path) -> None:
             created = "2026-07-02"
             issue_refs = ["wavenumber-eng/example#1"]
 
+            [[steps]]
+            id = "implement"
+            title = "Implement demo"
+            status = "active"
+
             [[exit_criteria]]
             id = "review"
             title = "Review is complete"
@@ -80,6 +94,22 @@ def write_governance_repo(root: Path) -> None:
             +++
 
             # Demo Plan
+            """
+        ).lstrip(),
+    )
+    write_file(
+        root / "docs" / "plans" / "demo-log.md",
+        dedent(
+            """
+            +++
+            type = "plan_log"
+            id = "demo-log"
+            plan_id = "demo-plan"
+            step_id = "implement"
+            created = "2026-07-02T12:00:00-04:00"
+            +++
+
+            Implemented the demo step.
             """
         ).lstrip(),
     )

@@ -76,7 +76,14 @@ def generate_governance_html(
     default_css = _copy_default_css(resolved_output)
     all_css_hrefs = (default_css, *css_hrefs)
     pages = tuple(
-        _write_document_page(resolved_root, resolved_output, doc, link_index, all_css_hrefs)
+        _write_document_page(
+            resolved_root,
+            resolved_output,
+            doc,
+            docs,
+            link_index,
+            all_css_hrefs,
+        )
         for doc in docs
     )
     _write_index_page(resolved_output, pages, all_css_hrefs)
@@ -164,13 +171,14 @@ def _write_document_page(
     root: Path,
     output_root: Path,
     doc: GovernanceHtmlDocument,
+    docs: Sequence[GovernanceHtmlDocument],
     link_index: Mapping[str, str],
     css_hrefs: Sequence[str],
 ) -> GovernanceHtmlPage:
     output_path = output_root / doc.kind / f"{_safe_filename(doc.record_id)}.html"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(
-        _document_html(root, output_root, output_path, doc, link_index, css_hrefs),
+        _document_html(root, output_root, output_path, doc, docs, link_index, css_hrefs),
         encoding="utf-8",
     )
     return GovernanceHtmlPage(doc.kind, doc.record_id, doc.source_path, output_path)
@@ -216,11 +224,13 @@ def _document_html(
     output_root: Path,
     output_path: Path,
     doc: GovernanceHtmlDocument,
+    docs: Sequence[GovernanceHtmlDocument],
     link_index: Mapping[str, str],
     css_hrefs: Sequence[str],
 ) -> str:
     data_attrs = _data_attrs(doc)
     metadata_rows = _metadata_rows(root, output_path, doc, link_index)
+    plan_steps = _plan_steps_html(output_path, doc, docs)
     css = _css_links(output_root, output_path, css_hrefs)
     return (
         '<!doctype html>\n<html lang="en">\n<head>\n'
@@ -244,8 +254,106 @@ def _document_html(
         '      <h2 class="dev-std-gov-section-title">Body</h2>\n'
         f"      {render_governance_markdown(doc.body)}\n"
         "    </section>\n"
+        f"{plan_steps}"
         "  </main>\n"
         "</body>\n</html>\n"
+    )
+
+
+def _plan_steps_html(
+    output_path: Path,
+    doc: GovernanceHtmlDocument,
+    docs: Sequence[GovernanceHtmlDocument],
+) -> str:
+    if doc.kind != "plan":
+        return ""
+    steps = _metadata_tables(doc.metadata.get("steps"))
+    if not steps:
+        return ""
+    logs = [
+        item
+        for item in docs
+        if item.kind == "plan_log" and _string_value(item.metadata.get("plan_id")) == doc.record_id
+    ]
+    rows = "".join(_plan_step_html(output_path, step, logs) for step in steps)
+    unlinked_logs = [log for log in logs if not _string_value(log.metadata.get("step_id"))]
+    if unlinked_logs:
+        rows += _plan_unlinked_logs_html(output_path, unlinked_logs)
+    return (
+        '    <section id="dev-std-gov-plan-steps" '
+        'class="dev-std-gov-section dev-std-gov-plan-steps" '
+        'data-dev-std-gov-section="plan-steps">\n'
+        '      <h2 class="dev-std-gov-section-title">Steps And Logs</h2>\n'
+        f"{rows}"
+        "    </section>\n"
+    )
+
+
+def _plan_step_html(
+    output_path: Path,
+    step: Mapping[str, object],
+    logs: Sequence[GovernanceHtmlDocument],
+) -> str:
+    step_id = _string_value(step.get("id"))
+    title = _string_value(step.get("title")) or step_id
+    status = _string_value(step.get("status"))
+    step_logs = [log for log in logs if _string_value(log.metadata.get("step_id")) == step_id]
+    log_count = len(step_logs)
+    log_word = "log" if log_count == 1 else "logs"
+    return (
+        '      <article class="dev-std-gov-step" '
+        f'data-dev-std-gov-step-id="{html.escape(step_id)}">\n'
+        f'        <h3 class="dev-std-gov-step-title">{html.escape(title)}</h3>\n'
+        f'        <p class="dev-std-gov-step-status"><code>{html.escape(status)}</code></p>\n'
+        '        <details class="dev-std-gov-step-logs" open>\n'
+        f"          <summary>{log_count} {log_word}</summary>\n"
+        f"{_plan_log_items_html(output_path, step_logs)}"
+        "        </details>\n"
+        "      </article>\n"
+    )
+
+
+def _plan_unlinked_logs_html(
+    output_path: Path,
+    logs: Sequence[GovernanceHtmlDocument],
+) -> str:
+    return (
+        '      <article class="dev-std-gov-step dev-std-gov-step-unlinked" '
+        'data-dev-std-gov-step-id="">\n'
+        '        <h3 class="dev-std-gov-step-title">Unlinked Logs</h3>\n'
+        '        <details class="dev-std-gov-step-logs" open>\n'
+        f"          <summary>{len(logs)} log(s)</summary>\n"
+        f"{_plan_log_items_html(output_path, logs)}"
+        "        </details>\n"
+        "      </article>\n"
+    )
+
+
+def _plan_log_items_html(
+    output_path: Path,
+    logs: Sequence[GovernanceHtmlDocument],
+) -> str:
+    if not logs:
+        return '          <p class="dev-std-gov-step-log-empty">No logs.</p>\n'
+    items = "".join(_plan_log_item_html(output_path, log) for log in logs)
+    return f'          <div class="dev-std-gov-step-log-items">\n{items}          </div>\n'
+
+
+def _plan_log_item_html(output_path: Path, log: GovernanceHtmlDocument) -> str:
+    href = _relative_href(
+        output_path,
+        output_path.parent.parent / "plan_log" / f"{_safe_filename(log.record_id)}.html",
+    )
+    created = _string_value(log.metadata.get("created"))
+    return (
+        '            <section class="dev-std-gov-step-log" '
+        f'data-dev-std-gov-log-id="{html.escape(log.record_id)}">\n'
+        f'              <h4><a href="{html.escape(href)}">{html.escape(log.record_id)}</a></h4>\n'
+        '              <p class="dev-std-gov-step-log-created">'
+        f"<code>{html.escape(created)}</code></p>\n"
+        '              <div class="dev-std-gov-log-body">'
+        f"{render_governance_markdown(log.body)}</div>\n"
+        "            </section>\n"
     )
 
 
@@ -278,6 +386,16 @@ def _metadata_rows(
             "</tr>"
         )
     return "\n".join(rows)
+
+
+def _metadata_tables(value: object) -> tuple[Mapping[str, object], ...]:
+    if not isinstance(value, list):
+        return ()
+    return tuple(
+        cast(Mapping[str, object], item)
+        for item in cast(list[object], value)
+        if isinstance(item, dict)
+    )
 
 
 def _metadata_value_html(

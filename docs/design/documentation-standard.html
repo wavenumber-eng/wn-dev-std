@@ -290,6 +290,14 @@ target = "src/cpp/example/format.hpp:FormatBehavior"</code></pre>
     source Markdown contract.
   </p>
   <p>
+    Generated plan pages include a <code>section#dev-std-gov-plan-steps</code>
+    region when a plan declares structured <code>[[steps]]</code>. Each step is
+    rendered with a stable <code>data-dev-std-gov-step-id</code> hook and a
+    collapsible <code>&lt;details&gt;</code> block containing logs whose
+    metadata links them to that step. This gives reviewers a step-centered view
+    of work history while preserving each log as its own generated page.
+  </p>
+  <p>
     Typed table metadata such as <code>verification_refs</code>,
     <code>implementation_refs</code>, and exception refs renders as
     <code>dev-std-gov-evidence-table</code> content instead of opaque raw

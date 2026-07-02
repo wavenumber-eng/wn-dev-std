@@ -328,6 +328,12 @@ and the audit should verify that the referenced step exists in the owning plan.
 This keeps session history attached to the execution state it explains and
 makes stale or orphaned log notes visible in signoff.
 
+Generated governance HTML should expose that same relationship directly. Plan
+pages should render a step-centered section, and each step should include a
+collapsible log block showing logs whose metadata references that step. This is
+usable before strict `step_id` enforcement lands and becomes the expected review
+surface once every log is step-linked.
+
 ## Adoption Boundary
 
 This plan must not force an immediate conversion of every existing repo. It should provide useful failure reports and staged integration guidance so a repo can opt into checks by scope.

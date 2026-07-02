@@ -206,6 +206,54 @@ body {
   background: var(--wn-paper);
 }
 
+.dev-std-gov-step {
+  margin: 16px 0 20px;
+  padding: 14px 16px;
+  border: 1px solid var(--wn-line);
+  background: var(--wn-paper);
+}
+
+.dev-std-gov-step-title {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.dev-std-gov-step-status,
+.dev-std-gov-step-log-created {
+  margin: 0 0 10px;
+}
+
+.dev-std-gov-step-logs {
+  margin-top: 12px;
+  border-top: 1px solid var(--wn-line-light);
+}
+
+.dev-std-gov-step-logs summary {
+  cursor: pointer;
+  padding: 10px 0;
+  font-weight: 700;
+}
+
+.dev-std-gov-step-log {
+  padding: 12px 0;
+  border-top: 1px solid var(--wn-line-light);
+}
+
+.dev-std-gov-step-log h4 {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+}
+
+.dev-std-gov-log-body .dev-std-gov-body {
+  padding-left: 12px;
+  border-left: 3px solid var(--wn-line);
+}
+
+.dev-std-gov-step-log-empty {
+  margin: 8px 0 0;
+  color: var(--wn-fg-muted);
+}
+
 @media (max-width: 700px) {
   html {
     font-size: 13px;
