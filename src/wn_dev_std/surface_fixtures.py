@@ -39,6 +39,7 @@ def validate_fixture_catalog(
         return
     if not fixtures and config is None:
         return
+    registry_configured = bool(fixtures) or config is not None
     fixture_paths = _validate_fixture_entries(
         root,
         manifest_path,
@@ -51,6 +52,7 @@ def validate_fixture_catalog(
         manifest_path,
         surface_fixture_targets,
         fixture_paths,
+        registry_configured,
         failures,
     )
     _validate_discovered_fixture_files(root, manifest_path, config, fixture_paths, failures)
@@ -159,9 +161,10 @@ def _validate_surface_fixture_registration(
     manifest_path: Path,
     surface_fixture_targets: set[str],
     fixture_paths: Mapping[str, str],
+    registry_configured: bool,
     failures: list[str],
 ) -> None:
-    if not fixture_paths:
+    if not registry_configured:
         return
     for target in sorted(surface_fixture_targets):
         if target not in fixture_paths:

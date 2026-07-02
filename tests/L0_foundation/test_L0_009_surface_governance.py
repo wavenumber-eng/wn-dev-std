@@ -238,6 +238,23 @@ def test_docs_surfaces_audit_fails_missing_logical_fixture_case_ref(tmp_path: Pa
     assert "unregistered surface fixture 'case:synthetic:roundtrip:missing'" in result.detail
 
 
+def test_docs_surfaces_audit_fails_empty_configured_fixture_registry(
+    tmp_path: Path,
+) -> None:
+    write_surface_repo(
+        tmp_path,
+        include_fixture_catalog=True,
+        include_fixture_entries=False,
+        fixture_ref_kind="fixture_case",
+        fixture_ref_target="case:synthetic:roundtrip:001",
+    )
+
+    result = scope_result(tmp_path)
+
+    assert not result.passed
+    assert "unregistered surface fixture 'case:synthetic:roundtrip:001'" in result.detail
+
+
 def test_docs_surfaces_audit_allows_mixed_logical_and_physical_fixtures(
     tmp_path: Path,
 ) -> None:
@@ -269,6 +286,7 @@ def write_surface_repo(
     include_verification: bool = True,
     include_exception: bool = False,
     include_fixture_catalog: bool = False,
+    include_fixture_entries: bool = True,
     include_unused_fixture: bool = False,
     include_archived_fixture: bool = False,
     include_extra_logical_fixture: bool = False,
@@ -307,6 +325,7 @@ def write_surface_repo(
             include_verification=include_verification,
             include_exception=include_exception,
             include_fixture_catalog=include_fixture_catalog,
+            include_fixture_entries=include_fixture_entries,
             include_unused_fixture=include_unused_fixture,
             include_archived_fixture=include_archived_fixture,
             include_extra_logical_fixture=include_extra_logical_fixture,
@@ -329,6 +348,7 @@ def surface_manifest(
     include_verification: bool,
     include_exception: bool,
     include_fixture_catalog: bool,
+    include_fixture_entries: bool,
     include_unused_fixture: bool,
     include_archived_fixture: bool,
     include_extra_logical_fixture: bool,
@@ -351,6 +371,7 @@ def surface_manifest(
     if not include_verification:
         verification = ""
     fixtures = fixture_catalog_block(
+        include_fixture_entries,
         include_unused_fixture,
         include_archived_fixture,
         include_extra_logical_fixture,
@@ -425,6 +446,7 @@ def verification_block(target: str, kind: str, repo: str) -> str:
 
 
 def fixture_catalog_block(
+    include_fixture_entries: bool,
     include_unused_fixture: bool,
     include_archived_fixture: bool,
     include_extra_logical_fixture: bool,
@@ -473,6 +495,19 @@ def fixture_catalog_block(
             """
         )
     path_line = f'path = "{fixture_catalog_path}"' if fixture_catalog_path else ""
+    fixture_entry = ""
+    if include_fixture_entries:
+        fixture_entry = dedent(
+            f"""
+
+            [[fixtures]]
+            id = "{fixture_catalog_id}"
+            kind = "{fixture_catalog_kind}"
+            {path_line}
+            status = "active"
+            purpose = "Core API fixture."
+            """
+        )
     return dedent(
         f"""
 
@@ -480,12 +515,7 @@ def fixture_catalog_block(
         discovery_roots = ["{fixture_discovery_root}"]
         ignore = ["tests/fixtures/core.json"]
 
-        [[fixtures]]
-        id = "{fixture_catalog_id}"
-        kind = "{fixture_catalog_kind}"
-        {path_line}
-        status = "active"
-        purpose = "Core API fixture."
+        {fixture_entry}
         {unused}
         {archived}
         {extra_logical}
