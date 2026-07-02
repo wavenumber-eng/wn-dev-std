@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 from typing import cast
 
-from wn_dev_std.cli.commands import governance_html
+from wn_dev_std.cli.commands import governance_html, governance_resolve
 from wn_dev_std.cli.types import SubparserRegistry
 
 
@@ -22,6 +22,7 @@ def register(subparsers: SubparserRegistry) -> None:
         metavar="<governance-command>",
     )
     governance_html.register(command_parsers)
+    governance_resolve.register(command_parsers)
     parser.set_defaults(handler=run_help, parser=parser)
 
 

@@ -239,7 +239,10 @@ status = "pending"</code></pre>
     <code>docs/</code> for local links. Missing local targets fail the scope;
     external URLs, anchors, <code>mailto:</code>, and similar non-file links are
     ignored. HTML links to raw ADR or requirement Markdown fail so design pages
-    point reviewers at generated governance pages instead of source files.
+    point reviewers at generated governance pages instead of source files. The
+    same scope validates <code>data-dev-std-gov-ref</code> hooks against the
+    configured generated governance HTML output root and fails unknown ids,
+    missing generated hrefs, or stale relative hrefs.
   </p>
 
   <h2>Signoff Adoption</h2>

@@ -258,7 +258,9 @@ def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:
         "minimal bootstrap",
         "generic signoff",
         "governance html",
+        "governance resolve",
         "data-dev-std-gov-type",
+        "data-dev-std-gov-ref",
         "fixture_governance",
     ):
         assert expected in audit_doc or expected in documentation_doc
@@ -270,6 +272,7 @@ def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:
         "docs.traceability",
         "docs.links",
         "governance html",
+        "governance resolve",
     ):
         assert expected in cli_doc
 

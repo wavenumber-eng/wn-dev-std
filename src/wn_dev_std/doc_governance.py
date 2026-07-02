@@ -147,10 +147,15 @@ def check_traceability_policy(root: Path) -> DocGovernanceReport:
 
 def check_link_policy(root: Path) -> DocGovernanceReport:
     """Check local documentation links in Markdown and HTML documents."""
+    from wn_dev_std.governance_links import check_governance_link_resolution
+
     failures: list[str] = []
     docs = _documentation_files(root)
     for path in docs:
         _validate_document_links(root, path, failures)
+    link_report = check_governance_link_resolution(root)
+    for issue in link_report.issues:
+        failures.append(f"{issue.relative_path}: {issue.message}")
     return _report("documentation link", docs, failures)
 
 

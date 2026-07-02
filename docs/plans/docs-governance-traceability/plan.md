@@ -97,7 +97,7 @@ depends_on = ["inventory-commands", "domain-registry"]
 [[steps]]
 id = "governance-link-resolver"
 title = "Resolve governance refs from downstream docs to generated governance HTML pages"
-status = "pending"
+status = "done"
 depends_on = ["html-generation", "traceability"]
 
 [[steps]]
@@ -241,12 +241,12 @@ status = "met"
 [[exit_criteria]]
 id = "governance-link-resolver"
 title = "dev-std owns a resolver for downstream docs to link ADR, requirement, plan, and log ids to generated governance HTML without hardcoded relative paths"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "governance-link-resolver-tests"
 title = "Resolver tests cover generated hrefs from nested docs, missing governance ids, stale raw Markdown links, and configurable output roots"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "plan-step-required"
@@ -503,7 +503,7 @@ ADR, requirements, domains, surfaces, traceability, and links scopes. The run
 proved useful failure signals without requiring data_models cleanup in this
 branch:
 
-- `docs.plans` passed with 3 plans and 0 logs across 8 configured plan roots.
+- `docs.plans` passed with 3 plans and 1 log across 8 configured plan roots.
 - `docs.traceability` passed for the compliant active plan documents.
 - `docs.adrs` failed on legacy ADR Markdown missing TOML front matter, with 88
   total ADR metadata failures reported by the summarized output.

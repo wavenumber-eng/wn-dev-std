@@ -251,8 +251,9 @@ target = "src/cpp/example/format.hpp:FormatBehavior"</code></pre>
     should not need to hardcode relative links to generated ADR, requirement,
     plan, or log pages inside hand-authored docs. A repo may author stable
     hooks such as <code>data-dev-std-gov-ref="core-adr-0001"</code> or an
-    equivalent configured marker; the resolver builds the id-to-generated-page
-    map from the governance catalogs and the configured generated-output root.
+    equivalent configured marker; <code>dev-std governance resolve</code>
+    builds the id-to-generated-page map from the governance catalogs and the
+    configured generated-output root.
   </p>
   <p>
     Downstream repositories own only configuration and presentation: source
@@ -262,11 +263,15 @@ target = "src/cpp/example/format.hpp:FormatBehavior"</code></pre>
     <code>dev-std</code> so the same behavior works for downstream packages
     and future package templates.
   </p>
+  <pre><code>[governance.html]
+output = "docs/generated/governance"</code></pre>
   <p>
-    The resolver is a planned follow-on to generated governance HTML. Until it
-    exists, projects may link generated pages directly, but broad conversion of
-    hand-authored docs should wait for the resolver so broken governance refs
-    can become audit failures instead of manual review work.
+    The resolver validates every <code>data-dev-std-gov-ref</code> hook against
+    the generated governance id map. In write mode it updates anchor
+    <code>href</code> attributes, and for non-anchor elements it writes
+    <code>data-dev-std-gov-href</code>. The <code>docs.links</code> audit uses
+    the same resolver in check mode and fails missing ids, missing generated
+    hrefs, and stale relative hrefs.
   </p>
   <p>
     The generator renders the supported Markdown body subset into semantic HTML

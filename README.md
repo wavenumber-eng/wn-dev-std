@@ -138,6 +138,15 @@ dev-std log create pcb-a0 audit --body "Captured cleanup notes."
 dev-std log create pcb-a0 audit --body-file notes.md
 ```
 
+Generate governance browse pages and resolve stable governance refs in
+hand-authored HTML docs:
+
+```bash
+dev-std gov html --output docs/generated/governance
+dev-std gov resolve --output docs/generated/governance --write
+dev-std audit . --scope docs.links
+```
+
 ## Python Baseline
 
 Pure Python packages use:
