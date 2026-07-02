@@ -290,7 +290,7 @@ def _mapping_tuple(value: object) -> tuple[Mapping[str, object], ...]:
 
 
 def _rel(root: Path, path: Path) -> str:
-    return path.resolve().relative_to(root).as_posix()
+    return path.relative_to(root).as_posix()
 
 
 def _is_within_root(root: Path, target: Path) -> bool:

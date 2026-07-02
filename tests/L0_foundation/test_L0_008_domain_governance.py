@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from textwrap import dedent
 
+import pytest
+
 from wn_dev_std.checks import CheckResult, run_audit_checks
 
 
@@ -29,6 +31,22 @@ def test_docs_domains_audit_fails_unowned_files_under_owned_roots(tmp_path: Path
 def test_docs_domains_audit_allows_ignored_generated_files(tmp_path: Path) -> None:
     write_domain_repo(tmp_path)
     write_file(tmp_path / "docs" / "generated" / "index.html", "<html></html>\n")
+
+    result = scope_result(tmp_path)
+
+    assert result.passed
+
+
+def test_docs_domains_audit_handles_ignored_symlink_to_external_file(tmp_path: Path) -> None:
+    write_domain_repo(tmp_path)
+    external = tmp_path.parent / "external-python"
+    external.write_text("# external target\n", encoding="utf-8")
+    symlink = tmp_path / ".venv" / "bin" / "python3"
+    symlink.parent.mkdir(parents=True)
+    try:
+        symlink.symlink_to(external)
+    except OSError as exc:
+        pytest.skip(f"symlink creation unavailable: {exc}")
 
     result = scope_result(tmp_path)
 
