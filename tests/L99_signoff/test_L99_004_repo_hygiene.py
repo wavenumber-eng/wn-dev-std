@@ -253,6 +253,8 @@ def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:
         "Rack evidence",
         "TOML front matter",
         "external_cpp_test",
+        "minimal bootstrap",
+        "generic signoff",
     ):
         assert expected in audit_doc or expected in documentation_doc
     for expected in (

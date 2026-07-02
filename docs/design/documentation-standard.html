@@ -334,5 +334,24 @@ rationale = "Python and C++ APIs should cover the same behavior."</code></pre>
     verification and fixture refs against Rack evidence from the same signoff
     run.
   </p>
+
+  <h2>Bootstrap Files</h2>
+  <p>
+    New packages should use <code>dev-std.toml</code> as the package marker.
+    Existing packages may keep legacy <code>wn-dev-std.toml</code> until they
+    migrate. Governance adoption can begin with narrow scopes and add files as
+    each ratchet becomes useful: plan roots for temporary execution work,
+    domain registry for ownership coverage, governed-surface manifests for
+    API/workflow verification, ADRs for decisions, requirements for durable
+    obligations, and generated or hand-authored domain HTML for browseable
+    context.
+  </p>
+  <p>
+    The intended signoff integration is a plain audit invocation from the
+    package root. Repositories should prefer a generic command such as
+    <code>dev-std audit . --scope docs.plans --scope docs.adrs --scope docs.requirements --scope docs.domains --scope docs.surfaces --scope docs.traceability --scope docs.links</code>
+    over local bespoke scanners unless they need stricter project-specific
+    policy.
+  </p>
 </body>
 </html>

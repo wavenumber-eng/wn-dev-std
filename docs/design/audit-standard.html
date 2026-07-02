@@ -229,5 +229,28 @@ status = "pending"</code></pre>
     loudly with concrete file paths so migration work can be planned rather
     than silently ignored.
   </p>
+  <p>
+    A minimal bootstrap for an existing package is:
+  </p>
+  <pre><code>dev-std.toml
+docs/governance/domain_registry.toml
+docs/governance/governed_surfaces.toml
+docs/&lt;domain&gt;/adr/*.md
+docs/&lt;domain&gt;/requirements/*.md
+docs/domains/&lt;domain&gt;.html</code></pre>
+  <p>
+    Packages may start with only <code>dev-std.toml</code> and the scopes they
+    are ready to ratchet. The generic signoff command should stay repo-neutral
+    so projects do not need custom Python just to get governance failure
+    signals:
+  </p>
+  <pre><code>dev-std audit . \
+  --scope docs.plans \
+  --scope docs.adrs \
+  --scope docs.requirements \
+  --scope docs.domains \
+  --scope docs.surfaces \
+  --scope docs.traceability \
+  --scope docs.links</code></pre>
 </body>
 </html>

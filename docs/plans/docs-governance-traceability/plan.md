@@ -79,7 +79,7 @@ depends_on = ["cli-audit"]
 [[steps]]
 id = "bootstrap-guidance"
 title = "Document minimal bootstrap and generic signoff wiring for governance audits"
-status = "pending"
+status = "done"
 depends_on = ["inventory-commands", "domain-registry", "marker-discovery"]
 
 [[steps]]
@@ -204,12 +204,12 @@ status = "met"
 [[exit_criteria]]
 id = "minimal-bootstrap"
 title = "Docs show the canonical minimal files and command sequence needed to enable governance audits in an existing repo"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "generic-signoff"
 title = "Docs show a generic signoff invocation that surfaces governance failures without repo-specific custom code"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "dev-std-marker"
