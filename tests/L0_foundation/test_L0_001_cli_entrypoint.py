@@ -81,6 +81,7 @@ def test_audit_docs_plans_scope_runs() -> None:
 def test_audit_docs_governance_scopes_run() -> None:
     for scope in (
         "docs.adrs",
+        "docs.domains",
         "docs.requirements",
         "docs.traceability",
         "docs.links",

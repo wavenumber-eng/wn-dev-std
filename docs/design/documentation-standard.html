@@ -218,5 +218,39 @@ target = "src/cpp/altium_monkey/pcbdoc.hpp:KeepoutRestrictionMask"</code></pre>
     keeps review paths stable while preserving Markdown as the merge-friendly
     source of truth.
   </p>
+
+  <h2>Domain Registry</h2>
+  <p>
+    Packages may declare a domain registry at
+    <code>docs/governance/domain_registry.toml</code>. The registry is
+    inclusion-first: <code>[domain_governance].owned_roots</code> identifies
+    the project roots whose files must be associated with a domain, and
+    <code>ignore</code> removes generated, vendor, transient, or build-output
+    paths from ownership checks.
+  </p>
+  <pre><code>[domain_governance]
+owned_roots = ["src", "tests", "docs"]
+ignore = ["docs/generated/**"]
+
+[[domains]]
+id = "core"
+title = "Core"
+status = "active"
+purpose = "Own core source, tests, and governance."
+html = "docs/domains/core.html"
+
+[[file_groups]]
+primary_domain = "core"
+supporting_domains = ["api"]
+paths = ["src/core/**", "tests/core/**", "docs/core/**"]</code></pre>
+  <p>
+    Source layout is not required to be domain-first. File groups connect paths
+    to one primary domain plus optional supporting domains. Language and
+    classification metadata may be added by projects but are not strict
+    enumerations in the initial registry contract. Each registered domain must
+    have a browseable HTML page with <code>data-domain</code>,
+    <code>data-domain-status</code>, and a visible reference to the registry
+    source.
+  </p>
 </body>
 </html>

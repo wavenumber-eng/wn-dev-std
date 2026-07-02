@@ -49,7 +49,7 @@ depends_on = ["cli-audit", "traceability"]
 [[steps]]
 id = "domain-registry"
 title = "Add minimal docs domain registry and docs.domains audit scope"
-status = "pending"
+status = "done"
 depends_on = ["cli-audit", "traceability"]
 
 [[steps]]
@@ -159,17 +159,17 @@ status = "met"
 [[exit_criteria]]
 id = "domain-registry"
 title = "docs.domains validates registered domains, purpose/status metadata, owned roots, and file-to-domain traceability without assuming language-specific layout"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "domain-html"
 title = "Each registered domain has generated or hand-authored HTML coverage with standard data tags, intent/status, source links, ADRs, requirements, and verification links"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "domain-registry-tests"
 title = "Domain registry tests cover missing domains, invalid ADR/requirement domain refs, missing domain HTML, unowned files under owned roots, optional multi-domain file groups, and ignored generated/vendor paths"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "governed-surfaces"

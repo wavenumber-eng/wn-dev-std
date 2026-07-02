@@ -245,6 +245,7 @@ def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:
 
     for expected in (
         "docs.adrs",
+        "docs.domains",
         "docs.requirements",
         "docs.traceability",
         "docs.links",
@@ -254,6 +255,7 @@ def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:
         assert expected in audit_doc or expected in documentation_doc
     for expected in (
         "docs.adrs",
+        "docs.domains",
         "docs.requirements",
         "docs.traceability",
         "docs.links",
@@ -261,6 +263,12 @@ def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:
         assert expected in cli_doc
 
     results = run_basic_checks(ROOT)
-    for name in ("docs.adrs", "docs.requirements", "docs.traceability", "docs.links"):
+    for name in (
+        "docs.adrs",
+        "docs.domains",
+        "docs.requirements",
+        "docs.traceability",
+        "docs.links",
+    ):
         result = next(item for item in results if item.name == name)
         assert result.passed
