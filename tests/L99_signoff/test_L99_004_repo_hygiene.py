@@ -56,12 +56,14 @@ def test_rack_and_signoff_quality_model_is_documented() -> None:
         "Every project needs a signoff gate",
         "L99_signoff",
         "complexity, file",
-        r"C:\ELI\prj\wavenumber-eng\wn-dev-std\tests",
+        "tests/rack.toml",
+        "dev-std audit .",
         "fast edit-loop check",
         "release-facing gate",
         "baselines can make existing debt visible",
     ):
         assert expected in architecture
+    assert r"C:\ELI" not in architecture
 
 
 def test_readme_documents_public_rack_package_and_project_model() -> None:
@@ -74,10 +76,13 @@ def test_readme_documents_public_rack_package_and_project_model() -> None:
         "Every project needs a signoff gate",
         "L99_signoff",
         "complexity, file size, function size",
-        r"C:\ELI\prj\wavenumber-eng\wn-dev-std\tests",
+        "tests/",
+        "dev-std audit .",
+        "package signoff",
         "tests/rack.toml",
     ):
         assert expected in readme
+    assert r"C:\ELI" not in readme
 
 
 def test_cpp_tooling_policy_is_documented_and_templated() -> None:

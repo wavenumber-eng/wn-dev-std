@@ -53,8 +53,9 @@
     to keep simple local commands.
   </p>
   <p>
-    In the local checkout, the reference Rack suite and signoff strata live at
-    <code>C:\ELI\prj\wavenumber-eng\wn-dev-std\tests</code>.
+    In this repository, the reference Rack suite and signoff strata live under
+    <code>tests/</code>, with the suite manifest at
+    <code>tests/rack.toml</code>.
   </p>
   <p>
     The signoff process is the release-facing layer of that model. Signoff
@@ -69,7 +70,9 @@
     <code>L99_signoff</code> stratum. The contents are profile-specific, but
     standard signoff should include measurable checks such as complexity, file
     size, function size, formatting, static analysis, docs, contracts, release
-    metadata, and project-local ratchets.
+    metadata, and project-local ratchets. Packages that adopt dev-std
+    governance should run <code>dev-std audit .</code> as part of that signoff
+    path.
   </p>
   <p>
     Rack answers <em>which validation lane is being run and why</em>. Signoff answers

@@ -1,8 +1,8 @@
 # wn-dev-std
 
 `wn-dev-std` is Wavenumber's development standards reference package. It gives
-new projects a strict Python baseline for packaging, tests, documentation,
-contracts, release hygiene, and agent-readable repo structure.
+projects strict baselines for packaging, tests, documentation, governance,
+release hygiene, and agent-readable repo structure.
 
 The repository is also a working example. It installs as a Python package and
 exposes a small CLI whose code, docs, contracts, tests, and release metadata are
@@ -10,9 +10,30 @@ kept in sync by Rack signoff.
 
 ## Status
 
-Initial Python support. This repository is a model/reference package and is
-published to PyPI as `wn-dev-std`. C++, C#, JavaScript, and Zephyr profiles are
-present; C and Rust profiles will reuse the same base rules as they are added.
+This repository is a model/reference package and is published to PyPI as
+`wn-dev-std`. Python, C++, C#, JavaScript, mixed Python/native/WASM, and Zephyr
+profiles are present. C and Rust profiles will reuse the same base rules as
+they are added.
+
+## Start Here
+
+Agents and maintainers should start with the design docs, not by inferring
+policy from source layout:
+
+- [Audit Standard](docs/design/audit-standard.html): signoff scopes and how
+  `dev-std audit` is intended to fail.
+- [Documentation Standard](docs/design/documentation-standard.html): ADR,
+  requirement, plan, log, domain, surface, fixture, and generated HTML rules.
+- [CLI Design](docs/design/cli.html): public command surface.
+- [Artifact And Vendor Governance](docs/design/artifact-vendor-governance.html):
+  build outputs, release channels, vendored code, and generated source.
+- [Architecture](docs/architecture.html): Rack, strata, and release signoff
+  model.
+
+Every package that adopts this standard should run `dev-std audit .` from its
+package signoff path. In Rack-based repositories, wire that invocation into
+`L99_signoff` so local testing and CI fail when governance or documentation
+drifts.
 
 ## Install
 
@@ -67,15 +88,16 @@ Non-Python projects should still follow the same model: keep `tests/rack.toml`
 and stratum manifests in the repository, then run Rack from the project's
 standard Python/tooling environment or CI image.
 
-In this checkout, the working Rack/signoff example lives at
-`C:\ELI\prj\wavenumber-eng\wn-dev-std\tests`.
+In this repository, the working Rack/signoff example lives under `tests/`, with
+the suite manifest at `tests/rack.toml`.
 
 Every project needs a signoff gate. In Rack suites this is generally an
 `L99_signoff` stratum that runs the release-facing checks for the repository.
 The exact checks vary by profile, but signoff should include measurable gates
 such as complexity, file size, function size, formatting, static analysis,
 documentation status, contract checks, release metadata, and any project-local
-ratchets.
+ratchets. `dev-std audit .` should be one of those gates for any package using
+dev-std governance.
 
 ## Use Cases
 
@@ -358,11 +380,13 @@ helpers are intentionally left for a later tool pass.
 - [CLI Design](docs/design/cli.html)
 - [Audit Standard](docs/design/audit-standard.html)
 - [Documentation Standard](docs/design/documentation-standard.html)
+- [Artifact And Vendor Governance](docs/design/artifact-vendor-governance.html)
+- [Build Documentation](docs/build.html)
 - [Python Standard Design](docs/design/python-standard.html)
 - [C++ Standard](docs/design/cpp-standard.html)
 - [Mixed Mode Standard](docs/design/mixed-mode.html)
 - [JavaScript Web App Standard](docs/design/javascript-standard.html)
-- [Release Notes](docs/releases/2026-07-01.md)
+- [Release Notes](docs/releases/2026-07-02.md)
 
 ## License
 
