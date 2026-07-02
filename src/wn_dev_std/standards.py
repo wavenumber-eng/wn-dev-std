@@ -168,7 +168,7 @@ CPP_RULES = (
     StrictRule(
         "format.style",
         "LLVM base, Allman, 4 spaces, 100 columns",
-        "Matches the current Geometer and altium_monkey_cpp convention.",
+        "Matches the current native-library convention.",
     ),
     StrictRule("static-analysis", "clang-tidy", "New native code starts with analysis enabled."),
     StrictRule(

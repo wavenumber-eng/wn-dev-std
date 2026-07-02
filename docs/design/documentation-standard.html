@@ -197,13 +197,13 @@ target = "tests/test_transform_docs.py::test_docs_exist"
   </p>
   <pre><code>[[verification_refs]]
 kind = "external_cpp_test"
-repo = "wavenumber-eng/altium_monkey"
-target = "tests/cpp/test_keepout.cpp::KeepoutRestrictionMaskMapping"
+repo = "owner/example-repo"
+target = "tests/cpp/test_format.cpp::FormatBehavior"
 
 [[implementation_refs]]
 kind = "external_source"
-repo = "wavenumber-eng/altium_monkey"
-target = "src/cpp/altium_monkey/pcbdoc.hpp:KeepoutRestrictionMask"</code></pre>
+repo = "owner/example-repo"
+target = "src/cpp/example/format.hpp:FormatBehavior"</code></pre>
 
   <h2>Generated Governance Pages</h2>
   <p>
@@ -253,8 +253,8 @@ target = "src/cpp/altium_monkey/pcbdoc.hpp:KeepoutRestrictionMask"</code></pre>
     roots, generated governance output location, optional static-site URL base,
     and CSS hooks. The catalog scan, id lookup, relative href computation,
     stale raw-Markdown detection, and missing-id failure policy belong in
-    <code>dev-std</code> so the same behavior works for data_models, viz,
-    pcb_cruncher, Altium Monkey, appz, and future packages.
+    <code>dev-std</code> so the same behavior works for downstream packages
+    and future package templates.
   </p>
   <p>
     The resolver is a planned follow-on to generated governance HTML. Until it
@@ -273,9 +273,9 @@ target = "src/cpp/altium_monkey/pcbdoc.hpp:KeepoutRestrictionMask"</code></pre>
   </p>
   <p>
     Generated governance pages include a default <code>governance.css</code>
-    copied into the output root. Its visual language follows the data_models
-    documentation baseline: monospace typography, quiet gray paper surfaces,
-    dark section bars, square corners, and table-first scanability. Projects
+    copied into the output root. Its visual language follows the standard
+    governance documentation baseline: monospace typography, quiet gray paper
+    surfaces, dark section bars, square corners, and table-first scanability. Projects
     can still pass repeated <code>--css</code> values to layer additional
     styles after the default stylesheet.
   </p>
