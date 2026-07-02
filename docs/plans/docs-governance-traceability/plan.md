@@ -101,15 +101,21 @@ status = "pending"
 depends_on = ["html-generation", "traceability"]
 
 [[steps]]
+id = "plan-step-log-governance"
+title = "Require structured plan steps and attach each plan log to a plan step"
+status = "pending"
+depends_on = ["inventory-commands"]
+
+[[steps]]
 id = "review-release"
 title = "Review behavior and decide whether to release this dev-std slice"
 status = "active"
-depends_on = ["generated-docs", "proving-target", "signoff-guidance", "inventory-commands", "domain-registry", "governed-surfaces", "parity-evidence", "rack-evidence-interface", "marker-discovery", "bootstrap-guidance", "dev-std-marker", "html-generation", "governance-link-resolver"]
+depends_on = ["generated-docs", "proving-target", "signoff-guidance", "inventory-commands", "domain-registry", "governed-surfaces", "parity-evidence", "rack-evidence-interface", "marker-discovery", "bootstrap-guidance", "dev-std-marker", "html-generation", "governance-link-resolver", "plan-step-log-governance"]
 
 [[steps]]
 id = "external-review"
-title = "Run data_models proving pass and obtain Altium Monkey C++ porting/governance review before release"
-status = "pending"
+title = "Run downstream proving pass and obtain external porting/governance review before release"
+status = "done"
 depends_on = ["review-release"]
 
 [[exit_criteria]]
@@ -243,6 +249,21 @@ title = "Resolver tests cover generated hrefs from nested docs, missing governan
 status = "pending"
 
 [[exit_criteria]]
+id = "plan-step-required"
+title = "docs.plans fails every compliant plan that does not declare at least one structured [[steps]] entry"
+status = "pending"
+
+[[exit_criteria]]
+id = "plan-log-step-link"
+title = "docs.plans fails every plan_log that does not declare step_id pointing to an existing step in its owning plan"
+status = "pending"
+
+[[exit_criteria]]
+id = "plan-log-step-tooling"
+title = "dev-std plan/log read, show, create, and mutation commands surface step_id consistently in text and JSON"
+status = "pending"
+
+[[exit_criteria]]
 id = "review-tests"
 title = "Focused unit tests, full pytest, ruff, pyright, and scoped governance audits pass before review"
 status = "met"
@@ -254,8 +275,8 @@ status = "met"
 
 [[exit_criteria]]
 id = "altium-monkey-cpp-review"
-title = "Altium Monkey C++ porting/governance agent reviews the traceability, parity, and generated-report model before final commit/tag/release"
-status = "pending"
+title = "External porting/governance reviewer signs off on the traceability, parity, and generated-report model before final commit/tag/release"
+status = "met"
 
 [[exit_criteria]]
 id = "review"
@@ -299,6 +320,13 @@ conventions as <code>plan list</code>, <code>plan show</code>,
 compliance before read operations, human-readable text output by default, and
 machine-readable JSON with a consistent top-level shape. The goal is one
 predictable inventory surface across plans, logs, ADRs, and requirements.
+
+The next plan/log governance ratchet should make structured plan steps
+mandatory. Every compliant plan should declare at least one `[[steps]]` entry,
+even for short plans. Work logs should carry `step_id` in addition to `plan_id`,
+and the audit should verify that the referenced step exists in the owning plan.
+This keeps session history attached to the execution state it explains and
+makes stale or orphaned log notes visible in signoff.
 
 ## Adoption Boundary
 
