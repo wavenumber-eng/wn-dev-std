@@ -38,6 +38,29 @@ class GovernanceDocument:
     body: str
 
 
+@dataclass(frozen=True, slots=True)
+class GovernanceRecord:
+    """Parsed ADR or requirement record."""
+
+    record_id: str
+    record_type: str
+    domain: str
+    status: str
+    title: str
+    created: str
+    relative_path: str
+
+
+@dataclass(frozen=True, slots=True)
+class GovernanceCatalog:
+    """Validated ADR and requirement catalog."""
+
+    root: Path
+    adrs: tuple[GovernanceRecord, ...]
+    requirements: tuple[GovernanceRecord, ...]
+    failures: tuple[str, ...]
+
+
 ADR_STATUSES = ("proposed", "accepted", "deprecated", "superseded")
 REQUIREMENT_STATUSES = ("draft", "active", "implemented", "deprecated", "superseded")
 DOC_SUFFIXES = (".md", ".html")
@@ -68,28 +91,42 @@ STALE_ACCEPTED_ADR_PATTERNS = (
 
 def check_adr_policy(root: Path) -> DocGovernanceReport:
     """Check ADR documents for canonical metadata and standing-decision hygiene."""
+    resolved_root = root.resolve()
     failures: list[str] = []
-    docs = _documents_in_named_dirs(root, "adr")
-    for doc in docs:
-        _validate_governance_doc_common(doc, "adr", ADR_STATUSES, failures)
-        if _string_value(doc.metadata, "status") == "accepted":
-            _validate_accepted_adr_body(doc, failures)
-    return _report("ADR", docs, failures)
+    adrs = _load_records_for_type(resolved_root, "adr", ADR_STATUSES, failures)
+    return _report("ADR", adrs, failures)
 
 
 def check_requirement_policy(root: Path) -> DocGovernanceReport:
     """Check requirement documents for canonical metadata and verification traces."""
+    resolved_root = root.resolve()
     failures: list[str] = []
-    docs = _documents_in_named_dirs(root, "requirements")
-    for doc in docs:
-        _validate_governance_doc_common(
-            doc,
-            "requirement",
-            REQUIREMENT_STATUSES,
-            failures,
-        )
-        _validate_requirement_verification(root, doc, failures)
-    return _report("requirement", docs, failures)
+    requirements = _load_records_for_type(
+        resolved_root,
+        "requirement",
+        REQUIREMENT_STATUSES,
+        failures,
+    )
+    return _report("requirement", requirements, failures)
+
+
+def load_governance_catalog(root: Path) -> GovernanceCatalog:
+    """Load and validate ADR and requirement governance documents."""
+    resolved_root = root.resolve()
+    failures: list[str] = []
+    adrs = _load_records_for_type(resolved_root, "adr", ADR_STATUSES, failures)
+    requirements = _load_records_for_type(
+        resolved_root,
+        "requirement",
+        REQUIREMENT_STATUSES,
+        failures,
+    )
+    return GovernanceCatalog(
+        resolved_root,
+        tuple(sorted(adrs, key=lambda item: item.record_id)),
+        tuple(sorted(requirements, key=lambda item: item.record_id)),
+        tuple(failures),
+    )
 
 
 def check_traceability_policy(root: Path) -> DocGovernanceReport:
@@ -117,17 +154,71 @@ def check_link_policy(root: Path) -> DocGovernanceReport:
     return _report("documentation link", docs, failures)
 
 
-def _documents_in_named_dirs(root: Path, directory_name: str) -> tuple[GovernanceDocument, ...]:
-    docs: list[GovernanceDocument] = []
-    for path in sorted((root / "docs").rglob("*.md")) if (root / "docs").exists() else []:
+def _load_records_for_type(
+    root: Path,
+    expected_type: str,
+    statuses: Sequence[str],
+    failures: list[str],
+) -> list[GovernanceRecord]:
+    records: list[GovernanceRecord] = []
+    directory_name = "adr" if expected_type == "adr" else "requirements"
+    for path in _candidate_governance_paths(root, directory_name):
+        relative_path = path.relative_to(root).as_posix()
+        doc = _parse_document(root, path)
+        if doc is None:
+            type_label = expected_type_label(expected_type)
+            failures.append(f"{relative_path}: {type_label} missing TOML front matter")
+            continue
+        before = len(failures)
+        _validate_governance_doc_common(doc, expected_type, statuses, failures)
+        if expected_type == "adr" and _string_value(doc.metadata, "status") == "accepted":
+            _validate_accepted_adr_body(doc, failures)
+        if expected_type == "requirement":
+            _validate_requirement_verification(root, doc, failures)
+        if len(failures) == before:
+            records.append(_record_from_document(doc, expected_type))
+    return records
+
+
+def expected_type_label(expected_type: str) -> str:
+    """Return user-facing governance type label."""
+    return "ADR" if expected_type == "adr" else "requirement"
+
+
+def _candidate_governance_paths(root: Path, directory_name: str) -> tuple[Path, ...]:
+    if not (root / "docs").exists():
+        return ()
+    paths: list[Path] = []
+    for path in sorted((root / "docs").rglob("*.md")):
         if _is_excluded(path, root):
             continue
-        if directory_name not in {part.lower() for part in path.parts}:
-            continue
-        parsed = _parse_document(root, path)
-        if parsed is not None:
-            docs.append(parsed)
-    return tuple(docs)
+        if directory_name in {part.lower() for part in path.parts}:
+            paths.append(path)
+    return tuple(paths)
+
+
+def _record_from_document(
+    doc: GovernanceDocument,
+    expected_type: str,
+) -> GovernanceRecord:
+    return GovernanceRecord(
+        _string_value(doc.metadata, "id"),
+        expected_type,
+        _string_value(doc.metadata, "domain"),
+        _string_value(doc.metadata, "status"),
+        _string_value(doc.metadata, "title"),
+        _created_text(doc.metadata),
+        doc.relative_path,
+    )
+
+
+def _created_text(metadata: Mapping[str, object]) -> str:
+    value = metadata.get("created")
+    if isinstance(value, str):
+        return value.strip()
+    if isinstance(value, datetime | date):
+        return value.isoformat()
+    return ""
 
 
 def _governance_documents(root: Path) -> tuple[GovernanceDocument, ...]:

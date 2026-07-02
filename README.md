@@ -237,7 +237,7 @@ Web apps use:
 ## Compatibility Pruning
 
 Projects that are retiring old names, environment variables, setup shims, or
-compatibility aliases can opt into a repository scan in `wn-dev-std.toml`:
+compatibility aliases can opt into a repository scan in `dev-std.toml`:
 
 ```toml
 [compatibility_pruning]
@@ -327,8 +327,9 @@ not suppress checks inside configured plan roots; active plan roots remain
 strict.
 
 The `plan` and `log` commands discover the package root by walking upward to
-`wn-dev-std.toml`, a `pyproject.toml` with `[tool.wn_dev_std]`, or a `.git`
-fallback boundary. Read and mutation commands only operate on a compliant plan
+`dev-std.toml`, legacy `wn-dev-std.toml`, a `pyproject.toml` with
+`[tool.wn_dev_std]`, or a `.git` fallback boundary. Read and mutation commands
+only operate on a compliant plan
 catalog. The first mutation slice is non-destructive: create plans, set plan
 status, add/update step status, and create attached logs. `log show` reads one
 attached log body by globally unique log id. Plan deletion, retirement, and

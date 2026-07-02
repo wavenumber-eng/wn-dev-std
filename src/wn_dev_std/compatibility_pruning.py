@@ -64,6 +64,7 @@ DEFAULT_PRUNING_TEXT_NAMES = (
     "README.md",
 )
 DEFAULT_PRUNING_EXCLUDED_NAMES = (
+    "dev-std.toml",
     "pyproject.toml",
     "wn-dev-std.toml",
 )

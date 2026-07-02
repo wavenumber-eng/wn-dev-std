@@ -43,7 +43,7 @@ depends_on = ["cli-audit", "traceability", "generated-docs"]
 [[steps]]
 id = "inventory-commands"
 title = "Add ADR and requirement inventory/read commands consistent with plan/log commands plus rogue legacy detection"
-status = "pending"
+status = "done"
 depends_on = ["cli-audit", "traceability"]
 
 [[steps]]
@@ -73,7 +73,7 @@ depends_on = ["governed-surfaces"]
 [[steps]]
 id = "marker-discovery"
 title = "Prefer dev-std.toml root discovery while preserving wn-dev-std.toml compatibility"
-status = "pending"
+status = "done"
 depends_on = ["cli-audit"]
 
 [[steps]]
@@ -85,8 +85,8 @@ depends_on = ["inventory-commands", "domain-registry", "marker-discovery"]
 [[steps]]
 id = "dev-std-marker"
 title = "Prefer dev-std.toml as the package marker while preserving wn-dev-std.toml compatibility"
-status = "pending"
-depends_on = ["bootstrap-guidance"]
+status = "done"
+depends_on = ["marker-discovery"]
 
 [[steps]]
 id = "html-generation"
@@ -144,17 +144,17 @@ status = "met"
 [[exit_criteria]]
 id = "inventory-read-commands"
 title = "ADR and requirement list/show commands match plan/log text and JSON inventory conventions"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "plan-log-read-consistency"
 title = "Plan/log/ADR/requirement list/show commands share consistent text and JSON output structure"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "rogue-legacy-detection"
 title = "ADR/requirement audits fail rogue or legacy-looking documents that lack compliant metadata"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "domain-registry"
@@ -214,7 +214,7 @@ status = "pending"
 [[exit_criteria]]
 id = "dev-std-marker"
 title = "Root discovery and docs prefer dev-std.toml while still accepting wn-dev-std.toml for existing repos"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "html-generation"

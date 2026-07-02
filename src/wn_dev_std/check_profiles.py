@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Literal
+
+from wn_dev_std.root_discovery import LEGACY_STANDALONE_CONFIG, PREFERRED_STANDALONE_CONFIG
 
 ProfileName = Literal[
     "python-package",
@@ -67,7 +70,7 @@ ZEPHYR_REQUIRED_PATHS = (
     "signoff.toml",
     "src",
     "tests/rack.toml",
-    "wn-dev-std.toml",
+    "dev-std.toml",
 )
 
 CSHARP_REQUIRED_PATHS = (
@@ -80,7 +83,7 @@ CSHARP_REQUIRED_PATHS = (
     "build.ps1",
     "src",
     "tests",
-    "wn-dev-std.toml",
+    "dev-std.toml",
 )
 
 CSHARP_REQUIRED_DOC_PATHS = (
@@ -114,7 +117,7 @@ JAVASCRIPT_WEB_REQUIRED_ROOT_FILES = (
     "README.md",
     "src",
     "tests",
-    "wn-dev-std.toml",
+    "dev-std.toml",
 )
 
 PYTHON_JS_REQUIRED_ROOT_FILES = (
@@ -125,7 +128,7 @@ PYTHON_JS_REQUIRED_ROOT_FILES = (
     "pyproject.toml",
     "src",
     "tests",
-    "wn-dev-std.toml",
+    "dev-std.toml",
 )
 
 PYTHON_JS_REQUIRED_DOC_PATHS = (
@@ -171,7 +174,7 @@ def required_root_files(profile: ProfileName) -> tuple[str, ...]:
             "AGENTS.md",
             "README.md",
             "signoff.toml",
-            "wn-dev-std.toml",
+            "dev-std.toml",
         )
     if profile == "csharp-app":
         return CSHARP_REQUIRED_PATHS
@@ -198,3 +201,12 @@ def required_doc_paths(profile: ProfileName) -> tuple[str, ...]:
             "docs/releases",
         )
     return REQUIRED_DOC_PATHS
+
+
+def required_path_exists(root: Path, relative_path: str) -> bool:
+    """Return whether a required path exists, including compatibility markers."""
+    if (root / relative_path).exists():
+        return True
+    if relative_path == PREFERRED_STANDALONE_CONFIG:
+        return (root / LEGACY_STANDALONE_CONFIG).exists()
+    return False

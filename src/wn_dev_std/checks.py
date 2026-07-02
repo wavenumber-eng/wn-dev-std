@@ -21,6 +21,7 @@ from wn_dev_std.check_profiles import (
     ProfileName,
     project_profile,
     required_doc_paths,
+    required_path_exists,
     required_root_files,
 )
 from wn_dev_std.check_profiles import (
@@ -297,7 +298,9 @@ def _scoped_results(results: Sequence[CheckResult], scope: str) -> list[CheckRes
 
 def _check_required_paths(root: Path, name: str, relative_paths: tuple[str, ...]) -> CheckResult:
     missing = [
-        relative_path for relative_path in relative_paths if not (root / relative_path).exists()
+        relative_path
+        for relative_path in relative_paths
+        if not required_path_exists(root, relative_path)
     ]
     if missing:
         return CheckResult(name, False, "missing " + ", ".join(missing))

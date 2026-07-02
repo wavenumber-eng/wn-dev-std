@@ -51,9 +51,10 @@
   <p>
     Plan and log commands discover the package root by walking upward from the
     current directory or <code>--root</code> value until they find
-    <code>wn-dev-std.toml</code> or a <code>pyproject.toml</code> with
-    <code>[tool.wn_dev_std]</code>. A <code>.git</code> directory is a
-    fallback boundary when no Wavenumber config marker is present.
+    <code>dev-std.toml</code>, legacy <code>wn-dev-std.toml</code>, or a
+    <code>pyproject.toml</code> with <code>[tool.wn_dev_std]</code>. A
+    <code>.git</code> directory is a fallback boundary when no Wavenumber config
+    marker is present.
   </p>
 
   <h2>Plan Roots</h2>
@@ -61,8 +62,9 @@
     The <code>docs.plans</code> scope audits active plan and work-log artifacts.
     The default approved root is <code>docs/plans</code>. Projects may override
     the approved roots with <code>[documentation.plans]</code> in
-    <code>wn-dev-std.toml</code> or <code>[tool.wn_dev_std.documentation.plans]</code>
-    in <code>pyproject.toml</code>.
+    <code>dev-std.toml</code>, legacy <code>wn-dev-std.toml</code>, or
+    <code>[tool.wn_dev_std.documentation.plans]</code> in
+    <code>pyproject.toml</code>.
   </p>
   <pre><code>[documentation.plans]
 roots = ["docs/pcb/plans", "docs/sch/plans"]</code></pre>

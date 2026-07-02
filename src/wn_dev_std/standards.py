@@ -321,7 +321,7 @@ ZEPHYR_REQUIRED_FILES = (
     "README.md",
     "signoff.toml",
     "tests/rack.toml",
-    "wn-dev-std.toml",
+    "dev-std.toml",
 )
 
 ZEPHYR_REQUIRED_DOCS = (
@@ -380,7 +380,7 @@ CSHARP_REQUIRED_FILES = (
     "build.ps1",
     "src",
     "tests",
-    "wn-dev-std.toml",
+    "dev-std.toml",
 )
 
 CSHARP_REQUIRED_DOCS = (
@@ -504,7 +504,7 @@ JAVASCRIPT_WEB_REQUIRED_FILES = (
     "README.md",
     "src",
     "tests/rack.toml",
-    "wn-dev-std.toml",
+    "dev-std.toml",
 )
 
 JAVASCRIPT_WEB_REQUIRED_DOCS = (
@@ -551,7 +551,7 @@ PYTHON_JS_REQUIRED_FILES = (
     "src",
     "tests",
     "tests/rack.toml",
-    "wn-dev-std.toml",
+    "dev-std.toml",
 )
 
 PYTHON_JS_REQUIRED_DOCS = (

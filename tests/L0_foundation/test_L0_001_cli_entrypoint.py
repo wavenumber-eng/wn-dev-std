@@ -37,7 +37,7 @@ def test_cli_version_command_reports_same_version() -> None:
 def test_cli_help_lists_public_commands() -> None:
     result = run_cli("--help")
     assert result.returncode == 0
-    for command in ("audit", "check", "log", "plan", "standard", "version"):
+    for command in ("adr", "audit", "check", "log", "plan", "requirement", "standard", "version"):
         assert command in result.stdout
 
 
@@ -50,10 +50,18 @@ def test_pyproject_exposes_dev_std_and_legacy_cli_aliases() -> None:
 
 
 def test_cli_command_help_starts_for_public_commands() -> None:
-    for command in ("audit", "check", "log", "plan", "standard", "version"):
+    for command in ("adr", "audit", "check", "log", "plan", "requirement", "standard", "version"):
         result = run_cli(command, "--help")
         assert result.returncode == 0
         assert command in result.stdout
+
+
+def test_governance_read_subcommand_help_lists_show() -> None:
+    for command in ("adr", "requirement"):
+        result = run_cli(command, "--help")
+        assert result.returncode == 0
+        for subcommand in ("list", "show"):
+            assert subcommand in result.stdout
 
 
 def test_log_subcommand_help_lists_show() -> None:

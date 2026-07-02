@@ -2,6 +2,13 @@
   "schema_version": "2026.6.27",
   "commands": [
     {
+      "name": "adr",
+      "module": "wn_dev_std.cli.commands.adr",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "adr",
+      "description": "Read compliant ADRs."
+    },
+    {
       "name": "audit",
       "module": "wn_dev_std.cli.commands.audit",
       "design_doc": "docs/design/cli.html",
@@ -28,6 +35,13 @@
       "design_doc": "docs/design/cli.html",
       "data_command": "plan",
       "description": "Read and update compliant plans."
+    },
+    {
+      "name": "requirement",
+      "module": "wn_dev_std.cli.commands.requirement",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "requirement",
+      "description": "Read compliant requirements."
     },
     {
       "name": "standard",

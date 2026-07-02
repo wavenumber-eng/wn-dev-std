@@ -8,6 +8,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
 
+PREFERRED_STANDALONE_CONFIG = "dev-std.toml"
+LEGACY_STANDALONE_CONFIG = "wn-dev-std.toml"
+STANDALONE_CONFIG_NAMES = (PREFERRED_STANDALONE_CONFIG, LEGACY_STANDALONE_CONFIG)
+
 
 @dataclass(frozen=True, slots=True)
 class DiscoveredRoot:
@@ -25,9 +29,9 @@ def discover_project_root(start: Path) -> DiscoveredRoot:
     git_fallback: Path | None = None
 
     for candidate in (current, *current.parents):
-        standalone = candidate / "wn-dev-std.toml"
-        if standalone.exists():
-            return DiscoveredRoot(candidate, "wn-dev-std.toml", standalone, True)
+        standalone = _standalone_config_path(candidate)
+        if standalone is not None:
+            return DiscoveredRoot(candidate, standalone.name, standalone, True)
 
         pyproject = candidate / "pyproject.toml"
         if _pyproject_has_standard_config(pyproject):
@@ -56,8 +60,8 @@ def load_standard_config(
     pyproject: Mapping[str, object] | None = None,
 ) -> Mapping[str, object] | None:
     """Load Wavenumber standard config from standalone TOML or pyproject."""
-    standalone = root / "wn-dev-std.toml"
-    if standalone.exists():
+    standalone = _standalone_config_path(root)
+    if standalone is not None:
         with standalone.open("rb") as handle:
             raw = cast(Mapping[str, object], tomllib.load(handle))
         tool_raw = raw.get("tool")
@@ -85,6 +89,14 @@ def _start_directory(start: Path) -> Path:
     if start.exists() and start.is_file():
         return start.parent
     return start
+
+
+def _standalone_config_path(root: Path) -> Path | None:
+    for name in STANDALONE_CONFIG_NAMES:
+        path = root / name
+        if path.exists():
+            return path
+    return None
 
 
 def _pyproject_has_standard_config(path: Path) -> bool:

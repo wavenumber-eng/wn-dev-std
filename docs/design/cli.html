@@ -25,6 +25,17 @@
     </p>
   </section>
 
+  <section data-command="adr">
+    <h2>adr</h2>
+    <p>
+      Helpers for compliant ADR documents. <code>adr list</code> lists ADRs
+      from the discovered project root and <code>adr show</code> renders one
+      ADR by id. Text output is the default and JSON output follows the same
+      root, marker, path, metadata, and body conventions used by plan and log
+      read commands.
+    </p>
+  </section>
+
   <section data-command="check">
     <h2>check</h2>
     <p>
@@ -47,8 +58,20 @@
       closeout. Newly created plans include a default pending exit criterion.
       Dedicated exit-criterion mutation commands are a future slice. The command
       discovers the package root by walking upward to
-      <code>wn-dev-std.toml</code>, a configured <code>pyproject.toml</code>,
-      or a <code>.git</code> fallback boundary.
+      <code>dev-std.toml</code>, legacy <code>wn-dev-std.toml</code>, a
+      configured <code>pyproject.toml</code>, or a <code>.git</code> fallback
+      boundary.
+    </p>
+  </section>
+
+  <section data-command="requirement">
+    <h2>requirement</h2>
+    <p>
+      Helpers for compliant requirement documents.
+      <code>requirement list</code> lists requirements from the discovered
+      project root and <code>requirement show</code> renders one requirement by
+      id. Read commands fail when the governance catalog has metadata,
+      traceability, or rogue legacy-document failures.
     </p>
   </section>
 

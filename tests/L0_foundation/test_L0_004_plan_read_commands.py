@@ -6,10 +6,22 @@ import sys
 from pathlib import Path
 from textwrap import dedent
 
-from wn_dev_std.root_discovery import discover_project_root
+from wn_dev_std.root_discovery import discover_project_root, load_standard_config
 
 
-def test_root_discovery_prefers_standalone_config(tmp_path: Path) -> None:
+def test_root_discovery_prefers_dev_std_standalone_config(tmp_path: Path) -> None:
+    write_file(tmp_path / "dev-std.toml", 'profile = "python-package"\n')
+    nested = tmp_path / "docs" / "plans"
+    nested.mkdir(parents=True)
+
+    discovered = discover_project_root(nested)
+
+    assert discovered.root == tmp_path
+    assert discovered.marker == "dev-std.toml"
+    assert discovered.found_standard_config
+
+
+def test_root_discovery_accepts_legacy_standalone_config(tmp_path: Path) -> None:
     write_file(tmp_path / "wn-dev-std.toml", 'profile = "python-package"\n')
     nested = tmp_path / "docs" / "plans"
     nested.mkdir(parents=True)
@@ -19,6 +31,31 @@ def test_root_discovery_prefers_standalone_config(tmp_path: Path) -> None:
     assert discovered.root == tmp_path
     assert discovered.marker == "wn-dev-std.toml"
     assert discovered.found_standard_config
+
+
+def test_root_discovery_prefers_dev_std_when_both_standalone_configs_exist(
+    tmp_path: Path,
+) -> None:
+    write_file(tmp_path / "dev-std.toml", 'profile = "python-package"\n')
+    write_file(tmp_path / "wn-dev-std.toml", 'profile = "cpp-library"\n')
+    nested = tmp_path / "docs" / "plans"
+    nested.mkdir(parents=True)
+
+    discovered = discover_project_root(nested)
+
+    assert discovered.root == tmp_path
+    assert discovered.marker == "dev-std.toml"
+    assert discovered.found_standard_config
+
+
+def test_standard_config_loading_prefers_dev_std_over_legacy_marker(tmp_path: Path) -> None:
+    write_file(tmp_path / "dev-std.toml", 'profile = "python-package"\n')
+    write_file(tmp_path / "wn-dev-std.toml", 'profile = "cpp-library"\n')
+
+    config = load_standard_config(tmp_path)
+
+    assert config is not None
+    assert config["profile"] == "python-package"
 
 
 def test_root_discovery_uses_pyproject_tool_config(tmp_path: Path) -> None:
@@ -71,7 +108,7 @@ def test_plan_list_json_is_machine_readable(tmp_path: Path) -> None:
 
     assert result.returncode == 0
     payload = json.loads(result.stdout)
-    assert payload["marker"] == "wn-dev-std.toml"
+    assert payload["marker"] == "dev-std.toml"
     assert payload["plans"][0]["id"] == "pcb-a0"
     assert payload["plans"][0]["steps"][0]["id"] == "audit"
     assert payload["plans"][0]["exit_criteria"][0]["id"] == "signoff"
@@ -124,7 +161,7 @@ def test_log_show_json_is_machine_readable(tmp_path: Path) -> None:
 
 
 def test_plan_read_commands_fail_on_noncompliant_catalog(tmp_path: Path) -> None:
-    write_file(tmp_path / "wn-dev-std.toml", 'profile = "python-package"\n')
+    write_file(tmp_path / "dev-std.toml", 'profile = "python-package"\n')
     write_file(tmp_path / "docs" / "plans" / "pcb-a0-plan.md", "# Missing metadata\n")
 
     result = run_cli(tmp_path, "plan", "list")
@@ -146,7 +183,7 @@ def run_cli(cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
 
 def write_compliant_plan_repo(root: Path) -> None:
     write_file(
-        root / "wn-dev-std.toml",
+        root / "dev-std.toml",
         dedent(
             """
             profile = "python-package"
