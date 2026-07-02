@@ -23,6 +23,13 @@
       "description": "Compatibility alias for audit."
     },
     {
+      "name": "governance",
+      "module": "wn_dev_std.cli.commands.governance",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "governance",
+      "description": "Generate governance documentation."
+    },
+    {
       "name": "log",
       "module": "wn_dev_std.cli.commands.log",
       "design_doc": "docs/design/cli.html",

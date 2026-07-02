@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import argparse
 import importlib
 import json
 from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 from wn_dev_std.cli.main import build_parser
 
@@ -30,9 +31,13 @@ def object_sequence(value: object) -> Sequence[Mapping[str, object]]:
 def test_command_manifest_matches_cli_and_design_doc() -> None:
     manifest = load_json_mapping(ROOT / "docs" / "contracts" / "command_manifest.v0.json")
     commands = object_sequence(manifest["commands"])
-    help_text = build_parser().format_help()
+    manifest_names = {cast(str, command["name"]) for command in commands}
+    parser = build_parser()
+    help_text = parser.format_help()
     design_doc = (ROOT / "docs" / "design" / "cli.html").read_text(encoding="utf-8")
+    parser_commands = parser_command_names(parser)
 
+    assert parser_commands <= manifest_names
     for command in commands:
         name = cast(str, command["name"])
         module = cast(str, command["module"])
@@ -40,6 +45,16 @@ def test_command_manifest_matches_cli_and_design_doc() -> None:
         assert f'data-command="{name}"' in design_doc
         imported = importlib.import_module(module)
         assert hasattr(imported, "register")
+
+
+def parser_command_names(parser: argparse.ArgumentParser) -> set[str]:
+    actions = cast(Sequence[Any], parser._actions)
+    for action in actions:
+        choices = getattr(action, "choices", None)
+        if isinstance(choices, dict) and choices:
+            typed_choices = cast(Mapping[str, object], choices)
+            return {key for key in typed_choices}
+    raise AssertionError("parser has no subcommand choices")
 
 
 def test_interface_manifest_matches_exports_and_design_doc() -> None:

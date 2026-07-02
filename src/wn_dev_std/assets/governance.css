@@ -1,0 +1,227 @@
+html {
+  --wn-bg: #eeeeea;
+  --wn-bg-alt: #f7f7f3;
+  --wn-paper: #ffffff;
+  --wn-fg: #181818;
+  --wn-fg-muted: #555555;
+  --wn-line: #bdbdb7;
+  --wn-line-light: #d8d8d1;
+  --wn-accent: #006c67;
+  --wn-code-bg: #e8e8df;
+  --wn-font: "Berkeley Mono", "Berkeley Mono Variable", "Cascadia Mono",
+    "Consolas", "SFMono-Regular", monospace;
+
+  box-sizing: border-box;
+  color-scheme: light;
+  font-family: var(--wn-font);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--wn-fg);
+  background: var(--wn-bg);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+  border-radius: 0 !important;
+}
+
+body {
+  margin: 0;
+}
+
+.governance-page {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 40px 28px 64px;
+}
+
+.governance-page-header {
+  margin: 0 0 30px;
+  padding: 16px 20px 18px;
+  background: var(--wn-fg);
+  color: var(--wn-paper);
+}
+
+.governance-title {
+  margin: 0 0 10px;
+  color: var(--wn-paper);
+  font-size: 1.55rem;
+  line-height: 1.25;
+}
+
+.governance-source {
+  margin: 0;
+  color: #ecece8;
+  font-size: 0.94rem;
+}
+
+.governance-section {
+  margin: 0 0 30px;
+}
+
+.governance-section-title,
+.governance-heading-2 {
+  margin: 34px 0 16px;
+  padding: 8px 12px;
+  background: var(--wn-fg);
+  color: var(--wn-paper);
+  font-size: 1.1rem;
+  line-height: 1.25;
+}
+
+.governance-heading {
+  font-weight: 700;
+}
+
+.governance-heading-1 {
+  margin: 28px 0 14px;
+  font-size: 1.35rem;
+}
+
+.governance-heading-3 {
+  margin: 24px 0 10px;
+  font-size: 1rem;
+}
+
+.governance-heading-4,
+.governance-heading-5,
+.governance-heading-6 {
+  margin: 18px 0 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--wn-line);
+  font-size: 0.92rem;
+}
+
+.governance-paragraph,
+.governance-list-item {
+  max-width: 940px;
+}
+
+.governance-link,
+.governance-ref {
+  color: #004f9e;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.governance-inline-code,
+.governance-metadata-value code {
+  padding: 1px 5px;
+  border: 1px solid var(--wn-line-light);
+  background: var(--wn-code-bg);
+  color: var(--wn-fg);
+  font-family: var(--wn-font);
+  font-size: 0.94em;
+}
+
+.governance-code-block {
+  overflow: auto;
+  padding: 15px;
+  border: 1px solid var(--wn-line);
+  background: var(--wn-bg-alt);
+  color: var(--wn-fg);
+  font-family: var(--wn-font);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  white-space: pre;
+}
+
+.governance-code-block code {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.governance-metadata-table,
+.governance-table,
+.governance-evidence-table,
+.governance-index-list {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0 24px;
+  background: var(--wn-paper);
+}
+
+.governance-metadata-key,
+.governance-metadata-value,
+.governance-evidence-key,
+.governance-evidence-value,
+.governance-table th,
+.governance-table td {
+  padding: 8px 12px;
+  border: 1px solid var(--wn-line-light);
+  text-align: left;
+  vertical-align: top;
+}
+
+.governance-metadata-key,
+.governance-evidence-key,
+.governance-table th {
+  background: var(--wn-fg);
+  color: var(--wn-paper);
+  font-weight: 700;
+}
+
+.governance-metadata-row:nth-child(even) .governance-metadata-value,
+.governance-table tbody tr:nth-child(even) td {
+  background: var(--wn-bg-alt);
+}
+
+.governance-evidence-item > td {
+  padding: 0;
+}
+
+.governance-evidence-item table {
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+}
+
+.governance-metadata-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.governance-list {
+  margin: 12px 0 18px;
+  padding-left: 26px;
+}
+
+.governance-index-items {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 24px;
+  padding: 0;
+  list-style: none;
+}
+
+.governance-index-item {
+  padding: 10px 12px;
+  border: 1px solid var(--wn-line-light);
+  background: var(--wn-paper);
+}
+
+@media (max-width: 700px) {
+  html {
+    font-size: 13px;
+  }
+
+  .governance-page {
+    padding: 22px 16px 44px;
+  }
+
+  .governance-page-header {
+    padding: 14px 16px;
+  }
+
+  .governance-metadata-table,
+  .governance-table {
+    display: block;
+    overflow-x: auto;
+  }
+}

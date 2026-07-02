@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import html
 import os
+import shutil
 import tomllib
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -72,11 +73,13 @@ def generate_governance_html(
     _raise_for_catalog_failures(plan_catalog, governance_catalog)
     docs = _documents_from_catalogs(plan_catalog, governance_catalog)
     link_index = _link_index(docs)
+    default_css = _copy_default_css(resolved_output)
+    all_css_hrefs = (default_css, *css_hrefs)
     pages = tuple(
-        _write_document_page(resolved_root, resolved_output, doc, link_index, css_hrefs)
+        _write_document_page(resolved_root, resolved_output, doc, link_index, all_css_hrefs)
         for doc in docs
     )
-    _write_index_page(resolved_output, pages, css_hrefs)
+    _write_index_page(resolved_output, pages, all_css_hrefs)
     return GovernanceHtmlReport(resolved_output, pages)
 
 
@@ -179,7 +182,7 @@ def _write_index_page(
 ) -> None:
     output_root.mkdir(parents=True, exist_ok=True)
     items = "\n".join(
-        "<li>"
+        '<li class="governance-index-item">'
         f'<a href="{html.escape(_relative_href(output_root / "index.html", page.output_path))}">'
         f"{html.escape(page.kind)}: {html.escape(page.record_id)}</a>"
         f" <code>{html.escape(page.source_path)}</code></li>"
@@ -192,8 +195,14 @@ def _write_index_page(
         "  <title>Governance Index</title>\n"
         f"{css}</head>\n"
         '<body data-governance-index="true">\n'
-        "  <h1>Governance Index</h1>\n"
-        f"  <ul>\n{items}\n  </ul>\n"
+        '  <main class="governance-page governance-index-page">\n'
+        '    <header class="governance-page-header">\n'
+        '      <h1 class="governance-title">Governance Index</h1>\n'
+        "    </header>\n"
+        '    <section id="governance-index" class="governance-section governance-index-section">\n'
+        f'      <ul class="governance-index-items">\n{items}\n      </ul>\n'
+        "    </section>\n"
+        "  </main>\n"
         "</body>\n</html>\n"
     )
     (output_root / "index.html").write_text(text, encoding="utf-8")
@@ -212,13 +221,26 @@ def _document_html(
     return (
         '<!doctype html>\n<html lang="en">\n<head>\n'
         '  <meta charset="utf-8">\n'
+        '  <meta name="viewport" content="width=device-width, initial-scale=1">\n'
         f"  <title>{html.escape(doc.title)}</title>\n"
         f"{css}</head>\n"
         f"<body {data_attrs}>\n"
-        f"  <h1>{html.escape(doc.title)}</h1>\n"
-        f"  <p><code>{html.escape(doc.source_path)}</code></p>\n"
-        f"  <table>\n{metadata_rows}\n  </table>\n"
-        f"  {render_governance_markdown(doc.body)}\n"
+        f'  <main id="governance-page" class="governance-page governance-page-{doc.kind}">\n'
+        '    <header id="governance-summary" class="governance-page-header governance-summary">\n'
+        f'      <h1 class="governance-title">{html.escape(doc.title)}</h1>\n'
+        f'      <p class="governance-source"><code>{html.escape(doc.source_path)}</code></p>\n'
+        "    </header>\n"
+        '    <section id="governance-metadata" class="governance-section governance-metadata" '
+        'data-governance-section="metadata">\n'
+        '      <h2 class="governance-section-title">Metadata</h2>\n'
+        f'      <table class="governance-metadata-table">\n{metadata_rows}\n      </table>\n'
+        "    </section>\n"
+        '    <section id="governance-body" class="governance-section governance-document-body" '
+        'data-governance-section="body">\n'
+        '      <h2 class="governance-section-title">Body</h2>\n'
+        f"      {render_governance_markdown(doc.body)}\n"
+        "    </section>\n"
+        "  </main>\n"
         "</body>\n</html>\n"
     )
 
@@ -242,10 +264,13 @@ def _metadata_rows(
 ) -> str:
     rows: list[str] = []
     for key, value in sorted(doc.metadata.items()):
+        escaped_key = html.escape(key)
+        value_kind = _value_kind(value)
         rows.append(
-            "    <tr>"
-            f"<th>{html.escape(key)}</th>"
-            f"<td>{_metadata_value_html(root, output_path, key, value, link_index)}</td>"
+            f'        <tr class="governance-metadata-row" data-governance-field="{escaped_key}">'
+            f'<th class="governance-metadata-key">{escaped_key}</th>'
+            f'<td class="governance-metadata-value governance-metadata-value-{value_kind}">'
+            f"{_metadata_value_html(root, output_path, key, value, link_index)}</td>"
             "</tr>"
         )
     return "\n".join(rows)
@@ -258,12 +283,74 @@ def _metadata_value_html(
     value: object,
     link_index: Mapping[str, str],
 ) -> str:
+    if _is_table_array_value(value):
+        return _table_array_value_html(root, output_path, cast(list[object], value), link_index)
     if key in REF_KEYS and isinstance(value, list):
         items = [
             _ref_html(root, output_path, str(item), link_index)
             for item in cast(list[object], value)
         ]
-        return "<ul>" + "".join(f"<li>{item}</li>" for item in items) + "</ul>"
+        return (
+            '<ul class="governance-metadata-list">'
+            + "".join(f'<li class="governance-metadata-list-item">{item}</li>' for item in items)
+            + "</ul>"
+        )
+    return f"<code>{html.escape(str(value))}</code>"
+
+
+def _is_table_array_value(value: object) -> bool:
+    if not isinstance(value, list):
+        return False
+    return all(isinstance(item, dict) for item in cast(list[object], value))
+
+
+def _table_array_value_html(
+    root: Path,
+    output_path: Path,
+    value: list[object],
+    link_index: Mapping[str, str],
+) -> str:
+    items = [cast(Mapping[str, object], item) for item in value if isinstance(item, dict)]
+    rows = "".join(_evidence_row_html(root, output_path, item, link_index) for item in items)
+    return f'<table class="governance-evidence-table"><tbody>{rows}</tbody></table>'
+
+
+def _evidence_row_html(
+    root: Path,
+    output_path: Path,
+    item: Mapping[str, object],
+    link_index: Mapping[str, str],
+) -> str:
+    cells = "".join(
+        "<tr>"
+        f'<th class="governance-evidence-key">{html.escape(key)}</th>'
+        f'<td class="governance-evidence-value">'
+        f"{_evidence_value_html(root, output_path, key, raw_value, link_index)}</td>"
+        "</tr>"
+        for key, raw_value in sorted(item.items())
+    )
+    return f'<tr class="governance-evidence-item"><td colspan="2"><table>{cells}</table></td></tr>'
+
+
+def _evidence_value_html(
+    root: Path,
+    output_path: Path,
+    key: str,
+    value: object,
+    link_index: Mapping[str, str],
+) -> str:
+    if key in {"target", "surface_ref", "source_surface_ref", "target_surface_ref"}:
+        return _ref_html(root, output_path, str(value), link_index)
+    if key.endswith("_refs") and isinstance(value, list):
+        items = [
+            _ref_html(root, output_path, str(item), link_index)
+            for item in cast(list[object], value)
+        ]
+        return (
+            '<ul class="governance-metadata-list">'
+            + "".join(f'<li class="governance-metadata-list-item">{item}</li>' for item in items)
+            + "</ul>"
+        )
     return f"<code>{html.escape(str(value))}</code>"
 
 
@@ -274,11 +361,17 @@ def _ref_html(
     link_index: Mapping[str, str],
 ) -> str:
     if value in link_index:
-        return f'<a href="{html.escape(link_index[value])}">{html.escape(value)}</a>'
+        return (
+            f'<a class="governance-ref governance-ref-local" '
+            f'href="{html.escape(link_index[value])}">{html.escape(value)}</a>'
+        )
     if value.startswith("docs/") or value.startswith("tests/") or value.startswith("src/"):
         target = root / value
         href = _relative_href(output_path, target) if target.exists() else value
-        return f'<a href="{html.escape(href)}">{html.escape(value)}</a>'
+        return (
+            f'<a class="governance-ref governance-ref-file" '
+            f'href="{html.escape(href)}">{html.escape(value)}</a>'
+        )
     return html.escape(value)
 
 
@@ -290,6 +383,24 @@ def _css_links(css_hrefs: Sequence[str]) -> str:
     if not css_hrefs:
         return ""
     return "".join(f'  <link rel="stylesheet" href="{html.escape(href)}">\n' for href in css_hrefs)
+
+
+def _copy_default_css(output_root: Path) -> str:
+    output_root.mkdir(parents=True, exist_ok=True)
+    source = Path(__file__).resolve().parent / "assets" / "governance.css"
+    target = output_root / "governance.css"
+    shutil.copyfile(source, target)
+    return "governance.css"
+
+
+def _value_kind(value: object) -> str:
+    if isinstance(value, list):
+        return "list"
+    if isinstance(value, bool):
+        return "bool"
+    if isinstance(value, int | float):
+        return "number"
+    return "string"
 
 
 def _safe_filename(value: str) -> str:

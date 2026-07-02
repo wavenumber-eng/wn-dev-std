@@ -36,6 +36,17 @@ def test_docs_surfaces_audit_fails_missing_local_test_target(tmp_path: Path) -> 
     assert "tests/test_missing.py::test_core" in result.detail
 
 
+def test_docs_surfaces_audit_fails_local_ref_escape(tmp_path: Path) -> None:
+    outside = tmp_path.parent / "outside.py"
+    outside.write_text("VALUE = 1\n", encoding="utf-8")
+    write_surface_repo(tmp_path, test_target="../outside.py::test_core")
+
+    result = scope_result(tmp_path)
+
+    assert not result.passed
+    assert "escapes repository root" in result.detail
+
+
 def test_docs_surfaces_audit_allows_issue_linked_exception(tmp_path: Path) -> None:
     write_surface_repo(
         tmp_path,
@@ -157,8 +168,52 @@ def test_docs_surfaces_audit_fails_unused_active_fixture(tmp_path: Path) -> None
     assert "unused active fixture 'tests/fixtures/unused.json'" in result.detail
 
 
+def test_docs_surfaces_audit_fails_fixture_path_escape(tmp_path: Path) -> None:
+    outside = tmp_path.parent / "outside.json"
+    outside.write_text("{}\n", encoding="utf-8")
+    write_surface_repo(
+        tmp_path,
+        include_fixture_catalog=True,
+        fixture_ref_target="fixture.core",
+        fixture_catalog_path="../outside.json",
+    )
+
+    result = scope_result(tmp_path)
+
+    assert not result.passed
+    assert "fixture path escapes repository root" in result.detail
+
+
+def test_docs_surfaces_audit_fails_fixture_discovery_root_escape(tmp_path: Path) -> None:
+    write_surface_repo(
+        tmp_path,
+        include_fixture_catalog=True,
+        fixture_discovery_root="../outside-fixtures",
+    )
+
+    result = scope_result(tmp_path)
+
+    assert not result.passed
+    assert "fixture discovery root escapes repository" in result.detail
+
+
 def test_docs_surfaces_audit_allows_archived_missing_fixture(tmp_path: Path) -> None:
     write_surface_repo(tmp_path, include_fixture_catalog=True, include_archived_fixture=True)
+
+    result = scope_result(tmp_path)
+
+    assert result.passed
+
+
+def test_docs_surfaces_audit_allows_logical_fixture_case_refs(tmp_path: Path) -> None:
+    write_surface_repo(
+        tmp_path,
+        include_fixture_catalog=True,
+        fixture_ref_kind="fixture_case",
+        fixture_ref_target="case:synthetic:roundtrip:001",
+        fixture_catalog_kind="fixture_case",
+        fixture_catalog_id="case:synthetic:roundtrip:001",
+    )
 
     result = scope_result(tmp_path)
 
@@ -179,6 +234,12 @@ def write_surface_repo(
     include_fixture_catalog: bool = False,
     include_unused_fixture: bool = False,
     include_archived_fixture: bool = False,
+    fixture_ref_kind: str = "fixture_file",
+    fixture_ref_target: str = "tests/fixtures/core.json",
+    fixture_catalog_kind: str = "fixture_file",
+    fixture_catalog_id: str = "fixture.core",
+    fixture_catalog_path: str = "tests/fixtures/core.json",
+    fixture_discovery_root: str = "tests/fixtures",
     surface_domain: str = "core",
     test_target: str = "tests/test_core.py::test_core",
     verification_kind: str = "local_pytest",
@@ -210,6 +271,12 @@ def write_surface_repo(
             include_fixture_catalog=include_fixture_catalog,
             include_unused_fixture=include_unused_fixture,
             include_archived_fixture=include_archived_fixture,
+            fixture_ref_kind=fixture_ref_kind,
+            fixture_ref_target=fixture_ref_target,
+            fixture_catalog_kind=fixture_catalog_kind,
+            fixture_catalog_id=fixture_catalog_id,
+            fixture_catalog_path=fixture_catalog_path,
+            fixture_discovery_root=fixture_discovery_root,
             surface_domain=surface_domain,
             test_target=test_target,
             verification_kind=verification_kind,
@@ -225,6 +292,12 @@ def surface_manifest(
     include_fixture_catalog: bool,
     include_unused_fixture: bool,
     include_archived_fixture: bool,
+    fixture_ref_kind: str,
+    fixture_ref_target: str,
+    fixture_catalog_kind: str,
+    fixture_catalog_id: str,
+    fixture_catalog_path: str,
+    fixture_discovery_root: str,
     surface_domain: str,
     test_target: str,
     verification_kind: str,
@@ -237,7 +310,14 @@ def surface_manifest(
     )
     if not include_verification:
         verification = ""
-    fixtures = fixture_catalog_block(include_unused_fixture, include_archived_fixture)
+    fixtures = fixture_catalog_block(
+        include_unused_fixture,
+        include_archived_fixture,
+        fixture_catalog_kind,
+        fixture_catalog_id,
+        fixture_catalog_path,
+        fixture_discovery_root,
+    )
     if not include_fixture_catalog:
         fixtures = ""
     exception = ""
@@ -264,8 +344,8 @@ def surface_manifest(
         implementation_refs = ["src/core/api.py#list_core"]
 
         [[surfaces.fixture_refs]]
-        kind = "fixture_file"
-        target = "tests/fixtures/core.json"
+        kind = "{fixture_ref_kind}"
+        target = "{fixture_ref_target}"
         coverage_mode = "regression"
         rationale = "Exercises a stable fixture."
         {verification}
@@ -290,7 +370,14 @@ def verification_block(target: str, kind: str, repo: str) -> str:
     )
 
 
-def fixture_catalog_block(include_unused_fixture: bool, include_archived_fixture: bool) -> str:
+def fixture_catalog_block(
+    include_unused_fixture: bool,
+    include_archived_fixture: bool,
+    fixture_catalog_kind: str,
+    fixture_catalog_id: str,
+    fixture_catalog_path: str,
+    fixture_discovery_root: str,
+) -> str:
     unused = ""
     if include_unused_fixture:
         unused = dedent(
@@ -321,12 +408,13 @@ def fixture_catalog_block(include_unused_fixture: bool, include_archived_fixture
         f"""
 
         [fixture_governance]
-        discovery_roots = ["tests/fixtures"]
+        discovery_roots = ["{fixture_discovery_root}"]
+        ignore = ["tests/fixtures/core.json"]
 
         [[fixtures]]
-        id = "fixture.core"
-        kind = "json"
-        path = "tests/fixtures/core.json"
+        id = "{fixture_catalog_id}"
+        kind = "{fixture_catalog_kind}"
+        path = "{fixture_catalog_path}"
         status = "active"
         purpose = "Core API fixture."
         {unused}

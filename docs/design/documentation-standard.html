@@ -175,7 +175,10 @@ target = "tests/test_transform_docs.py::test_docs_exist"
     <code>superseded</code>. Active and implemented requirements must either
     define structured <code>[[verification_refs]]</code> entries or explicitly
     declare <code>verification_status = "unverified"</code> with an issue ref
-    that tracks the missing verification.
+    that tracks the missing verification. The <code>docs.requirements</code>
+    audit validates those verification refs directly: local verification
+    targets must stay inside the audited repo root and must resolve, while
+    external refs must name their owning repository.
   </p>
 
   <h2>Traceability Refs</h2>
@@ -245,6 +248,32 @@ target = "src/cpp/altium_monkey/pcbdoc.hpp:KeepoutRestrictionMask"</code></pre>
     <code>governance-heading</code>, <code>governance-paragraph</code>,
     <code>governance-strong</code>, and <code>governance-table</code> so
     projects can override presentation with their own CSS.
+  </p>
+  <p>
+    Generated governance pages include a default <code>governance.css</code>
+    copied into the output root. Its visual language follows the data_models
+    documentation baseline: monospace typography, quiet gray paper surfaces,
+    dark section bars, square corners, and table-first scanability. Projects
+    can still pass repeated <code>--css</code> values to layer additional
+    styles after the default stylesheet.
+  </p>
+  <p>
+    The page structure is intentionally stable for styling and future behavior:
+    <code>main#governance-page</code>, <code>section#governance-metadata</code>,
+    and <code>section#governance-body</code> wrap the main regions. Metadata
+    rows carry <code>data-governance-field</code> plus typed value classes such
+    as <code>governance-metadata-value-string</code> and
+    <code>governance-metadata-value-list</code>. This makes CSS-only
+    customization and later collapsible behavior possible without changing the
+    source Markdown contract.
+  </p>
+  <p>
+    Typed table metadata such as <code>verification_refs</code>,
+    <code>implementation_refs</code>, and exception refs renders as
+    <code>governance-evidence-table</code> content instead of opaque raw
+    strings. Targets and known ids are linked when the generator can resolve
+    them, giving reviewers a browseable path from requirement or ADR evidence
+    to tests, implementation files, and related governance records.
   </p>
 
   <h2>Domain Registry</h2>
@@ -358,12 +387,18 @@ rationale = "Python and C++ APIs should cover the same behavior."</code></pre>
   <p>
     Optional <code>[fixture_governance]</code> and <code>[[fixtures]]</code>
     sections let a repository distinguish registered fixtures, physically
-    discovered fixture files, ignored/generated/archived data, missing backing
+    discovered fixture files, logical case ids, synthetic vectors, oracle
+    artifacts, fixture sets, ignored/generated/archived data, missing backing
     files, and unused active fixtures. When a fixture catalog is present,
     surface fixture refs must target a registered fixture id or registered
-    path. Active fixtures must have backing files and be referenced by at least
-    one governed surface. Archived and ignored fixtures document provenance but
-    do not need to be used by active verification.
+    path. Active physical fixtures must have backing files and be referenced by
+    at least one governed surface. Logical fixtures such as
+    <code>fixture_case</code>, <code>synthetic_vector</code>,
+    <code>oracle_artifact</code>, <code>fixture_set</code>, and
+    <code>rack_evidence</code> are registered by id and purpose; they do not
+    need a local file path unless the project chooses to attach one. Archived
+    and ignored fixtures document provenance but do not need to be used by
+    active verification.
   </p>
 
   <h2>Rack Evidence Interface</h2>

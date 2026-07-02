@@ -388,12 +388,12 @@ def _validate_requirement_verification(
         return
     refs = _table_array(doc.metadata.get("verification_refs"))
     if refs:
+        _validate_typed_refs(root, doc, "verification_refs", failures)
         return
     issue_refs = _string_array(doc.metadata.get("issue_refs"))
     verification_status = _string_value(doc.metadata, "verification_status")
     if verification_status == "unverified" and issue_refs:
         return
-    del root
     failures.append(
         f"{doc.relative_path}: active/implemented requirement needs verification_refs "
         'or verification_status = "unverified" with issue_refs'
@@ -435,6 +435,9 @@ def _validate_path_ref_array(
         if _is_external_link(item):
             continue
         target = _path_ref_target(root, item)
+        if not _is_within_root(root, target):
+            failures.append(f"{doc.relative_path}: {key} target escapes repository root {item!r}")
+            continue
         if not target.exists():
             failures.append(f"{doc.relative_path}: missing {key} target {item!r}")
 
@@ -500,6 +503,9 @@ def _validate_local_typed_ref(
         return
     path_text = target.split("::", 1)[0]
     path = _path_ref_target(root, path_text)
+    if not _is_within_root(root, path):
+        failures.append(f"{label}: local target escapes repository root {target!r}")
+        return
     if not path.exists():
         failures.append(f"{label}: missing local target {target!r}")
     if kind == "local_pytest" and "::" not in target:
@@ -618,6 +624,14 @@ def _table_array(value: object) -> tuple[Mapping[str, object], ...]:
 def _path_ref_target(root: Path, item: str) -> Path:
     normalized = item.replace("\\", "/").split("#", 1)[0].split("?", 1)[0]
     return (root / normalized).resolve()
+
+
+def _is_within_root(root: Path, target: Path) -> bool:
+    try:
+        target.relative_to(root.resolve())
+    except ValueError:
+        return False
+    return True
 
 
 def _is_external_link(link: str) -> bool:

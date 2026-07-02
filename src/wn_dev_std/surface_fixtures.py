@@ -9,6 +9,7 @@ from typing import cast
 
 ACTIVE_FIXTURE_STATUSES = {"active", "generated"}
 INACTIVE_FIXTURE_STATUSES = {"archived", "ignored"}
+PHYSICAL_FIXTURE_KINDS = {"fixture_file", "physical_file", "corpus_file"}
 DEFAULT_FIXTURE_ROOTS = ("tests/fixtures",)
 DEFAULT_IGNORES = (
     ".git/**",
@@ -67,12 +68,13 @@ def _validate_fixture_entries(
     for index, fixture in enumerate(fixtures, start=1):
         label = f"{_rel(root, manifest_path)}: fixtures[{index}]"
         fixture_id = _required_string(fixture, "id", label, failures)
-        _required_string(fixture, "kind", label, failures)
-        path = _required_string(fixture, "path", label, failures)
+        kind = _required_string(fixture, "kind", label, failures)
+        path = _optional_string(fixture, "path")
         status = _required_string(fixture, "status", label, failures)
         _required_string(fixture, "purpose", label, failures)
         _validate_fixture_id(label, fixture_id, seen_ids, failures)
         _validate_fixture_status(label, status, failures)
+        _validate_fixture_path_presence(label, kind, path, failures)
         if fixture_id and path:
             fixture_paths[fixture_id] = path
             fixture_paths[path] = path
@@ -106,6 +108,16 @@ def _validate_fixture_status(label: str, status: str, failures: list[str]) -> No
         failures.append(f"{label}: invalid status {status!r}")
 
 
+def _validate_fixture_path_presence(
+    label: str,
+    kind: str,
+    path: str,
+    failures: list[str],
+) -> None:
+    if kind in PHYSICAL_FIXTURE_KINDS and not path:
+        failures.append(f"{label}: physical fixture kind {kind!r} requires path")
+
+
 def _validate_fixture_path(
     root: Path,
     label: str,
@@ -115,7 +127,11 @@ def _validate_fixture_path(
 ) -> None:
     if not path or status not in ACTIVE_FIXTURE_STATUSES:
         return
-    if not (root / path).exists():
+    target = (root / path).resolve()
+    if not _is_within_root(root, target):
+        failures.append(f"{label}: fixture path escapes repository root {path!r}")
+        return
+    if not target.exists():
         failures.append(f"{label}: missing fixture file {path!r}")
 
 
@@ -130,10 +146,11 @@ def _validate_unused_active_fixtures(
         fixture_id = _string_value(fixture.get("id"))
         status = _string_value(fixture.get("status"))
         path = _string_value(fixture.get("path"))
-        if status != "active" or not path:
+        if status != "active":
             continue
-        if path not in surface_fixture_targets and fixture_id not in surface_fixture_targets:
-            failures.append(f"{_rel(root, manifest_path)}: unused active fixture {path!r}")
+        if fixture_id not in surface_fixture_targets and path not in surface_fixture_targets:
+            label = path or fixture_id
+            failures.append(f"{_rel(root, manifest_path)}: unused active fixture {label!r}")
 
 
 def _validate_surface_fixture_registration(
@@ -162,17 +179,29 @@ def _validate_discovered_fixture_files(
         roots = DEFAULT_FIXTURE_ROOTS
     ignores = DEFAULT_IGNORES + _string_tuple(config.get("ignore") if config else None)
     registered_paths = set(fixture_paths.values())
-    for discovered in _discovered_files(root, roots, ignores):
+    for discovered in _discovered_files(root, manifest_path, roots, ignores, failures):
         if discovered not in registered_paths:
             failures.append(
                 f"{_rel(root, manifest_path)}: discovered unregistered fixture {discovered!r}"
             )
 
 
-def _discovered_files(root: Path, roots: tuple[str, ...], ignores: tuple[str, ...]) -> list[str]:
+def _discovered_files(
+    root: Path,
+    manifest_path: Path,
+    roots: tuple[str, ...],
+    ignores: tuple[str, ...],
+    failures: list[str],
+) -> list[str]:
     files: list[str] = []
     for root_text in roots:
         base = root / root_text
+        if not _is_within_root(root, base.resolve()):
+            failures.append(
+                f"{_rel(root, manifest_path)}: fixture discovery root escapes repository "
+                f"{root_text!r}"
+            )
+            continue
         if not base.exists():
             continue
         paths = (
@@ -201,6 +230,11 @@ def _required_string(
         return value
     failures.append(f"{label}: missing {key}")
     return ""
+
+
+def _optional_string(metadata: Mapping[str, object], key: str) -> str:
+    value = metadata.get(key)
+    return value.strip() if isinstance(value, str) else ""
 
 
 def _string_value(value: object) -> str:
@@ -233,3 +267,11 @@ def _table_array(value: object) -> tuple[Mapping[str, object], ...]:
 
 def _rel(root: Path, path: Path) -> str:
     return path.resolve().relative_to(root).as_posix()
+
+
+def _is_within_root(root: Path, target: Path) -> bool:
+    try:
+        target.relative_to(root.resolve())
+    except ValueError:
+        return False
+    return True

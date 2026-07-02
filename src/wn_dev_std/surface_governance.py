@@ -24,6 +24,13 @@ DEFAULT_DOMAIN_REGISTRY_PATH = Path("docs/governance/domain_registry.toml")
 ACTIVE_SURFACE_STATUSES = {"active", "implemented"}
 EXCEPTION_STATUSES_REQUIRING_ISSUES = {"deferred", "missing_capability"}
 LOCAL_REF_KINDS = {"local_file", "local_pytest", "fixture_file"}
+LOGICAL_REF_KINDS = {
+    "fixture_case",
+    "fixture_set",
+    "synthetic_vector",
+    "oracle_artifact",
+    "rack_evidence",
+}
 EXTERNAL_REF_KINDS = {
     "external_source",
     "external_test",
@@ -213,6 +220,8 @@ def _validate_one_typed_ref(
     _required_string(ref, "rationale", label, failures)
     if kind in LOCAL_REF_KINDS:
         _validate_local_typed_ref(root, label, kind, target, failures)
+    elif kind in LOGICAL_REF_KINDS:
+        return
     elif kind in EXTERNAL_REF_KINDS:
         _validate_external_typed_ref(label, ref, failures)
     elif kind:
@@ -230,6 +239,9 @@ def _validate_local_typed_ref(
         return
     path_text = target.split("::", 1)[0]
     path = (root / path_text).resolve()
+    if not _is_within_root(root, path):
+        failures.append(f"{label}: local target escapes repository root {target!r}")
+        return
     if not path.exists():
         failures.append(f"{label}: missing local target {target!r}")
     if kind == "local_pytest" and "::" not in target:
@@ -255,6 +267,9 @@ def _validate_local_path_ref(
         return
     path_text = target.replace("\\", "/").split("#", 1)[0].split("?", 1)[0]
     path = (root / path_text).resolve()
+    if not _is_within_root(root, path):
+        failures.append(f"{label}: local target escapes repository root {target!r}")
+        return
     if not path.exists():
         failures.append(f"{label}: missing local target {target!r}")
 
@@ -451,6 +466,14 @@ def _table_array(value: object) -> tuple[Mapping[str, object], ...]:
 
 def _rel(root: Path, path: Path) -> str:
     return path.resolve().relative_to(root).as_posix()
+
+
+def _is_within_root(root: Path, target: Path) -> bool:
+    try:
+        target.relative_to(root.resolve())
+    except ValueError:
+        return False
+    return True
 
 
 def _summarize_failures(label: str, failures: Sequence[str], limit: int = 10) -> str:

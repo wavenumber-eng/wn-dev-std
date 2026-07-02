@@ -21,6 +21,7 @@ def test_generate_governance_html_writes_pages_with_data_tags(tmp_path: Path) ->
     adr_page = tmp_path / "docs" / "generated" / "governance" / "adr" / "core-adr-0001.html"
     req_page = tmp_path / "docs" / "generated" / "governance" / "requirement" / "core-req-0001.html"
     assert index.exists()
+    assert (tmp_path / "docs" / "generated" / "governance" / "governance.css").exists()
     assert plan_page.exists()
     assert adr_page.exists()
     assert req_page.exists()
@@ -29,7 +30,13 @@ def test_generate_governance_html_writes_pages_with_data_tags(tmp_path: Path) ->
     assert 'data-governance-id="core-req-0001"' in text
     assert 'data-governance-source="docs/core/requirements/core-req-0001-demo.md"' in text
     assert '<link rel="stylesheet" href="governance.css">' in text
+    assert '<main id="governance-page" class="governance-page governance-page-requirement">' in text
+    assert 'id="governance-metadata"' in text
+    assert 'data-governance-field="status"' in text
+    assert 'class="governance-metadata-value governance-metadata-value-string"' in text
     assert "../adr/core-adr-0001.html" in text
+    assert 'class="governance-evidence-table"' in text
+    assert 'class="governance-evidence-key">target</th>' in text
     assert '<div class="governance-body">' in text
     assert '<h1 class="governance-heading governance-heading-1">Demo Requirement</h1>' in text
 

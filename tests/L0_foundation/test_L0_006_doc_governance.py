@@ -141,6 +141,64 @@ def test_docs_requirement_audit_fails_active_requirement_without_verification(
     assert "needs verification_refs" in result.detail
 
 
+def test_docs_requirement_audit_fails_bad_local_verification_target(
+    tmp_path: Path,
+) -> None:
+    write_file(
+        tmp_path / "docs" / "core" / "requirements" / "core-req-0001-demo.md",
+        dedent(
+            """
+            +++
+            type = "requirement"
+            id = "core-req-0001"
+            domain = "core"
+            status = "active"
+            title = "Demo"
+            created = "2026-07-02"
+
+            [[verification_refs]]
+            kind = "local_pytest"
+            target = "tests/test_missing.py::test_demo"
+            +++
+            """
+        ).lstrip(),
+    )
+
+    result = scope_result(tmp_path, "docs.requirements")
+
+    assert not result.passed
+    assert "missing local target" in result.detail
+
+
+def test_docs_traceability_audit_fails_local_ref_escape(tmp_path: Path) -> None:
+    outside = tmp_path.parent / "outside.py"
+    outside.write_text("VALUE = 1\n", encoding="utf-8")
+    write_file(
+        tmp_path / "docs" / "core" / "requirements" / "core-req-0001-demo.md",
+        dedent(
+            """
+            +++
+            type = "requirement"
+            id = "core-req-0001"
+            domain = "core"
+            status = "draft"
+            title = "Demo"
+            created = "2026-07-02"
+
+            [[implementation_refs]]
+            kind = "local_file"
+            target = "../outside.py"
+            +++
+            """
+        ).lstrip(),
+    )
+
+    result = scope_result(tmp_path, "docs.traceability")
+
+    assert not result.passed
+    assert "escapes repository root" in result.detail
+
+
 def test_docs_governance_audits_ignore_readme_index_pages(tmp_path: Path) -> None:
     write_file(tmp_path / "docs" / "core" / "adr" / "README.md", "# ADR Index\n")
     write_file(
