@@ -141,6 +141,20 @@ def test_docs_requirement_audit_fails_active_requirement_without_verification(
     assert "needs verification_refs" in result.detail
 
 
+def test_docs_governance_audits_ignore_readme_index_pages(tmp_path: Path) -> None:
+    write_file(tmp_path / "docs" / "core" / "adr" / "README.md", "# ADR Index\n")
+    write_file(
+        tmp_path / "docs" / "core" / "requirements" / "README.md",
+        "# Requirements Index\n",
+    )
+
+    adr_result = scope_result(tmp_path, "docs.adrs")
+    requirement_result = scope_result(tmp_path, "docs.requirements")
+
+    assert adr_result.passed
+    assert requirement_result.passed
+
+
 def test_docs_traceability_audit_validates_external_refs(tmp_path: Path) -> None:
     write_file(
         tmp_path / "docs" / "altium" / "requirements" / "altium-req-0001-keepout-mask.md",

@@ -192,6 +192,8 @@ def _candidate_governance_paths(root: Path, directory_name: str) -> tuple[Path, 
     for path in sorted((root / "docs").rglob("*.md")):
         if _is_excluded(path, root):
             continue
+        if path.name.lower() == "readme.md":
+            continue
         if directory_name in {part.lower() for part in path.parts}:
             paths.append(path)
     return tuple(paths)
