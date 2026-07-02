@@ -152,6 +152,15 @@ def test_log_create_reads_body_file(tmp_path: Path) -> None:
     assert payload["body"] == "# Log: work\n\nLonger log body from a file."
 
 
+def test_log_create_help_documents_body_file_for_long_entries(tmp_path: Path) -> None:
+    result = run_cli(tmp_path, "log", "create", "--help")
+
+    assert result.returncode == 0
+    assert "--body-file" in result.stdout
+    assert "longer Markdown" in result.stdout
+    assert "command-line length" in result.stdout
+
+
 def test_log_create_rejects_unknown_step(tmp_path: Path) -> None:
     write_plan_config(tmp_path)
     create_plan(tmp_path)

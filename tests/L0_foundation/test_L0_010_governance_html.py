@@ -44,11 +44,24 @@ def test_generate_governance_html_writes_pages_with_data_tags(tmp_path: Path) ->
         '<main id="dev-std-gov-page" class="dev-std-gov-page dev-std-gov-page-requirement">' in text
     )
     assert 'id="dev-std-gov-meta"' in text
+    assert text.index('data-dev-std-gov-field="id"') < text.index('data-dev-std-gov-field="status"')
+    assert text.index('data-dev-std-gov-field="status"') < text.index(
+        'data-dev-std-gov-field="adr_refs"'
+    )
+    assert 'class="dev-std-gov-meta-row dev-std-gov-meta-row-id"' in text
+    assert (
+        'class="dev-std-gov-meta-row dev-std-gov-meta-row-status '
+        'dev-std-gov-status dev-std-gov-status-active"'
+    ) in text
+    assert (
+        'class="dev-std-gov-meta-val dev-std-gov-meta-val-string '
+        'dev-std-gov-meta-val-status dev-std-gov-status dev-std-gov-status-active"'
+    ) in text
     assert 'data-dev-std-gov-field="status"' in text
-    assert 'class="dev-std-gov-meta-val dev-std-gov-meta-val-string"' in text
+    assert "dev-std-gov-meta-val-string" in text
     assert "../adr/core-adr-0001.html" in text
     assert 'class="dev-std-gov-evidence-table"' in text
-    assert 'class="dev-std-gov-evidence-key">target</th>' in text
+    assert 'class="dev-std-gov-evidence-key dev-std-gov-evidence-key-target">target</th>' in text
     assert 'href="../../../../tests/test_demo.py">tests/test_demo.py::test_demo</a>' in text
     assert '<div class="dev-std-gov-body">' in text
     assert '<h1 class="dev-std-gov-h dev-std-gov-h1">Demo Requirement</h1>' in text

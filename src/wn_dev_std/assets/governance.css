@@ -172,6 +172,22 @@ body {
   background: var(--wn-bg-alt);
 }
 
+.dev-std-gov-meta-row-id .dev-std-gov-meta-key,
+.dev-std-gov-meta-row-status .dev-std-gov-meta-key {
+  background: var(--wn-accent);
+}
+
+.dev-std-gov-meta-val-id code,
+.dev-std-gov-meta-val-status code,
+.dev-std-gov-evidence-value-id code,
+.dev-std-gov-evidence-value-status code {
+  font-weight: 700;
+}
+
+.dev-std-gov-status {
+  font-weight: 700;
+}
+
 .dev-std-gov-evidence-item > td {
   padding: 0;
 }

@@ -21,13 +21,23 @@ def register(subparsers: SubparserRegistry) -> None:
     parser = subparsers.add_parser(
         "create",
         help="Create a plan log",
-        description="Create a compliant work log attached to a plan.",
+        description=(
+            "Create a compliant work log attached to a plan step. Use --body "
+            "for short notes and --body-file for longer Markdown to avoid "
+            "shell command-line length, newline, and quoting limits."
+        ),
     )
     parser.add_argument("plan_id", help="Plan id to log against")
     parser.add_argument("step_id", help="Plan step id to attach the log to")
     body_group = parser.add_mutually_exclusive_group(required=True)
-    body_group.add_argument("--body", help="Markdown log body")
-    body_group.add_argument("--body-file", help="Path to a Markdown log body file")
+    body_group.add_argument("--body", help="Short Markdown log body")
+    body_group.add_argument(
+        "--body-file",
+        help=(
+            "Path to a Markdown log body file; preferred for longer entries "
+            "to avoid shell command-line length and quoting limits"
+        ),
+    )
     parser.add_argument("--id", dest="log_id", help="Log id")
     parser.add_argument("--created", help="Creation timestamp")
     add_root_argument(parser)

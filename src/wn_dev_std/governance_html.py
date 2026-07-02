@@ -57,6 +57,7 @@ REF_KEYS = (
     "design_refs",
     "schema_refs",
 )
+METADATA_FIELD_PRIORITY = ("id", "status")
 
 
 def generate_governance_html(
@@ -375,13 +376,15 @@ def _metadata_rows(
     link_index: Mapping[str, str],
 ) -> str:
     rows: list[str] = []
-    for key, value in sorted(doc.metadata.items()):
+    for key, value in sorted(doc.metadata.items(), key=_metadata_sort_key):
         escaped_key = html.escape(key)
         value_kind = _value_kind(value)
+        row_classes = _metadata_row_classes(key, value)
+        value_classes = _metadata_value_classes(key, value, value_kind)
         rows.append(
-            f'        <tr class="dev-std-gov-meta-row" data-dev-std-gov-field="{escaped_key}">'
+            f'        <tr class="{row_classes}" data-dev-std-gov-field="{escaped_key}">'
             f'<th class="dev-std-gov-meta-key">{escaped_key}</th>'
-            f'<td class="dev-std-gov-meta-val dev-std-gov-meta-val-{value_kind}">'
+            f'<td class="{value_classes}">'
             f"{_metadata_value_html(root, output_path, key, value, link_index)}</td>"
             "</tr>"
         )
@@ -445,11 +448,12 @@ def _evidence_row_html(
 ) -> str:
     cells = "".join(
         "<tr>"
-        f'<th class="dev-std-gov-evidence-key">{html.escape(key)}</th>'
-        f'<td class="dev-std-gov-evidence-value">'
+        f'<th class="dev-std-gov-evidence-key dev-std-gov-evidence-key-{_field_class_suffix(key)}">'
+        f"{html.escape(key)}</th>"
+        f'<td class="{_evidence_value_classes(key, raw_value)}">'
         f"{_evidence_value_html(root, output_path, key, raw_value, link_index)}</td>"
         "</tr>"
-        for key, raw_value in sorted(item.items())
+        for key, raw_value in sorted(item.items(), key=_metadata_sort_key)
     )
     return f'<tr class="dev-std-gov-evidence-item"><td colspan="2"><table>{cells}</table></td></tr>'
 
@@ -553,6 +557,55 @@ def _value_kind(value: object) -> str:
     if isinstance(value, int | float):
         return "number"
     return "string"
+
+
+def _metadata_sort_key(item: tuple[str, object]) -> tuple[int, str]:
+    key, _value = item
+    try:
+        return (METADATA_FIELD_PRIORITY.index(key), key)
+    except ValueError:
+        return (len(METADATA_FIELD_PRIORITY), key)
+
+
+def _metadata_row_classes(key: str, value: object) -> str:
+    classes = [
+        "dev-std-gov-meta-row",
+        f"dev-std-gov-meta-row-{_field_class_suffix(key)}",
+    ]
+    classes.extend(_status_classes(key, value))
+    return " ".join(classes)
+
+
+def _metadata_value_classes(key: str, value: object, value_kind: str) -> str:
+    classes = [
+        "dev-std-gov-meta-val",
+        f"dev-std-gov-meta-val-{value_kind}",
+        f"dev-std-gov-meta-val-{_field_class_suffix(key)}",
+    ]
+    classes.extend(_status_classes(key, value))
+    return " ".join(classes)
+
+
+def _evidence_value_classes(key: str, value: object) -> str:
+    classes = [
+        "dev-std-gov-evidence-value",
+        f"dev-std-gov-evidence-value-{_field_class_suffix(key)}",
+    ]
+    classes.extend(_status_classes(key, value))
+    return " ".join(classes)
+
+
+def _status_classes(key: str, value: object) -> list[str]:
+    if key != "status" or not isinstance(value, str) or not value:
+        return []
+    return ["dev-std-gov-status", f"dev-std-gov-status-{_field_class_suffix(value)}"]
+
+
+def _field_class_suffix(value: str) -> str:
+    suffix = "".join(char.lower() if char.isalnum() else "-" for char in value)
+    while "--" in suffix:
+        suffix = suffix.replace("--", "-")
+    return suffix.strip("-") or "empty"
 
 
 def _safe_filename(value: str) -> str:

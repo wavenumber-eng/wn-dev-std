@@ -225,6 +225,8 @@ def test_audit_and_plan_log_policy_is_documented() -> None:
         "log",
         "log show",
         "log create",
+        "--body-file",
+        "command-line length",
         "rogue",
         "v1_1_log.md",
         "worklogs",

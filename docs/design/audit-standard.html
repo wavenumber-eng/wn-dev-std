@@ -130,6 +130,13 @@ depends_on = ["audit-existing-plans"]</code></pre>
     or unknown step links so log history stays attached to plan execution
     state.
   </p>
+  <p>
+    <code>log create &lt;plan-id&gt; &lt;step-id&gt;</code> accepts
+    <code>--body</code> for short one-line notes and <code>--body-file</code>
+    for longer Markdown. Agents should prefer <code>--body-file</code> when a
+    log entry may run into shell command-line length, newline, or quoting
+    limits.
+  </p>
 
   <h2>Plan Exit Criteria</h2>
   <p>

@@ -112,7 +112,10 @@ status = "pending"
     <code>step_id</code>. The <code>dev-std plan</code> and
     <code>dev-std log</code> commands can create, read, and update canonical
     plan, step, and log files when the active plan catalog is already
-    compliant.
+    compliant. <code>log create</code> accepts <code>--body</code> for short
+    one-line notes and <code>--body-file</code> for longer Markdown so shell
+    command-line length, newline, and quoting limits do not shape the log
+    content.
   </p>
   <p>
     Exit criteria are the canonical answer to “are we done?” Each
@@ -286,11 +289,15 @@ target = "src/cpp/example/format.hpp:FormatBehavior"</code></pre>
     The page structure is intentionally stable for styling and future behavior:
     <code>main#dev-std-gov-page</code>, <code>section#dev-std-gov-meta</code>,
     and <code>section#dev-std-gov-body</code> wrap the main regions. Metadata
-    rows carry <code>data-dev-std-gov-field</code> plus typed value classes such
-    as <code>dev-std-gov-meta-val-string</code> and
-    <code>dev-std-gov-meta-val-list</code>. This makes CSS-only
-    customization and later collapsible behavior possible without changing the
-    source Markdown contract.
+    rows render <code>id</code> and <code>status</code> first when present, then
+    the remaining keys in stable order. Rows carry
+    <code>data-dev-std-gov-field</code> plus field-specific and typed value
+    classes such as <code>dev-std-gov-meta-row-status</code>,
+    <code>dev-std-gov-meta-val-id</code>,
+    <code>dev-std-gov-meta-val-string</code>, and
+    <code>dev-std-gov-status-active</code>. This makes CSS-only customization
+    and later collapsible behavior possible without changing the source
+    Markdown contract.
   </p>
   <p>
     Generated plan pages include a <code>section#dev-std-gov-plan-steps</code>

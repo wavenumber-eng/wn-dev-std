@@ -99,7 +99,9 @@
       the same root discovery and catalog validation used by <code>plan</code>.
       Log creation accepts either <code>--body</code> for short text or
       <code>--body-file</code> for longer Markdown that should avoid shell
-      command-line limits and quoting issues.
+      command-line length, newline, and quoting limits. Agents should prefer
+      <code>--body-file</code> whenever the log body is more than a short
+      one-line note.
     </p>
   </section>
 
