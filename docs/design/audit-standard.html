@@ -29,6 +29,16 @@
     <code>log show</code>, and <code>log create</code>. Delete, retire, and
     migration commands are future slices.
   </p>
+  <p>
+    Durable governance docs use adjacent scopes. <code>docs.adrs</code>
+    validates ADR metadata and standing-decision hygiene.
+    <code>docs.requirements</code> validates requirement metadata and
+    verification obligations. <code>docs.traceability</code> validates typed
+    local and external refs across issues, plans, ADRs, requirements, design
+    docs, source, schemas, and tests. <code>docs.links</code> validates local
+    documentation links in Markdown and HTML. These scopes are opt-in ratchets
+    during migration and can later be included in package signoff.
+  </p>
 
   <h2>Package Root Boundary</h2>
   <p>
@@ -146,6 +156,48 @@ status = "pending"</code></pre>
     historical or reverse-engineering material may be kept, but it should be
     renamed and classified as history, research, design, or another durable
     document type rather than left as an active-work log.
+  </p>
+
+  <h2>ADR And Requirement Audits</h2>
+  <p>
+    ADRs and requirements use the same TOML-front-matter pattern as plans, but
+    they are durable artifacts instead of temporary execution state.
+    <code>docs.adrs</code> expects <code>type = "adr"</code>, a domain-scoped
+    id such as <code>core-adr-0001</code>, a matching filename, and a valid ADR
+    status. Accepted ADRs fail when they still contain active-work language
+    such as open-question sections or release-exit cleanup text.
+  </p>
+  <p>
+    <code>docs.requirements</code> expects <code>type = "requirement"</code>,
+    a domain-scoped id such as <code>transforms-req-0001</code>, a matching
+    filename, and a valid requirement status. Active and implemented
+    requirements must declare <code>[[verification_refs]]</code>, or explicitly
+    set <code>verification_status = "unverified"</code> with an issue ref.
+  </p>
+
+  <h2>Traceability And Links</h2>
+  <p>
+    <code>docs.traceability</code> validates simple string ref arrays and typed
+    ref tables. Local refs must resolve when they point at repo files. External
+    source and test refs must name the owning repository so cross-repo and
+    cross-language verification is explicit.
+  </p>
+  <p>
+    <code>docs.links</code> scans Markdown and HTML documents under
+    <code>docs/</code> for local links. Missing local targets fail the scope;
+    external URLs, anchors, <code>mailto:</code>, and similar non-file links are
+    ignored. HTML links to raw ADR or requirement Markdown fail so design pages
+    point reviewers at generated governance pages instead of source files.
+  </p>
+
+  <h2>Signoff Adoption</h2>
+  <p>
+    Existing repositories should add governance scopes incrementally. A package
+    can start with <code>dev-std audit . --scope docs.adrs</code> or
+    <code>dev-std audit . --scope docs.requirements</code> in its local signoff
+    and then add <code>docs.traceability</code> and <code>docs.links</code> as
+    the repo is converted. The checks are designed to fail loudly with concrete
+    file paths so migration work can be planned rather than silently ignored.
   </p>
 </body>
 </html>

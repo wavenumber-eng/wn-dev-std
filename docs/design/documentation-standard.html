@@ -120,5 +120,103 @@ status = "pending"
     plans whose criteria are all <code>met</code> while the plan still remains
     <code>active</code>.
   </p>
+  <h2>ADR Metadata</h2>
+  <p>
+    Architecture decision records are durable decision artifacts. They use
+    Markdown files with TOML front matter and <code>type = "adr"</code>.
+    ADR ids are domain scoped: <code>core-adr-0001</code>,
+    <code>pcb-adr-0007</code>, or another <code>&lt;domain&gt;-adr-&lt;n&gt;</code>
+    form. The filename must start with the ADR id, and the document should live
+    under <code>docs/&lt;domain&gt;/adr/</code>.
+  </p>
+  <pre><code>+++
+type = "adr"
+id = "core-adr-0001"
+domain = "core"
+status = "accepted"
+title = "Record Durable Decisions"
+created = "2026-07-02"
+design_refs = ["docs/core/design/index.html"]
++++</code></pre>
+  <p>
+    ADR status values are <code>proposed</code>, <code>accepted</code>,
+    <code>deprecated</code>, and <code>superseded</code>. Accepted ADRs should
+    describe the standing decision and its stable context. They must not carry
+    active plan closeout language, open-question sections, or release-specific
+    cleanup instructions that belong in a plan or issue.
+  </p>
+
+  <h2>Requirement Metadata</h2>
+  <p>
+    Requirements are durable obligations that should be testable or explicitly
+    tracked as unverified. They use Markdown files with TOML front matter and
+    <code>type = "requirement"</code>. Requirement ids are domain scoped:
+    <code>transforms-req-0001</code>, <code>alx-req-0004</code>, or another
+    <code>&lt;domain&gt;-req-&lt;n&gt;</code> form. The filename must start
+    with the requirement id, and the document should live under
+    <code>docs/&lt;domain&gt;/requirements/</code>.
+  </p>
+  <pre><code>+++
+type = "requirement"
+id = "transforms-req-0001"
+domain = "transforms"
+status = "active"
+title = "Static Transform Mapping Documentation"
+created = "2026-07-02"
+adr_refs = ["transforms-adr-0001"]
+
+[[verification_refs]]
+kind = "local_pytest"
+target = "tests/test_transform_docs.py::test_docs_exist"
++++</code></pre>
+  <p>
+    Requirement status values are <code>draft</code>, <code>active</code>,
+    <code>implemented</code>, <code>deprecated</code>, and
+    <code>superseded</code>. Active and implemented requirements must either
+    define structured <code>[[verification_refs]]</code> entries or explicitly
+    declare <code>verification_status = "unverified"</code> with an issue ref
+    that tracks the missing verification.
+  </p>
+
+  <h2>Traceability Refs</h2>
+  <p>
+    ADRs, requirements, and plans may carry typed traceability metadata. Simple
+    relations use string arrays such as <code>issue_refs</code>,
+    <code>plan_refs</code>, <code>adr_refs</code>,
+    <code>requirement_refs</code>, <code>design_refs</code>, and
+    <code>schema_refs</code>. Local path refs must resolve. External issue refs
+    should use <code>owner/repo#number</code>.
+  </p>
+  <p>
+    Implementation and verification refs use arrays of tables so they can
+    describe local files, local pytest selectors, or external test/source
+    ownership in another repository or language.
+  </p>
+  <pre><code>[[verification_refs]]
+kind = "external_cpp_test"
+repo = "wavenumber-eng/altium_monkey"
+target = "tests/cpp/test_keepout.cpp::KeepoutRestrictionMaskMapping"
+
+[[implementation_refs]]
+kind = "external_source"
+repo = "wavenumber-eng/altium_monkey"
+target = "src/cpp/altium_monkey/pcbdoc.hpp:KeepoutRestrictionMask"</code></pre>
+
+  <h2>Generated Governance Pages</h2>
+  <p>
+    TOML-front-matter Markdown remains the source format for ADRs and
+    requirements because it is easy to diff and merge. Repositories may
+    generate HTML browse pages from that source. Generated governance pages
+    should carry <code>data-governance-type</code>,
+    <code>data-governance-id</code>, and <code>data-governance-source</code>
+    attributes so audits can connect the browse page back to the source
+    document.
+  </p>
+  <p>
+    Human-facing HTML design docs should link to generated governance pages
+    when those pages exist, not to raw ADR or requirement Markdown source. This
+    keeps review paths stable while preserving Markdown as the merge-friendly
+    source of truth.
+  </p>
 </body>
 </html>

@@ -70,6 +70,18 @@ def test_audit_docs_plans_scope_runs() -> None:
     assert "docs.plans" in result.stdout
 
 
+def test_audit_docs_governance_scopes_run() -> None:
+    for scope in (
+        "docs.adrs",
+        "docs.requirements",
+        "docs.traceability",
+        "docs.links",
+    ):
+        result = run_cli("audit", "--scope", scope)
+        assert result.returncode == 0
+        assert scope in result.stdout
+
+
 def test_check_remains_audit_compatibility_alias() -> None:
     audit = run_cli("audit", "--scope", "docs.plans", "--format", "json")
     check = run_cli("check", "--scope", "docs.plans", "--format", "json")

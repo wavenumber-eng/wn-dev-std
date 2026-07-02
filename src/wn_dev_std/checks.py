@@ -29,6 +29,12 @@ from wn_dev_std.check_profiles import (
 from wn_dev_std.compatibility_pruning import check_compatibility_pruning_policy
 from wn_dev_std.cpp_policy import check_clang_tidy_policy
 from wn_dev_std.design_doc_status import check_design_doc_status_policy
+from wn_dev_std.doc_governance import (
+    check_adr_policy,
+    check_link_policy,
+    check_requirement_policy,
+    check_traceability_policy,
+)
 from wn_dev_std.native_complexity import check_lizard_gate, check_native_signoff_config
 from wn_dev_std.plan_hygiene import check_plan_hygiene_policy
 from wn_dev_std.pr_hygiene import check_pr_hygiene_policy
@@ -59,8 +65,12 @@ AUDIT_SCOPES = (
     "all",
     "repo",
     "docs",
+    "docs.adrs",
     "docs.design",
+    "docs.links",
     "docs.plans",
+    "docs.requirements",
+    "docs.traceability",
     "language",
     "ci",
     "compat",
@@ -134,7 +144,32 @@ def _run_all_audit_checks(root: Path) -> tuple[CheckResult, ...]:
             "docs.plans",
         )
     )
+    checks.extend(_governance_doc_checks(resolved_root))
     return tuple(checks)
+
+
+def _governance_doc_checks(root: Path) -> list[CheckResult]:
+    """Run durable governance-document checks."""
+    adr_result = check_adr_policy(root)
+    requirement_result = check_requirement_policy(root)
+    traceability_result = check_traceability_policy(root)
+    link_result = check_link_policy(root)
+    return [
+        CheckResult("docs.adrs", adr_result.passed, adr_result.detail, "docs.adrs"),
+        CheckResult(
+            "docs.requirements",
+            requirement_result.passed,
+            requirement_result.detail,
+            "docs.requirements",
+        ),
+        CheckResult(
+            "docs.traceability",
+            traceability_result.passed,
+            traceability_result.detail,
+            "docs.traceability",
+        ),
+        CheckResult("docs.links", link_result.passed, link_result.detail, "docs.links"),
+    ]
 
 
 def _common_checks(

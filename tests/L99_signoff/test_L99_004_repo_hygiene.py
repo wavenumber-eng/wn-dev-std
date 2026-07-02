@@ -234,3 +234,33 @@ def test_audit_and_plan_log_policy_is_documented() -> None:
         ".git",
     ):
         assert expected in audit_doc
+
+
+def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:
+    audit_doc = (ROOT / "docs" / "design" / "audit-standard.html").read_text(encoding="utf-8")
+    documentation_doc = (ROOT / "docs" / "design" / "documentation-standard.html").read_text(
+        encoding="utf-8"
+    )
+    cli_doc = (ROOT / "docs" / "design" / "cli.html").read_text(encoding="utf-8")
+
+    for expected in (
+        "docs.adrs",
+        "docs.requirements",
+        "docs.traceability",
+        "docs.links",
+        "TOML front matter",
+        "external_cpp_test",
+    ):
+        assert expected in audit_doc or expected in documentation_doc
+    for expected in (
+        "docs.adrs",
+        "docs.requirements",
+        "docs.traceability",
+        "docs.links",
+    ):
+        assert expected in cli_doc
+
+    results = run_basic_checks(ROOT)
+    for name in ("docs.adrs", "docs.requirements", "docs.traceability", "docs.links"):
+        result = next(item for item in results if item.name == name)
+        assert result.passed
