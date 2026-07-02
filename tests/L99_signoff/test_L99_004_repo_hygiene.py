@@ -255,6 +255,8 @@ def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:
         "external_cpp_test",
         "minimal bootstrap",
         "generic signoff",
+        "governance html",
+        "data-governance-type",
     ):
         assert expected in audit_doc or expected in documentation_doc
     for expected in (
@@ -264,6 +266,7 @@ def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:
         "docs.surfaces",
         "docs.traceability",
         "docs.links",
+        "governance html",
     ):
         assert expected in cli_doc
 

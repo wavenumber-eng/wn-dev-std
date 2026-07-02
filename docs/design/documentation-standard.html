@@ -218,6 +218,25 @@ target = "src/cpp/altium_monkey/pcbdoc.hpp:KeepoutRestrictionMask"</code></pre>
     keeps review paths stable while preserving Markdown as the merge-friendly
     source of truth.
   </p>
+  <p>
+    <code>dev-std governance html --output &lt;dir&gt;</code> generates an
+    index plus per-record pages for compliant plans, logs, ADRs, and
+    requirements. Generated pages include
+    <code>data-governance-type</code>, <code>data-governance-id</code>,
+    <code>data-governance-source</code>,
+    <code>data-governance-status</code>, and
+    <code>data-governance-domain</code> where the source metadata provides the
+    value. The command accepts repeated <code>--css</code> arguments so
+    consumers can inject project-specific styles without editing generated
+    files.
+  </p>
+  <p>
+    Generated governance pages cross-link known local metadata refs such as
+    ADR ids, requirement ids, and plan ids to their generated HTML pages. Local
+    file refs under <code>docs/</code>, <code>src/</code>, and
+    <code>tests/</code> are linked when the target exists. Raw Markdown remains
+    the source of truth; generated HTML is a review and navigation artifact.
+  </p>
 
   <h2>Domain Registry</h2>
   <p>

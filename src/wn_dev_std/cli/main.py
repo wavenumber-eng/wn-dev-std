@@ -6,7 +6,17 @@ import argparse
 from collections.abc import Sequence
 from typing import Protocol, cast
 
-from wn_dev_std.cli.commands import adr, audit, check, log, plan, requirement, standard, version
+from wn_dev_std.cli.commands import (
+    adr,
+    audit,
+    check,
+    governance,
+    log,
+    plan,
+    requirement,
+    standard,
+    version,
+)
 
 
 class CommandHandler(Protocol):
@@ -32,6 +42,7 @@ def build_parser() -> argparse.ArgumentParser:
     adr.register(subparsers)
     audit.register(subparsers)
     check.register(subparsers)
+    governance.register(subparsers)
     log.register(subparsers)
     plan.register(subparsers)
     requirement.register(subparsers)

@@ -91,7 +91,7 @@ depends_on = ["marker-discovery"]
 [[steps]]
 id = "html-generation"
 title = "Generate HTML pages for plans, logs, ADRs, and requirements with configurable output and style hooks"
-status = "pending"
+status = "done"
 depends_on = ["inventory-commands", "domain-registry"]
 
 [[steps]]
@@ -219,12 +219,12 @@ status = "met"
 [[exit_criteria]]
 id = "html-generation"
 title = "dev-std can generate HTML pages for plans, logs, ADRs, and requirements with data attributes, standard styles, configurable output roots, cross-links, and optional consumer CSS injection"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "html-generation-tests"
 title = "HTML generation tests verify output paths, source metadata data-tags, escaped content, standard style linkage, cross-links, and custom CSS override/link injection"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "review-tests"
