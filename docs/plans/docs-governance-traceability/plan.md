@@ -95,10 +95,16 @@ status = "done"
 depends_on = ["inventory-commands", "domain-registry"]
 
 [[steps]]
+id = "governance-link-resolver"
+title = "Resolve governance refs from downstream docs to generated governance HTML pages"
+status = "pending"
+depends_on = ["html-generation", "traceability"]
+
+[[steps]]
 id = "review-release"
 title = "Review behavior and decide whether to release this dev-std slice"
 status = "active"
-depends_on = ["generated-docs", "proving-target", "signoff-guidance", "inventory-commands", "domain-registry", "governed-surfaces", "parity-evidence", "rack-evidence-interface", "marker-discovery", "bootstrap-guidance", "dev-std-marker", "html-generation"]
+depends_on = ["generated-docs", "proving-target", "signoff-guidance", "inventory-commands", "domain-registry", "governed-surfaces", "parity-evidence", "rack-evidence-interface", "marker-discovery", "bootstrap-guidance", "dev-std-marker", "html-generation", "governance-link-resolver"]
 
 [[steps]]
 id = "external-review"
@@ -225,6 +231,16 @@ status = "met"
 id = "html-generation-tests"
 title = "HTML generation tests verify output paths, source metadata data-tags, escaped content, standard style linkage, cross-links, and custom CSS override/link injection"
 status = "met"
+
+[[exit_criteria]]
+id = "governance-link-resolver"
+title = "dev-std owns a resolver for downstream docs to link ADR, requirement, plan, and log ids to generated governance HTML without hardcoded relative paths"
+status = "pending"
+
+[[exit_criteria]]
+id = "governance-link-resolver-tests"
+title = "Resolver tests cover generated hrefs from nested docs, missing governance ids, stale raw Markdown links, and configurable output roots"
+status = "pending"
 
 [[exit_criteria]]
 id = "review-tests"
@@ -430,6 +446,21 @@ present. Requirements should link ADRs, verification refs, implementation refs,
 design docs, schemas, issues, and related requirements. Cross-links should be
 resolved to generated HTML pages when possible and fall back to clearly labeled
 external or unresolved references when they cannot be resolved locally.
+
+Downstream design docs should not have to hardcode relative paths to generated
+ADR, requirement, plan, or log pages. `dev-std` should own a governance link
+resolver that can build an id-to-generated-page map from the same catalogs used
+by `dev-std gov html`. Repositories should be able to write stable hooks such as
+`data-dev-std-gov-ref="pcb-adr-0013"` or an equivalent configured marker in
+hand-authored HTML. The resolver should rewrite or validate those hooks against
+the generated governance output root and fail signoff on missing ids, stale raw
+Markdown links where generated pages exist, and bad relative output paths.
+
+Downstream repositories own only configuration: source roots, generated
+governance output location, and optional CSS or static-site URL bases. The
+catalog scan, id lookup, href computation, and audit failure policy belong in
+`dev-std` so the same behavior applies to data_models, viz, pcb_cruncher,
+Altium Monkey, appz, and future packages.
 
 ## Proving Result
 
