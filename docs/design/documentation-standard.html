@@ -64,6 +64,13 @@
     should fail release signoff until the relevant document is promoted to
     <code>accepted</code> or a clear release exception is recorded.
   </p>
+  <p>
+    Plan closeout requires an explicit design-doc intent audit. Agents must
+    review required design docs against the user's stated intent, the
+    implemented behavior, public contracts, and tests. A
+    <code>data-doc-status="accepted"</code> marker is necessary but not
+    sufficient when the implementation changed during the plan.
+  </p>
 
   <h2>Plan And Log Metadata</h2>
   <p>
@@ -93,9 +100,36 @@ id = "pcb-a0-alignment"
 status = "active"
 created = "2026-06-27"
 
+[[steps]]
+id = "work"
+title = "Execute plan work"
+status = "pending"
+
+[[steps]]
+id = "design-doc-intent-audit"
+title = "Audit required design docs against intent and implementation"
+status = "pending"
+depends_on = ["work"]
+
+[[steps]]
+id = "external-review"
+title = "Obtain independent external review"
+status = "pending"
+depends_on = ["work", "design-doc-intent-audit"]
+
 [[exit_criteria]]
 id = "signoff"
 title = "Focused signoff passes"
+status = "pending"
+
+[[exit_criteria]]
+id = "design-doc-intent-audit"
+title = "Required design docs match intent and implementation"
+status = "pending"
+
+[[exit_criteria]]
+id = "external-review"
+title = "Independent external review is complete"
 status = "pending"
 +++</code></pre>
   <p>
@@ -116,6 +150,11 @@ status = "pending"
     one-line notes and <code>--body-file</code> for longer Markdown so shell
     command-line length, newline, and quoting limits do not shape the log
     content.
+  </p>
+  <p>
+    Active/pending/blocked plans must include <code>design-doc-intent-audit</code>
+    and <code>external-review</code> as both step ids and exit-criterion ids.
+    The matching ids make the work item and closeout condition traceable.
   </p>
   <p>
     Exit criteria are the canonical answer to “are we done?” Each

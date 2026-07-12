@@ -49,6 +49,24 @@
     checksum when available, license file, local patches or pruning, consumers,
     update command, and owner.
   </p>
+  <p>
+    The shared governance catalog for new work is
+    <code>docs/governance/vendors.toml</code>. Each <code>[[vendors]]</code>
+    entry identifies an <code>id</code>, <code>kind</code>, <code>name</code>,
+    <code>upstream_url</code>, <code>version</code>, <code>license</code>,
+    <code>owner</code>, <code>update_command</code>, covered
+    <code>paths</code>, and <code>consumers</code>. The catalog is the package
+    source of truth for committed vendored source, minified JavaScript, WASM,
+    fonts, generated support bundles, and similar retained third-party drops.
+  </p>
+  <p>
+    Package-local JSON files such as <code>vendor_manifest.a0.json</code> are
+    compatibility inputs when an existing tool already consumes them. They may
+    continue to use a root <code>schema</code> field, but they do not replace
+    the shared vendor catalog unless the package explicitly documents an
+    adapter or compatibility path that maps the local manifest into
+    <code>docs/governance/vendors.toml</code>.
+  </p>
 
   <h2>Generated Source</h2>
   <p>

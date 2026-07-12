@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>JSON Contract Standard</title>
+</head>
+<body data-design="json-contract-standard" data-doc-status="accepted">
+  <h1>JSON Contract Standard</h1>
+  <p>
+    JSON files and payloads are durable contracts when they cross process,
+    language, repository, UI, or release boundaries. The standard separates
+    payload identity from validation-schema identity so projects can use strict
+    schemas without making every consumer brittle.
+  </p>
+
+  <h2>Payload Identity</h2>
+  <p>
+    Durable JSON object payloads should carry root <code>type</code> and
+    <code>version</code> fields. This is the preferred identity form for data
+    models consumed as Python objects, JavaScript objects, service payloads,
+    saved app state, interchange records, and other cross-language contracts.
+    Version values may use hardware-style stepping such as <code>a0</code>,
+    <code>a1</code>, or <code>b0</code> when that matches the project release
+    vocabulary.
+  </p>
+  <pre><code>{
+  "type": "wn.pcb.part",
+  "version": "a0",
+  "refdes": "U1"
+}</code></pre>
+
+  <h2>Variant Identity</h2>
+  <p>
+    Nested variant records should use <code>kind</code> when the parent object
+    already establishes the contract type and version. This keeps tagged unions
+    stable for Python, JavaScript, and schema validators without repeating the
+    root payload identity on every child object.
+  </p>
+
+  <h2>Schema-Labeled Files</h2>
+  <p>
+    A root <code>schema</code> field is allowed for config-like files, request
+    envelopes, status files, package-local manifests, and compatibility inputs
+    where consumers historically identify the file format by a single schema
+    name. New schema-labeled formats must document the schema name, accepted
+    versions or stepping rules, and the JSON Schema artifact that validates the
+    file. Existing <code>schema</code>-root manifests may remain compatibility
+    inputs; new cross-language model objects should prefer root
+    <code>type</code> plus <code>version</code>.
+  </p>
+
+  <h2>JSON Schema Artifacts</h2>
+  <p>
+    Every governed JSON object that can be validated should have a real JSON
+    Schema artifact. Schema documents use JSON Schema vocabulary fields such as
+    <code>$schema</code> and <code>$id</code>; those fields identify the
+    validator artifact, not the payload object. Schema filenames and
+    <code>$id</code> values should be versioned so validators can pin the
+    accepted contract.
+  </p>
+
+  <h2>Pydantic And Generated Schemas</h2>
+  <p>
+    Pydantic models are a good implementation mechanism for Python services,
+    local web servers, FastAPI routes, and Python-side validation. They do not
+    replace the source contract. When Pydantic exports JSON Schema, the exported
+    schema must be checked against the accepted contract docs and fixtures.
+    Discriminated unions should use the contract's <code>kind</code> field for
+    nested variants and preserve root <code>type</code> plus
+    <code>version</code> for durable payload objects.
+  </p>
+
+  <h2>Migration Rule</h2>
+  <p>
+    Repositories may contain both styles during migration. Standards work
+    should first classify each JSON surface as durable object payload,
+    config-like file, package-local manifest, or compatibility input. The rule
+    is to document and validate each surface, not to churn downstream repos just
+    to rename <code>schema</code> to <code>type</code> plus
+    <code>version</code>. Repo-specific migrations require their own plans.
+  </p>
+</body>
+</html>

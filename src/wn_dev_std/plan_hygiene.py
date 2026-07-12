@@ -95,6 +95,8 @@ PLAN_DOCUMENT_TYPES = ("plan", "plan_log")
 PLAN_STATUSES = ("active", "pending", "blocked")
 PLAN_STEP_STATUSES = ("pending", "active", "blocked", "done")
 PLAN_EXIT_CRITERION_STATUSES = ("pending", "met", "blocked")
+REQUIRED_PLAN_STEP_IDS = ("design-doc-intent-audit", "external-review")
+REQUIRED_PLAN_EXIT_CRITERION_IDS = ("design-doc-intent-audit", "external-review")
 PLAN_LIKE_NAME_TOKENS = ("plan", "roadmap")
 LOG_LIKE_NAME_TOKENS = (
     "plan_log",
@@ -620,6 +622,14 @@ def _validate_plan_step_state(
     if not steps:
         failures.append(f"{relative_path}: missing steps")
         return
+    step_ids = {step.step_id for step in steps}
+    missing_required_steps = [
+        step_id for step_id in REQUIRED_PLAN_STEP_IDS if step_id not in step_ids
+    ]
+    if missing_required_steps:
+        failures.append(
+            f"{relative_path}: missing required step ids: " + ", ".join(missing_required_steps)
+        )
     active_steps = [step.step_id for step in steps if step.status == "active"]
     if len(active_steps) > 1:
         failures.append(f"{relative_path}: more than one active step: " + ", ".join(active_steps))
@@ -640,6 +650,17 @@ def _validate_plan_exit_criteria_state(
     if not exit_criteria:
         failures.append(f"{relative_path}: missing exit_criteria")
         return
+    criterion_ids = {criterion.criterion_id for criterion in exit_criteria}
+    missing_required_criteria = [
+        criterion_id
+        for criterion_id in REQUIRED_PLAN_EXIT_CRITERION_IDS
+        if criterion_id not in criterion_ids
+    ]
+    if missing_required_criteria:
+        failures.append(
+            f"{relative_path}: missing required exit criterion ids: "
+            + ", ".join(missing_required_criteria)
+        )
     if plan_status == "active" and all(criterion.status == "met" for criterion in exit_criteria):
         failures.append(f"{relative_path}: all exit criteria are met but plan is still active")
 

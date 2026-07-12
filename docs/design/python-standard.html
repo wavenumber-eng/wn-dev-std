@@ -80,6 +80,26 @@
     old parsers ignore unknown fields. Required, renamed, removed, or semantic
     changes are breaking.
   </p>
+  <p>
+    JSON payload identity follows the
+    <a href="json-contract-standard.html">JSON Contract Standard</a>. Durable
+    object payloads should use root <code>type</code> plus
+    <code>version</code>, nested variants should use <code>kind</code>, and
+    config-like or compatibility files may use a documented root
+    <code>schema</code> field. Pydantic is an implementation and validation
+    mechanism for Python and FastAPI-style services; exported Pydantic JSON
+    Schema must still match the accepted contract docs and fixtures.
+  </p>
+
+  <h2>Python Runtime Window</h2>
+  <p>
+    The <code>wn-dev-std</code> reference package pins
+    <code>requires-python = "&gt;=3.12,&lt;3.13"</code>. This is a stability
+    choice for the executable standards package so CLI behavior, Ruff, Pyright,
+    Rack signoff, and generated metadata share one interpreter baseline.
+    Downstream Python projects may choose a wider or newer runtime window when
+    their compatibility contract and CI matrix prove it.
+  </p>
 
   <h2>Design Document Status</h2>
   <p>
@@ -121,6 +141,9 @@ excluded_parts = ["test_cases", "fixtures"]</code></pre>
     existing same-repo issue, Conventional Commit form for PR titles and commit
     subjects, commit subjects of 72 characters or fewer, and no <code>WIP</code>,
     emoji, or AI-vendor attribution in PR metadata or commit messages.
+    Reviewed public PRs should squash merge into <code>main</code> and avoid
+    non-linear public history unless a project-specific release exception
+    documents why branch history must be preserved.
   </p>
   <pre><code>[pr_hygiene]
 enabled = true</code></pre>

@@ -27,6 +27,9 @@ policy from source layout:
 - [CLI Design](docs/design/cli.html): public command surface.
 - [Artifact And Vendor Governance](docs/design/artifact-vendor-governance.html):
   build outputs, release channels, vendored code, and generated source.
+- [JSON Contract Standard](docs/design/json-contract-standard.html): JSON
+  object identity, schema-labeled files, JSON Schema artifacts, and Pydantic
+  usage.
 - [Architecture](docs/architecture.html): Rack, strata, and release signoff
   model.
 
@@ -67,6 +70,12 @@ uv run rack run --all
 
 The installed command is `dev-std`. The older `wn-dev-std` command remains as a
 compatibility alias for existing repositories and CI jobs.
+
+This package currently pins Python to `>=3.12,<3.13`. The pin is intentional for
+the standards reference package: it keeps Ruff, Pyright, Rack signoff, CLI
+behavior, and generated metadata on one interpreter baseline. Downstream
+projects can define their own runtime window when their compatibility contract
+requires it.
 
 ## Rack Model
 
@@ -183,6 +192,8 @@ Pure Python packages use:
 - Ruff and Pyright
 - strict typing
 - HTML design docs with explicit `data-doc-status` markers and JSON contracts
+- JSON object contracts with root `type` plus `version` for durable payloads,
+  `kind` for nested variants, and documented JSON Schema artifacts
 - date-based releases
 - GitHub Release published events for release validation
 - optional PyPI trusted publishing for projects that choose that distribution
@@ -310,6 +321,11 @@ issue, Conventional Commit form for PR titles and commit subjects, commit
 subjects of 72 characters or fewer, and no `WIP`, emoji, or AI-vendor
 attribution in PR metadata or commit messages.
 
+Public repos should merge through reviewed PRs with required CI and a squash
+merge into `main`. Do not use merge commits or accumulated local branch history
+to create a non-linear public `main` history unless a project-specific release
+exception documents why the history must be preserved.
+
 ## Design Doc Status
 
 HTML design docs under `docs/design` must declare `data-doc-status` with one of
@@ -336,6 +352,11 @@ folders, so packages with no active plans do not need empty placeholders. Plan
 documents use `type = "plan"` and work logs use `type = "plan_log"`.
 Plans must declare `[[exit_criteria]]` entries so closeout state is
 machine-readable.
+Every active/pending/blocked plan must include `design-doc-intent-audit` and
+`external-review` as both `[[steps]]` ids and `[[exit_criteria]]` ids. The
+design-doc audit step verifies required design docs still match the user's
+intent and the implemented behavior. The external-review step records
+independent review before closeout.
 Markdown names with a standalone `log` token, such as `v1_1_log.md`, are treated
 as log-like and must either be compliant `plan_log` files or be renamed and
 classified as durable documentation. Completed work is closed out into durable
@@ -381,12 +402,13 @@ helpers are intentionally left for a later tool pass.
 - [Audit Standard](docs/design/audit-standard.html)
 - [Documentation Standard](docs/design/documentation-standard.html)
 - [Artifact And Vendor Governance](docs/design/artifact-vendor-governance.html)
+- [JSON Contract Standard](docs/design/json-contract-standard.html)
 - [Build Documentation](docs/build.html)
 - [Python Standard Design](docs/design/python-standard.html)
 - [C++ Standard](docs/design/cpp-standard.html)
 - [Mixed Mode Standard](docs/design/mixed-mode.html)
 - [JavaScript Web App Standard](docs/design/javascript-standard.html)
-- [Release Notes](docs/releases/2026-07-02.md)
+- [Release Notes](docs/releases/2026-07-12.md)
 
 ## License
 

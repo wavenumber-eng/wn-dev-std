@@ -28,8 +28,12 @@ def test_plan_create_writes_compliant_plan(tmp_path: Path) -> None:
     assert 'id = "pcb-a0"' in plan_text
     assert "[[steps]]" in plan_text
     assert 'id = "work"' in plan_text
+    assert 'id = "design-doc-intent-audit"' in plan_text
+    assert 'id = "external-review"' in plan_text
     assert "[[exit_criteria]]" in plan_text
     assert 'title = "Focused signoff passes"' in plan_text
+    assert 'title = "Required design docs match intent and implementation"' in plan_text
+    assert 'title = "Independent external review is complete"' in plan_text
     audit = run_cli(tmp_path, "audit", "--scope", "docs.plans")
     assert audit.returncode == 0
     assert "1 plan(s)" in audit.stdout

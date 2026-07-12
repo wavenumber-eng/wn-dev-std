@@ -217,9 +217,31 @@ def write_compliant_plan_repo(root: Path) -> None:
             status = "pending"
             depends_on = ["audit"]
 
+            [[steps]]
+            id = "design-doc-intent-audit"
+            title = "Audit required design docs against intent and implementation"
+            status = "pending"
+            depends_on = ["release"]
+
+            [[steps]]
+            id = "external-review"
+            title = "Obtain independent external review"
+            status = "pending"
+            depends_on = ["release", "design-doc-intent-audit"]
+
             [[exit_criteria]]
             id = "signoff"
             title = "Focused signoff passes"
+            status = "pending"
+
+            [[exit_criteria]]
+            id = "design-doc-intent-audit"
+            title = "Required design docs match intent and implementation"
+            status = "pending"
+
+            [[exit_criteria]]
+            id = "external-review"
+            title = "Independent external review is complete"
             status = "pending"
             +++
 

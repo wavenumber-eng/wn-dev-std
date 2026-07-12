@@ -98,6 +98,13 @@ roots = ["docs/pcb/plans", "docs/sch/plans"]</code></pre>
     <code>[[steps]]</code> entry and at least one structured
     <code>[[exit_criteria]]</code> entry.
   </p>
+  <p>
+    Every active/pending/blocked plan must also include the step ids
+    <code>design-doc-intent-audit</code> and <code>external-review</code>.
+    The design-doc audit step verifies required design docs against the user's
+    intent, the implemented behavior, public contracts, and tests. The
+    external-review step records independent review before closeout.
+  </p>
   <pre><code>+++
 type = "plan_log"
 id = "pcb-a0-2026-06-27-001"
@@ -158,6 +165,13 @@ depends_on = ["audit-existing-plans"]</code></pre>
 id = "signoff"
 title = "Focused signoff passes"
 status = "pending"</code></pre>
+  <p>
+    Every active/pending/blocked plan must include exit criteria with ids
+    <code>design-doc-intent-audit</code> and <code>external-review</code>.
+    These ids are intentionally the same as the required step ids: the step is
+    the work item, and the exit criterion is the observable condition that the
+    work satisfied.
+  </p>
   <p>
     Valid exit-criterion statuses are <code>pending</code>, <code>met</code>,
     and <code>blocked</code>. The <code>docs.plans</code> audit fails a plan
@@ -302,6 +316,15 @@ status = "pending"</code></pre>
     <code>docs.release</code> as applicable. The checks are designed to fail
     loudly with concrete file paths so migration work can be planned rather
     than silently ignored.
+  </p>
+  <p>
+    A signoff checklist must first identify whether the repository uses Rack.
+    Rack-based repositories should declare signoff strata, normally including
+    <code>L99_signoff</code>, and that stratum should run the release-facing
+    gates for the project profile. Non-Rack repositories still need an explicit
+    package signoff command with equivalent measurable gates. In either model,
+    the checklist must name the local command, the governance scopes it runs,
+    and the criteria that make signoff fail.
   </p>
   <p>
     A minimal bootstrap for an existing package is:
