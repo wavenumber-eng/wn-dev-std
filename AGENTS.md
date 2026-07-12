@@ -50,6 +50,9 @@ uv run rack run L99_signoff
 
 - `main` should represent the latest released/tagged source.
 - Public changes should merge through PRs with required CI.
+- Public PRs should squash merge into `main`; avoid merge commits or preserved
+  branch history that creates non-linear public history unless a documented
+  release exception requires it.
 - GitHub Release publication triggers release validation for this model repo.
 - Do not publish this repository to PyPI.
 - Date-based versions are standard, for example `2026.6.4`.

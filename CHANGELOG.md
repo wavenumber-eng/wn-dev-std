@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026.7.12
+
+- Add the JSON Contract Standard for root `type`/`version`, nested `kind`,
+  schema-labeled compatibility files, JSON Schema artifacts, and Pydantic
+  usage.
+- Require active plans to include `design-doc-intent-audit` and
+  `external-review` as both steps and exit criteria.
+- Document vendor-manifest compatibility, signoff checklist expectations,
+  Python 3.12 pin rationale, and squash/no-linear-history PR policy.
+- Close the completed standards-governance issues and leave release-mode
+  artifact audit and CLI/config-validation tooling for follow-up slices.
+
 ## 2026.7.2
 
 - Add durable governance audits for ADRs, requirements, domains, governed

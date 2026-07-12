@@ -177,10 +177,18 @@ def test_public_pr_hygiene_policy_is_documented_and_installed() -> None:
 
     assert workflow == workflow_template
     assert pr_template == pr_template_source
+    agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+    contributing = (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
+
     for text in (workflow, readme, python_doc):
         assert "Linked issue:" in text
         assert "Conventional Commit" in text
         assert "Claude" in text or ("AI-vendor" in text and "attribution" in text)
+    for text in (readme, python_doc, agents, contributing):
+        normalized = " ".join(text.lower().split())
+        assert "squash" in normalized
+        assert "main" in normalized
+        assert "non-linear public" in normalized or "linear" in normalized
 
     hygiene_check = next(
         result for result in run_basic_checks(ROOT) if result.name == "public PR hygiene"
@@ -199,6 +207,8 @@ def test_design_doc_status_policy_is_documented_and_clean() -> None:
         assert "proposal" in text
         assert "accepted" in text
         assert "superseded" in text
+        assert "design-doc intent audit" in text or "design-doc-intent-audit" in text
+        assert "implemented behavior" in text
 
     status_check = next(
         result for result in run_basic_checks(ROOT) if result.name == "design doc status"
@@ -220,6 +230,8 @@ def test_audit_and_plan_log_policy_is_documented() -> None:
         assert "plan_log" in normalized
         assert "complete" in normalized
         assert "[[steps]]" in normalized
+        assert "design-doc-intent-audit" in normalized
+        assert "external-review" in normalized
 
     for expected in (
         "Approved roots are allowed locations, not required folders",
@@ -237,12 +249,55 @@ def test_audit_and_plan_log_policy_is_documented() -> None:
         "rogue",
         "v1_1_log.md",
         "worklogs",
+        "L99_signoff",
+        "signoff checklist",
         "package root",
         "wn-dev-std.toml",
         "[tool.wn_dev_std]",
         ".git",
     ):
         assert expected in audit_doc
+
+
+def test_json_contract_policy_is_documented() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    json_doc = (ROOT / "docs" / "design" / "json-contract-standard.html").read_text(
+        encoding="utf-8"
+    )
+    python_doc = (ROOT / "docs" / "design" / "python-standard.html").read_text(encoding="utf-8")
+
+    for text in (readme, json_doc, python_doc):
+        normalized = " ".join(text.split())
+        assert "type" in normalized
+        assert "version" in normalized
+        assert "kind" in normalized
+        assert "JSON Schema" in normalized
+    for expected in (
+        "schema-labeled",
+        "Pydantic",
+        "FastAPI",
+        "$schema",
+        "$id",
+        "compatibility inputs",
+    ):
+        assert expected in json_doc
+
+
+def test_vendor_manifest_policy_is_documented() -> None:
+    vendor_doc = (ROOT / "docs" / "design" / "artifact-vendor-governance.html").read_text(
+        encoding="utf-8"
+    )
+    for expected in (
+        "docs/governance/vendors.toml",
+        "[[vendors]]",
+        "vendor_manifest.a0.json",
+        "schema",
+        "compatibility inputs",
+        "minified JavaScript",
+        "WASM",
+        "fonts",
+    ):
+        assert expected in vendor_doc
 
 
 def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:

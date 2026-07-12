@@ -42,6 +42,18 @@ def test_docs_plans_audit_passes_plan_with_steps(tmp_path: Path) -> None:
             ("audit", "Audit models", "done", ()),
             ("fix", "Fix model issues", "active", ("audit",)),
             ("verify", "Run signoff", "pending", ("fix",)),
+            (
+                "design-doc-intent-audit",
+                "Audit design docs against implementation",
+                "pending",
+                ("verify",),
+            ),
+            (
+                "external-review",
+                "Obtain independent external review",
+                "pending",
+                ("design-doc-intent-audit",),
+            ),
         ),
     )
 
@@ -87,6 +99,91 @@ def test_docs_plans_audit_fails_plan_without_steps(tmp_path: Path) -> None:
 
     assert not result.passed
     assert "missing steps" in result.detail
+
+
+def test_docs_plans_audit_fails_plan_without_required_review_step(tmp_path: Path) -> None:
+    write_plan(
+        tmp_path,
+        "docs/plans/pcb-a0/plan.md",
+        "pcb-a0",
+        "active",
+        steps=(
+            ("work", "Execute plan work", "pending", ()),
+            (
+                "design-doc-intent-audit",
+                "Audit required design docs",
+                "pending",
+                ("work",),
+            ),
+        ),
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "missing required step ids: external-review" in result.detail
+
+
+def test_docs_plans_audit_fails_plan_without_design_doc_audit_step(tmp_path: Path) -> None:
+    write_plan(
+        tmp_path,
+        "docs/plans/pcb-a0/plan.md",
+        "pcb-a0",
+        "active",
+        steps=(
+            ("work", "Execute plan work", "pending", ()),
+            ("external-review", "Obtain independent external review", "pending", ("work",)),
+        ),
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "missing required step ids: design-doc-intent-audit" in result.detail
+
+
+def test_docs_plans_audit_fails_plan_without_required_review_exit_criterion(
+    tmp_path: Path,
+) -> None:
+    write_plan(
+        tmp_path,
+        "docs/plans/pcb-a0/plan.md",
+        "pcb-a0",
+        "active",
+        exit_criteria=(
+            ("signoff", "Run signoff", "pending"),
+            (
+                "design-doc-intent-audit",
+                "Required design docs match implementation",
+                "pending",
+            ),
+        ),
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "missing required exit criterion ids: external-review" in result.detail
+
+
+def test_docs_plans_audit_fails_plan_without_design_doc_audit_exit_criterion(
+    tmp_path: Path,
+) -> None:
+    write_plan(
+        tmp_path,
+        "docs/plans/pcb-a0/plan.md",
+        "pcb-a0",
+        "active",
+        exit_criteria=(
+            ("signoff", "Run signoff", "pending"),
+            ("external-review", "Independent external review is complete", "pending"),
+        ),
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "missing required exit criterion ids: design-doc-intent-audit" in result.detail
 
 
 def test_docs_plans_audit_fails_duplicate_exit_criteria_ids(tmp_path: Path) -> None:
@@ -496,9 +593,31 @@ def write_plan(
     exit_criteria: tuple[tuple[str, str, str], ...] | None = None,
 ) -> None:
     if steps is None:
-        steps = (("work", "Execute plan work", "pending", ()),)
+        steps = (
+            ("work", "Execute plan work", "pending", ()),
+            (
+                "design-doc-intent-audit",
+                "Audit required design docs against intent and implementation",
+                "pending",
+                ("work",),
+            ),
+            (
+                "external-review",
+                "Obtain independent external review",
+                "pending",
+                ("work", "design-doc-intent-audit"),
+            ),
+        )
     if exit_criteria is None:
-        exit_criteria = (("signoff", "Exit criteria are reviewed", "pending"),)
+        exit_criteria = (
+            ("signoff", "Exit criteria are reviewed", "pending"),
+            (
+                "design-doc-intent-audit",
+                "Required design docs match intent and implementation",
+                "pending",
+            ),
+            ("external-review", "Independent external review is complete", "pending"),
+        )
     front_matter = [
         'type = "plan"',
         f'id = "{plan_id}"',

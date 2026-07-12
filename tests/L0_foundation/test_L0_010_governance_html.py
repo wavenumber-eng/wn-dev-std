@@ -100,9 +100,31 @@ def write_governance_repo(root: Path) -> None:
             title = "Implement demo"
             status = "active"
 
+            [[steps]]
+            id = "design-doc-intent-audit"
+            title = "Audit required design docs against intent and implementation"
+            status = "pending"
+            depends_on = ["implement"]
+
+            [[steps]]
+            id = "external-review"
+            title = "Obtain independent external review"
+            status = "pending"
+            depends_on = ["implement", "design-doc-intent-audit"]
+
             [[exit_criteria]]
             id = "review"
             title = "Review is complete"
+            status = "pending"
+
+            [[exit_criteria]]
+            id = "design-doc-intent-audit"
+            title = "Required design docs match intent and implementation"
+            status = "pending"
+
+            [[exit_criteria]]
+            id = "external-review"
+            title = "Independent external review is complete"
             status = "pending"
             +++
 
