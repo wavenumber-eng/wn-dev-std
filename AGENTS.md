@@ -54,7 +54,8 @@ uv run rack run L99_signoff
   branch history that creates non-linear public history unless a documented
   release exception requires it.
 - GitHub Release publication triggers release validation for this model repo.
-- Do not publish this repository to PyPI.
+- Publish released `wn-dev-std` versions to PyPI so downstream projects can pin
+  a reviewed governance tool version in CI.
 - Date-based versions are standard, for example `2026.6.4`.
 - Same-day follow-up releases append a fourth segment, for example
   `2026.6.4.1`.

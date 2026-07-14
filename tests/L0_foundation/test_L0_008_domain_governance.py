@@ -4,6 +4,7 @@ from pathlib import Path
 from textwrap import dedent
 
 import pytest
+from config_fixtures import standard_config
 
 from wn_dev_std.checks import CheckResult, run_audit_checks
 
@@ -114,8 +115,7 @@ def test_docs_domains_audit_fails_unknown_adr_domain(tmp_path: Path) -> None:
 
 def scope_result(root: Path) -> CheckResult:
     results = run_audit_checks(root, ("docs.domains",))
-    assert len(results) == 1
-    return results[0]
+    return next(result for result in results if result.scope == "docs.domains")
 
 
 def write_domain_repo(
@@ -125,7 +125,10 @@ def write_domain_repo(
     include_api_domain: bool = False,
     domain_html: str = "docs/domains/core.html",
 ) -> None:
-    write_file(root / "dev-std.toml", 'profile = "python-package"\n')
+    write_file(
+        root / "dev-std.toml",
+        standard_config(),
+    )
     write_file(root / "src" / "core" / "core.py", "VALUE = 1\n")
     write_file(root / "tests" / "test_core.py", "def test_core(): pass\n")
     if include_domain_html:

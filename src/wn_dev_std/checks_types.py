@@ -13,12 +13,19 @@ class CheckResult:
     passed: bool
     detail: str
     scope: str = "repo"
+    member: str | None = None
+    warning: bool = False
 
     def to_dict(self) -> dict[str, object]:
         """Return a JSON-serializable representation."""
-        return {
+        payload: dict[str, object] = {
             "name": self.name,
             "passed": self.passed,
             "detail": self.detail,
             "scope": self.scope,
         }
+        if self.member is not None:
+            payload["member"] = self.member
+        if self.warning:
+            payload["level"] = "warning"
+        return payload

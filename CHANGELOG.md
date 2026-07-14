@@ -1,12 +1,26 @@
 # Changelog
 
-## 2026.7.12
+## 2026.7.14
 
+- Add `standard_version` config alignment checks, configured audit scopes,
+  workspace member aggregation, and optional PyPI upstream-version warnings.
+- Run only the checks needed for requested audit scopes so large workspace
+  audits do not pay setup cost for unrelated governance areas.
+- Keep upstream-version probes warning-only when PyPI or an intermediary
+  returns malformed HTTP protocol responses.
+- Move browser/web policy checks into a dedicated module without changing
+  their behavior.
+- Document pinned PyPI `wn-dev-std` usage for downstream governance CI and
+  repair the local release policy guidance.
 - Add the JSON Contract Standard for root `type`/`version`, nested `kind`,
   schema-labeled compatibility files, JSON Schema artifacts, and Pydantic
   usage.
-- Require active plans to include `design-doc-intent-audit` and
-  `external-review` as both steps and exit criteria.
+- Require active plans to include a closeout governance-doc audit and external
+  review as both steps and exit criteria, and order final review after the
+  design-doc/ADR/requirement alignment checkpoint.
+- Fail attempted plan closeout states such as `done`, `closed`, `complete`,
+  and `finished` with guidance to move durable information into design docs,
+  ADRs, requirements, tests, or release notes before deleting the active plan.
 - Document vendor-manifest compatibility, signoff checklist expectations,
   Python 3.12 pin rationale, and squash/no-linear-history PR policy.
 - Close the completed standards-governance issues and leave release-mode

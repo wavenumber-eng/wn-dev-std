@@ -145,6 +145,42 @@ Run the repository audit checks against the current repo:
 dev-std audit .
 dev-std audit . --format json
 dev-std audit . --scope docs.plans
+dev-std audit . --check-upstream-version
+```
+
+Configured repositories must declare the standard version they target:
+
+```toml
+standard_version = "2026.7.14"
+profile = "python-package"
+```
+
+When the config has `enabled_scopes`, `dev-std audit .` runs those scopes by
+default and still runs the unfiltered config-version check. Passing a targeted
+scope set is partial governance adoption, not full profile conformance:
+
+```toml
+standard_version = "2026.7.14"
+profile = "zephyr-firmware"
+enabled_scopes = ["docs.plans"]
+```
+
+Workspace roots aggregate explicitly registered package/application policy
+boundaries. Members are policy boundaries, not every build target:
+
+```toml
+standard_version = "2026.7.14"
+kind = "workspace"
+
+[workspace]
+members = ["bom_cruncher", "lib_cruncher", "panel-monkey"]
+```
+
+GitHub Actions should run this governance gate before expensive platform jobs,
+using a pinned PyPI release that matches `standard_version`:
+
+```bash
+uvx --from wn-dev-std==2026.7.14 dev-std audit .
 ```
 
 The `check` command is a compatibility alias for `audit`:
@@ -408,7 +444,7 @@ helpers are intentionally left for a later tool pass.
 - [C++ Standard](docs/design/cpp-standard.html)
 - [Mixed Mode Standard](docs/design/mixed-mode.html)
 - [JavaScript Web App Standard](docs/design/javascript-standard.html)
-- [Release Notes](docs/releases/2026-07-12.md)
+- [Release Notes](docs/releases/2026-07-14.md)
 
 ## License
 

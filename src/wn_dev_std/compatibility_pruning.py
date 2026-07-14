@@ -23,6 +23,7 @@ DEFAULT_PRUNING_EXCLUDED_PARTS = {
     ".ruff_cache",
     ".tox",
     ".venv",
+    ".venv-posix",
     "__pycache__",
     "_build",
     "build",
@@ -173,7 +174,11 @@ def _should_scan(
     policy: CandidatePolicy,
 ) -> bool:
     excluded_parts, excluded_paths, excluded_names, suffixes, names = policy
-    if not path.is_file():
+    try:
+        is_file = path.is_file()
+    except OSError:
+        return False
+    if not is_file:
         return False
     relative_path = path.relative_to(root)
     if path.name in excluded_names:
@@ -192,7 +197,7 @@ def _path_violations(
 ) -> list[str]:
     try:
         lines = path.read_text(encoding="utf-8-sig").splitlines()
-    except UnicodeDecodeError:
+    except (OSError, UnicodeDecodeError):
         return []
 
     relative_path = path.relative_to(root).as_posix()

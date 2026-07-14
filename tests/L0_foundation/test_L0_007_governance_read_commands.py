@@ -6,6 +6,8 @@ import sys
 from pathlib import Path
 from textwrap import dedent
 
+from config_fixtures import standard_config
+
 
 def test_adr_list_and_show_match_plan_read_conventions(tmp_path: Path) -> None:
     write_governance_repo(tmp_path)
@@ -39,7 +41,10 @@ def test_requirement_list_and_show_match_plan_read_conventions(tmp_path: Path) -
 
 
 def test_governance_read_commands_fail_on_legacy_adr_markdown(tmp_path: Path) -> None:
-    write_file(tmp_path / "dev-std.toml", 'profile = "python-package"\n')
+    write_file(
+        tmp_path / "dev-std.toml",
+        standard_config(),
+    )
     write_file(tmp_path / "docs" / "core" / "adr" / "legacy-adr.md", "# Legacy\n")
 
     result = run_cli(tmp_path, "adr", "list")
@@ -52,7 +57,10 @@ def test_governance_read_commands_fail_on_legacy_adr_markdown(tmp_path: Path) ->
 def test_governance_read_commands_fail_on_legacy_requirement_markdown(
     tmp_path: Path,
 ) -> None:
-    write_file(tmp_path / "dev-std.toml", 'profile = "python-package"\n')
+    write_file(
+        tmp_path / "dev-std.toml",
+        standard_config(),
+    )
     write_file(
         tmp_path / "docs" / "core" / "requirements" / "legacy-requirement.md",
         "# Legacy\n",
@@ -76,7 +84,10 @@ def run_cli(cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
 
 
 def write_governance_repo(root: Path) -> None:
-    write_file(root / "dev-std.toml", 'profile = "python-package"\n')
+    write_file(
+        root / "dev-std.toml",
+        standard_config(),
+    )
     write_file(
         root / "docs" / "core" / "adr" / "core-adr-0001-record.md",
         dedent(

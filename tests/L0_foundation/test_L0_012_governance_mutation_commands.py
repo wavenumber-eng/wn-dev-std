@@ -5,9 +5,14 @@ import subprocess
 import sys
 from pathlib import Path
 
+from config_fixtures import standard_config
+
 
 def test_adr_create_writes_compliant_adr(tmp_path: Path) -> None:
-    write_file(tmp_path / "dev-std.toml", 'profile = "python-package"\n')
+    write_file(
+        tmp_path / "dev-std.toml",
+        standard_config(),
+    )
 
     result = run_cli(
         tmp_path,
@@ -38,7 +43,10 @@ def test_adr_create_writes_compliant_adr(tmp_path: Path) -> None:
 
 
 def test_requirement_create_writes_compliant_draft_from_body_file(tmp_path: Path) -> None:
-    write_file(tmp_path / "dev-std.toml", 'profile = "python-package"\n')
+    write_file(
+        tmp_path / "dev-std.toml",
+        standard_config(),
+    )
     body = tmp_path / "body.md"
     body.write_text("# Audit Requirements\n\nDraft requirement.", encoding="utf-8")
 
@@ -70,7 +78,10 @@ def test_requirement_create_writes_compliant_draft_from_body_file(tmp_path: Path
 
 
 def test_adr_create_rejects_duplicate_document(tmp_path: Path) -> None:
-    write_file(tmp_path / "dev-std.toml", 'profile = "python-package"\n')
+    write_file(
+        tmp_path / "dev-std.toml",
+        standard_config(),
+    )
     args = (
         "adr",
         "create",

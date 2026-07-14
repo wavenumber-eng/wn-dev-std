@@ -85,6 +85,17 @@ def load_standard_config(
     return cast(Mapping[str, object], config_raw)
 
 
+def standard_config_path(root: Path) -> Path | None:
+    """Return the standard config marker path at a root, if one exists."""
+    standalone = _standalone_config_path(root)
+    if standalone is not None:
+        return standalone
+    pyproject = root / "pyproject.toml"
+    if _pyproject_has_standard_config(pyproject):
+        return pyproject
+    return None
+
+
 def _start_directory(start: Path) -> Path:
     if start.exists() and start.is_file():
         return start.parent

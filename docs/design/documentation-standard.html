@@ -65,9 +65,10 @@
     <code>accepted</code> or a clear release exception is recorded.
   </p>
   <p>
-    Plan closeout requires an explicit design-doc intent audit. Agents must
-    review required design docs against the user's stated intent, the
-    implemented behavior, public contracts, and tests. A
+    Plan closeout requires an explicit governance-document intent audit.
+    Agents must review required design docs, ADRs, and requirements against
+    the user's stated intent, the implemented behavior, public contracts, and
+    tests. A
     <code>data-doc-status="accepted"</code> marker is necessary but not
     sufficient when the implementation changed during the plan.
   </p>
@@ -107,7 +108,7 @@ status = "pending"
 
 [[steps]]
 id = "design-doc-intent-audit"
-title = "Audit required design docs against intent and implementation"
+title = "Audit design docs, ADRs, and requirements against implementation"
 status = "pending"
 depends_on = ["work"]
 
@@ -124,7 +125,7 @@ status = "pending"
 
 [[exit_criteria]]
 id = "design-doc-intent-audit"
-title = "Required design docs match intent and implementation"
+title = "Design docs, ADRs, and requirements match implementation"
 status = "pending"
 
 [[exit_criteria]]
@@ -137,6 +138,18 @@ status = "pending"
     <code>blocked</code>. Completed plans are closed out into durable artifacts
     and removed from active plan roots rather than left with a
     <code>complete</code> status.
+    The audit treats attempted closeout statuses such as <code>done</code>,
+    <code>closed</code>, <code>complete</code>, and <code>finished</code> as
+    failures with closeout-process guidance.
+  </p>
+  <p>
+    Closeout is a process, not a state. Before removing an active plan, agents
+    must finish or intentionally block the work, update durable artifacts such
+    as design docs, ADRs, requirements, release notes, and tests, mark the
+    required closeout criteria as met, obtain the required external review, and
+    rerun <code>dev-std audit . --scope docs.plans</code>. After the durable
+    artifacts carry the useful history, the temporary plan and attached logs
+    should be deleted from the active plan root.
   </p>
   <p>
     Plans must declare <code>[[steps]]</code> metadata with <code>id</code>,
@@ -154,6 +167,8 @@ status = "pending"
   <p>
     Active/pending/blocked plans must include <code>design-doc-intent-audit</code>
     and <code>external-review</code> as both step ids and exit-criterion ids.
+    The design-doc-intent-audit id is the required closeout hook for checking
+    design docs, ADRs, and requirements against the completed implementation.
     The matching ids make the work item and closeout condition traceable.
   </p>
   <p>

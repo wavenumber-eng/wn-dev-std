@@ -8,13 +8,22 @@ from pathlib import Path
 from typing import cast
 from xml.etree import ElementTree
 
+from wn_dev_std.audit_config import (
+    config_kind,
+    effective_scopes,
+    rel,
+    scope_is_selected,
+    standard_config_checks,
+    validated_member_path,
+    with_member,
+    workspace_members,
+)
 from wn_dev_std.check_profiles import (
     CLANG_FORMAT_REQUIRED_SETTINGS,
     CPP_REQUIRED_PATHS,
     CSHARP_ANALYZER_PROPS,
     CSHARP_EDITORCONFIG_RULES,
     CSHARP_REQUIRED_PATHS,
-    JAVASCRIPT_WEB_REQUIRED_PATHS,
     MIXED_MODE_REQUIRED_PATHS,
     ZEPHYR_REQUIRED_PATHS,
     ProfileName,
@@ -34,31 +43,10 @@ from wn_dev_std.governance_checks import governance_doc_checks
 from wn_dev_std.native_complexity import check_lizard_gate, check_native_signoff_config
 from wn_dev_std.plan_hygiene import check_plan_hygiene_policy
 from wn_dev_std.pr_hygiene import check_pr_hygiene_policy
-from wn_dev_std.root_discovery import load_pyproject, load_standard_config
+from wn_dev_std.root_discovery import load_pyproject, load_standard_config, standard_config_path
 from wn_dev_std.secret_hygiene import check_root_env_policy
+from wn_dev_std.web_policy import check_web_policy
 
-AUDIT_SCOPES = (
-    "all",
-    "repo",
-    "docs",
-    "docs.adrs",
-    "docs.artifacts",
-    "docs.build",
-    "docs.design",
-    "docs.domains",
-    "docs.links",
-    "docs.plans",
-    "docs.release",
-    "docs.requirements",
-    "docs.surfaces",
-    "docs.traceability",
-    "docs.vendors",
-    "language",
-    "ci",
-    "compat",
-)
-JS_CSS_EXCLUDED_PARTS = {"vendor", "lib", "_build", "node_modules"}
-STANDARD_COMMAND_VERBS = ("install", "update", "build", "test", "signoff")
 JAVASCRIPT_STANDARD_DOC_PATHS = (
     "docs/design/javascript-standard.html",
     "docs/design/standards/javascript.html",
@@ -72,76 +60,145 @@ def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
 
 def run_audit_checks(
     root: Path,
-    scopes: Sequence[str] = ("all",),
+    scopes: Sequence[str] | None = None,
 ) -> tuple[CheckResult, ...]:
     """Run repository audit checks for the requested scopes."""
-    requested_scopes = _normalize_scopes(scopes)
-    checks = _run_all_audit_checks(root)
-    return tuple(check for check in checks if _scope_is_selected(check.scope, requested_scopes))
-
-
-def _run_all_audit_checks(root: Path) -> tuple[CheckResult, ...]:
-    """Run the full repository audit set before scope filtering."""
     resolved_root = root.resolve()
     pyproject = load_pyproject(resolved_root)
     config = load_standard_config(resolved_root, pyproject)
-    profile = project_profile(config)
-    checks = _common_checks(resolved_root, profile, config)
-    if _needs_python_package_checks(profile):
-        checks.extend(
-            [
-                _check_uv_lock(resolved_root),
-                _check_pyproject_backend(resolved_root, pyproject, profile),
-            ]
-        )
-    checks.extend(_scoped_results(_profile_specific_checks(resolved_root, profile), "language"))
+    config_checks = standard_config_checks(resolved_root, config)
+    if config_kind(config) == "workspace":
+        workspace_checks = _workspace_audit_checks(resolved_root, config, scopes)
+        return (*config_checks, *workspace_checks)
+
+    requested_scopes = effective_scopes(scopes, config)
+    checks = _run_selected_audit_checks(resolved_root, requested_scopes, pyproject, config)
+    return (*config_checks, *checks)
+
+
+def _run_selected_audit_checks(
+    root: Path,
+    requested_scopes: Sequence[str],
+    pyproject: Mapping[str, object] | None = None,
+    config: Mapping[str, object] | None = None,
+) -> tuple[CheckResult, ...]:
+    """Run only the repository audit checks needed for the requested scopes."""
+    resolved_root = root.resolve()
+    resolved_pyproject = pyproject if pyproject is not None else load_pyproject(resolved_root)
+    resolved_config = (
+        config if config is not None else load_standard_config(resolved_root, resolved_pyproject)
+    )
+    profile = project_profile(resolved_config)
+    checks = _common_checks(resolved_root, profile, resolved_config, requested_scopes)
+    checks.extend(
+        _python_package_checks(resolved_root, resolved_pyproject, profile, requested_scopes)
+    )
+    checks.extend(_language_checks(resolved_root, profile, requested_scopes))
+    checks.extend(_compat_checks(resolved_root, resolved_config, requested_scopes))
+    checks.extend(_ci_checks(resolved_root, resolved_config, requested_scopes))
+    checks.extend(_plan_checks(resolved_root, resolved_config, requested_scopes))
+    checks.extend(governance_doc_checks(resolved_root, requested_scopes))
+    return tuple(checks)
+
+
+def _python_package_checks(
+    root: Path,
+    pyproject: Mapping[str, object] | None,
+    profile: ProfileName,
+    requested_scopes: Sequence[str],
+) -> list[CheckResult]:
+    if not _needs_python_package_checks(profile) or not scope_is_selected("repo", requested_scopes):
+        return []
+    return [
+        _check_uv_lock(root),
+        _check_pyproject_backend(root, pyproject, profile),
+    ]
+
+
+def _language_checks(
+    root: Path,
+    profile: ProfileName,
+    requested_scopes: Sequence[str],
+) -> list[CheckResult]:
+    if not scope_is_selected("language", requested_scopes):
+        return []
+    return _scoped_results(_profile_specific_checks(root, profile), "language")
+
+
+def _compat_checks(
+    root: Path,
+    config: Mapping[str, object] | None,
+    requested_scopes: Sequence[str],
+) -> list[CheckResult]:
     pruning_config = _compatibility_pruning_config(config)
-    if pruning_config is not None:
-        pruning_result = check_compatibility_pruning_policy(resolved_root, pruning_config)
-        checks.append(
-            CheckResult(
-                "compatibility pruning",
-                pruning_result.passed,
-                pruning_result.detail,
-                "compat",
-            )
+    if pruning_config is None or not scope_is_selected("compat", requested_scopes):
+        return []
+    pruning_result = check_compatibility_pruning_policy(root, pruning_config)
+    return [
+        CheckResult(
+            "compatibility pruning",
+            pruning_result.passed,
+            pruning_result.detail,
+            "compat",
         )
+    ]
+
+
+def _ci_checks(
+    root: Path,
+    config: Mapping[str, object] | None,
+    requested_scopes: Sequence[str],
+) -> list[CheckResult]:
     pr_hygiene_config = _pr_hygiene_config(config)
-    if pr_hygiene_config is not None:
-        pr_hygiene_result = check_pr_hygiene_policy(resolved_root, pr_hygiene_config)
-        checks.append(
-            CheckResult(
-                "public PR hygiene",
-                pr_hygiene_result.passed,
-                pr_hygiene_result.detail,
-                "ci",
-            )
+    if pr_hygiene_config is None or not scope_is_selected("ci", requested_scopes):
+        return []
+    pr_hygiene_result = check_pr_hygiene_policy(root, pr_hygiene_config)
+    return [
+        CheckResult(
+            "public PR hygiene",
+            pr_hygiene_result.passed,
+            pr_hygiene_result.detail,
+            "ci",
         )
-    plan_hygiene_result = check_plan_hygiene_policy(resolved_root, config)
-    checks.append(
+    ]
+
+
+def _plan_checks(
+    root: Path,
+    config: Mapping[str, object] | None,
+    requested_scopes: Sequence[str],
+) -> list[CheckResult]:
+    if not scope_is_selected("docs.plans", requested_scopes):
+        return []
+    plan_hygiene_result = check_plan_hygiene_policy(root, config)
+    return [
         CheckResult(
             "docs.plans",
             plan_hygiene_result.passed,
             plan_hygiene_result.detail,
             "docs.plans",
         )
-    )
-    checks.extend(governance_doc_checks(resolved_root))
-    return tuple(checks)
+    ]
 
 
 def _common_checks(
     root: Path,
     profile: ProfileName,
     config: Mapping[str, object] | None,
+    requested_scopes: Sequence[str],
 ) -> list[CheckResult]:
-    checks = [
-        _check_required_paths(root, "root files", required_root_files(profile)),
-        _scoped_result(_check_required_documentation_paths(root, profile, config), "docs"),
-        _scoped_result(_check_design_doc_status(root), "docs.design"),
-        _check_no_env_file(root),
-    ]
-    if profile != "csharp-app":
+    checks: list[CheckResult] = []
+    if scope_is_selected("repo", requested_scopes):
+        checks.append(_check_required_paths(root, "root files", required_root_files(profile)))
+    if scope_is_selected("docs", requested_scopes):
+        checks.append(
+            _scoped_result(_check_required_documentation_paths(root, profile, config), "docs")
+        )
+    if scope_is_selected("docs.design", requested_scopes):
+        checks.append(_scoped_result(_check_design_doc_status(root), "docs.design"))
+    if scope_is_selected("repo", requested_scopes):
+        checks.append(_check_no_env_file(root))
+    if profile != "csharp-app" and scope_is_selected("repo", requested_scopes):
         checks.append(_check_required_paths(root, "rack suite", ("tests/rack.toml",)))
     return checks
 
@@ -206,14 +263,86 @@ def _csharp_checks(root: Path) -> list[CheckResult]:
 
 
 def _web_checks(root: Path) -> list[CheckResult]:
-    return [
-        _check_required_paths(root, "web app files", JAVASCRIPT_WEB_REQUIRED_PATHS),
-        _check_web_source_policy(root),
-        _check_web_typecheck_policy(root),
-        _check_web_css_token_policy(root),
-        _check_web_command_surface_policy(root),
-        _check_web_signoff_policy(root),
-    ]
+    return check_web_policy(root)
+
+
+def _workspace_audit_checks(
+    root: Path,
+    config: Mapping[str, object] | None,
+    scopes: Sequence[str] | None,
+) -> tuple[CheckResult, ...]:
+    marker_path = standard_config_path(root)
+    members = workspace_members(config)
+    if not members:
+        detail = "workspace config requires [workspace].members"
+        if marker_path is not None:
+            detail = f"{rel(root, marker_path)} requires [workspace].members"
+        return (CheckResult("workspace members", False, detail),)
+
+    checks: list[CheckResult] = []
+    seen_members: set[str] = set()
+    seen_member_paths: dict[Path, str] = {}
+    for member in members:
+        member_key = member.replace("\\", "/").strip("/")
+        if member_key in seen_members:
+            checks.append(
+                _workspace_member_failure(member_key, f"duplicate workspace member {member_key!r}")
+            )
+            continue
+        seen_members.add(member_key)
+
+        member_path_or_error = validated_member_path(root, member)
+        if isinstance(member_path_or_error, str):
+            checks.append(_workspace_member_failure(member_key, member_path_or_error))
+            continue
+
+        member_path = member_path_or_error
+        first_member_for_path = seen_member_paths.get(member_path)
+        if first_member_for_path is not None:
+            checks.append(
+                _workspace_member_failure(
+                    member_key,
+                    f"workspace member {member_key!r} duplicates {first_member_for_path!r}",
+                )
+            )
+            continue
+        seen_member_paths[member_path] = member_key
+
+        member_result = _workspace_member_checks(member_path, member_key, scopes)
+        checks.extend(member_result)
+
+    return tuple(checks)
+
+
+def _workspace_member_checks(
+    member_path: Path,
+    member_key: str,
+    scopes: Sequence[str] | None,
+) -> tuple[CheckResult, ...]:
+    member_marker = standard_config_path(member_path)
+    if member_marker is None:
+        return (
+            _workspace_member_failure(
+                member_key,
+                f"registered member {member_key!r} has no dev-std config marker",
+            ),
+        )
+
+    member_config = load_standard_config(member_path)
+    if config_kind(member_config) == "workspace":
+        return (
+            _workspace_member_failure(
+                member_key,
+                f"registered member {member_key!r} must not be kind='workspace'",
+            ),
+        )
+
+    member_checks = run_audit_checks(member_path, scopes)
+    return with_member(member_checks, member_key)
+
+
+def _workspace_member_failure(member_key: str, detail: str) -> CheckResult:
+    return CheckResult("workspace member", False, detail, "repo", member_key)
 
 
 def format_results(results: tuple[CheckResult, ...], output_format: str) -> str:
@@ -225,24 +354,10 @@ def format_results(results: tuple[CheckResult, ...], output_format: str) -> str:
 
     lines: list[str] = []
     for result in results:
-        marker = "PASS" if result.passed else "FAIL"
-        lines.append(f"[{marker}] {result.name}: {result.detail}")
+        marker = "WARN" if result.warning else "PASS" if result.passed else "FAIL"
+        name = result.name if result.member is None else f"{result.member}: {result.name}"
+        lines.append(f"[{marker}] {name}: {result.detail}")
     return "\n".join(lines)
-
-
-def _normalize_scopes(scopes: Sequence[str]) -> tuple[str, ...]:
-    selected = tuple(scope for scope in scopes if scope in AUDIT_SCOPES)
-    if not selected:
-        return ("all",)
-    if "all" in selected:
-        return ("all",)
-    return selected
-
-
-def _scope_is_selected(scope: str, selected: Sequence[str]) -> bool:
-    if "all" in selected:
-        return True
-    return any(scope == item or scope.startswith(f"{item}.") for item in selected)
 
 
 def _scoped_result(result: CheckResult, scope: str) -> CheckResult:
@@ -506,196 +621,6 @@ def _check_dotnet_analyzer_policy(root: Path) -> CheckResult:
         "dotnet analyzer policy",
         True,
         "code style, analyzers, and complexity gates are configured",
-    )
-
-
-def _owned_web_files(root: Path, suffixes: tuple[str, ...]) -> list[Path]:
-    src = root / "src"
-    if not src.exists():
-        return []
-    files: list[Path] = []
-    for suffix in suffixes:
-        for path in src.rglob(suffix):
-            relative_parts = set(path.relative_to(root).parts)
-            if JS_CSS_EXCLUDED_PARTS & relative_parts:
-                continue
-            if path.name.endswith(".min.js") or path.name.endswith(".min.css"):
-                continue
-            files.append(path)
-    return sorted(files)
-
-
-def _stray_minified_web_files(root: Path) -> list[str]:
-    stray: list[str] = []
-    for suffix in ("*.min.js", "*.min.css"):
-        for path in root.rglob(suffix):
-            relative_parts = set(path.relative_to(root).parts)
-            if JS_CSS_EXCLUDED_PARTS & relative_parts:
-                continue
-            stray.append(path.relative_to(root).as_posix())
-    return sorted(stray)
-
-
-def _check_web_source_policy(root: Path) -> CheckResult:
-    owned_js = _owned_web_files(root, ("*.js", "*.mjs", "*.jsx", "*.ts", "*.tsx"))
-    owned_css = _owned_web_files(root, ("*.css",))
-    if not owned_js:
-        return CheckResult(
-            "web source",
-            False,
-            "at least one owned JS/TS source file is required under src/",
-        )
-    if not owned_css:
-        return CheckResult(
-            "web source",
-            False,
-            "at least one owned CSS source file is required under src/",
-        )
-
-    stray_minified = _stray_minified_web_files(root)
-    if stray_minified:
-        return CheckResult(
-            "web source",
-            False,
-            "minified/generated JS/CSS must live under vendor/, lib/, _build/, "
-            "or node_modules/: " + ", ".join(stray_minified[:5]),
-        )
-    return CheckResult(
-        "web source",
-        True,
-        f"{len(owned_js)} owned JS/TS and {len(owned_css)} owned CSS file(s) found",
-    )
-
-
-def _check_web_typecheck_policy(root: Path) -> CheckResult:
-    owned_js = _owned_web_files(root, ("*.js", "*.mjs", "*.jsx"))
-    owned_ts = _owned_web_files(root, ("*.ts", "*.tsx"))
-    has_jsconfig = (root / "jsconfig.json").exists()
-    has_tsconfig = (root / "tsconfig.json").exists()
-    if owned_ts and not has_tsconfig:
-        return CheckResult("web typecheck", False, "TypeScript source requires tsconfig.json")
-    if has_jsconfig or has_tsconfig:
-        config = "tsconfig.json" if has_tsconfig else "jsconfig.json"
-        return CheckResult("web typecheck", True, f"{config} is present")
-
-    missing_ts_check = [
-        path.relative_to(root).as_posix() for path in owned_js if not _has_ts_check_comment(path)
-    ]
-    if missing_ts_check:
-        return CheckResult(
-            "web typecheck",
-            False,
-            "expected jsconfig.json, tsconfig.json, or // @ts-check in "
-            + ", ".join(missing_ts_check[:5]),
-        )
-    return CheckResult("web typecheck", True, "owned JavaScript files use // @ts-check")
-
-
-def _has_ts_check_comment(path: Path) -> bool:
-    first_lines = path.read_text(encoding="utf-8").splitlines()[:8]
-    return any(line.strip() == "// @ts-check" for line in first_lines)
-
-
-def _check_web_css_token_policy(root: Path) -> CheckResult:
-    owned_css = _owned_web_files(root, ("*.css",))
-    token_files = [
-        path.relative_to(root).as_posix() for path in owned_css if _css_uses_custom_properties(path)
-    ]
-    if token_files:
-        return CheckResult("web CSS tokens", True, "CSS custom properties are present")
-    return CheckResult(
-        "web CSS tokens",
-        False,
-        "owned CSS must define or consume CSS custom properties for design constants",
-    )
-
-
-def _css_uses_custom_properties(path: Path) -> bool:
-    text = path.read_text(encoding="utf-8")
-    if "var(--" in text:
-        return True
-    return any(line.lstrip().startswith("--") and ":" in line for line in text.splitlines())
-
-
-def _check_web_command_surface_policy(root: Path) -> CheckResult:
-    providers = {
-        "package.json scripts": _package_script_verbs(root),
-        "Makefile targets": _makefile_verbs(root),
-        "scripts/dev.py": _dev_py_verbs(root),
-        "root or scripts verb files": _script_file_verbs(root),
-    }
-    required = set(STANDARD_COMMAND_VERBS)
-    for provider, verbs in providers.items():
-        if required <= verbs:
-            return CheckResult("command surface", True, f"{provider} exposes standard verbs")
-    return CheckResult(
-        "command surface",
-        False,
-        "expected install, update, build, test, and signoff through package.json, Makefile, "
-        "scripts/dev.py, or verb-named scripts",
-    )
-
-
-def _package_script_verbs(root: Path) -> set[str]:
-    path = root / "package.json"
-    if not path.exists():
-        return set()
-    raw_data: object = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(raw_data, dict):
-        return set()
-    data = cast(Mapping[str, object], raw_data)
-    scripts = data.get("scripts")
-    if not isinstance(scripts, dict):
-        return set()
-    scripts_mapping = cast(Mapping[str, object], scripts)
-    return {key for key in scripts_mapping if key in STANDARD_COMMAND_VERBS}
-
-
-def _makefile_verbs(root: Path) -> set[str]:
-    verbs: set[str] = set()
-    for path in (root / "Makefile", root / "makefile"):
-        if not path.exists():
-            continue
-        for line in path.read_text(encoding="utf-8").splitlines():
-            stripped = line.strip()
-            for verb in STANDARD_COMMAND_VERBS:
-                if stripped.startswith(f"{verb}:"):
-                    verbs.add(verb)
-    return verbs
-
-
-def _dev_py_verbs(root: Path) -> set[str]:
-    path = root / "scripts" / "dev.py"
-    if not path.exists():
-        return set()
-    text = path.read_text(encoding="utf-8")
-    return {verb for verb in STANDARD_COMMAND_VERBS if verb in text}
-
-
-def _script_file_verbs(root: Path) -> set[str]:
-    verbs: set[str] = set()
-    suffixes = (".ps1", ".sh", ".bat", ".cmd")
-    for verb in STANDARD_COMMAND_VERBS:
-        for directory in (root, root / "scripts"):
-            if any((directory / f"{verb}{suffix}").exists() for suffix in suffixes):
-                verbs.add(verb)
-    return verbs
-
-
-def _check_web_signoff_policy(root: Path) -> CheckResult:
-    missing_scripts = [
-        relative
-        for relative in ("scripts/js_hygiene.py", "scripts/css_hygiene.py")
-        if not (root / relative).exists()
-    ]
-    if not missing_scripts:
-        return CheckResult("web signoff", True, "JS and CSS hygiene scripts are present")
-    if (root / "package.json").exists():
-        return CheckResult("web signoff", True, "package.json is present for JS/CSS tooling")
-    return CheckResult(
-        "web signoff",
-        False,
-        "expected scripts/js_hygiene.py and scripts/css_hygiene.py, or package.json",
     )
 
 

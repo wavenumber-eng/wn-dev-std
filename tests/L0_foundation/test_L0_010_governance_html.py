@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from textwrap import dedent
 
+from config_fixtures import standard_config
+
 from wn_dev_std.governance_html import generate_governance_html
 
 
@@ -82,7 +84,10 @@ def test_generate_governance_html_fails_noncompliant_catalog(tmp_path: Path) -> 
 
 
 def write_governance_repo(root: Path) -> None:
-    write_file(root / "dev-std.toml", 'profile = "python-package"\n')
+    write_file(
+        root / "dev-std.toml",
+        standard_config(),
+    )
     write_file(root / "tests" / "test_demo.py", "def test_demo():\n    assert True\n")
     write_file(
         root / "docs" / "plans" / "demo-plan.md",
@@ -102,7 +107,7 @@ def write_governance_repo(root: Path) -> None:
 
             [[steps]]
             id = "design-doc-intent-audit"
-            title = "Audit required design docs against intent and implementation"
+            title = "Audit design docs, ADRs, and requirements against implementation"
             status = "pending"
             depends_on = ["implement"]
 
@@ -119,7 +124,7 @@ def write_governance_repo(root: Path) -> None:
 
             [[exit_criteria]]
             id = "design-doc-intent-audit"
-            title = "Required design docs match intent and implementation"
+            title = "Design docs, ADRs, and requirements match implementation"
             status = "pending"
 
             [[exit_criteria]]

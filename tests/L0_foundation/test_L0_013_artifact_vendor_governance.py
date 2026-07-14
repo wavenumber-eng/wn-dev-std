@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from textwrap import dedent
 
+from config_fixtures import standard_pyproject_tool_config
+
 from wn_dev_std.checks import CheckResult, run_audit_checks
 
 
@@ -167,11 +169,7 @@ def test_docs_release_requires_catalog_for_configured_pypi_distribution(
 ) -> None:
     write_file(
         tmp_path / "pyproject.toml",
-        """
-        [tool.wn_dev_std]
-        profile = "python-package"
-        distribution = "pypi"
-        """,
+        standard_pyproject_tool_config(extra='distribution = "pypi"'),
     )
 
     result = scope_result(tmp_path, "docs.release")
@@ -183,11 +181,7 @@ def test_docs_release_requires_catalog_for_configured_pypi_distribution(
 def test_docs_release_passes_matching_pypi_channel(tmp_path: Path) -> None:
     write_file(
         tmp_path / "pyproject.toml",
-        """
-        [tool.wn_dev_std]
-        profile = "python-package"
-        distribution = "pypi"
-        """,
+        standard_pyproject_tool_config(extra='distribution = "pypi"'),
     )
     write_file(tmp_path / "docs" / "releases" / "process.md", "# Release\n")
     write_file(
@@ -211,11 +205,7 @@ def test_docs_release_passes_matching_pypi_channel(tmp_path: Path) -> None:
 def test_docs_release_requires_build_doc(tmp_path: Path) -> None:
     write_file(
         tmp_path / "pyproject.toml",
-        """
-        [tool.wn_dev_std]
-        profile = "python-package"
-        distribution = "pypi"
-        """,
+        standard_pyproject_tool_config(extra='distribution = "pypi"'),
     )
     write_file(tmp_path / "docs" / "releases" / "process.md", "# Release\n")
     write_file(
@@ -266,8 +256,7 @@ def test_docs_artifacts_fails_catalog_path_escape(tmp_path: Path) -> None:
 
 def scope_result(root: Path, scope: str) -> CheckResult:
     results = run_audit_checks(root, (scope,))
-    assert len(results) == 1
-    return results[0]
+    return next(result for result in results if result.scope == scope)
 
 
 def write_artifacts_catalog(root: Path, body: str) -> None:

@@ -93,10 +93,13 @@ class PlanAuditState:
 DEFAULT_PLAN_ROOTS = ("docs/plans",)
 PLAN_DOCUMENT_TYPES = ("plan", "plan_log")
 PLAN_STATUSES = ("active", "pending", "blocked")
+PLAN_CLOSEOUT_STATUS_ALIASES = ("closed", "complete", "completed", "done", "finished")
 PLAN_STEP_STATUSES = ("pending", "active", "blocked", "done")
 PLAN_EXIT_CRITERION_STATUSES = ("pending", "met", "blocked")
 REQUIRED_PLAN_STEP_IDS = ("design-doc-intent-audit", "external-review")
 REQUIRED_PLAN_EXIT_CRITERION_IDS = ("design-doc-intent-audit", "external-review")
+GOVERNANCE_DOC_AUDIT_STEP_ID = "design-doc-intent-audit"
+EXTERNAL_REVIEW_STEP_ID = "external-review"
 PLAN_LIKE_NAME_TOKENS = ("plan", "roadmap")
 LOG_LIKE_NAME_TOKENS = (
     "plan_log",
@@ -353,8 +356,8 @@ def _plan_record(
         failures,
     )
 
-    if status == "complete":
-        failures.append(f"{relative_path}: complete plans must be closed out and removed")
+    if status in PLAN_CLOSEOUT_STATUS_ALIASES:
+        failures.append(_plan_closeout_status_failure(relative_path, status))
     elif status and status not in PLAN_STATUSES:
         failures.append(f"{relative_path}: invalid status {status!r}")
     _validate_plan_step_state(relative_path, status, steps, failures)
@@ -370,6 +373,16 @@ def _plan_record(
         depends_on,
         steps,
         exit_criteria,
+    )
+
+
+def _plan_closeout_status_failure(relative_path: str, status: str) -> str:
+    return (
+        f"{relative_path}: {status!r} is not a plan status; closeout is a process. "
+        "Move durable information into design docs, ADRs, requirements, tests, or "
+        "release notes, complete the required design-doc-intent-audit and "
+        "external-review checks, delete the temporary plan/log files from the active "
+        "plan root, then rerun dev-std audit . --scope docs.plans."
     )
 
 
@@ -630,6 +643,7 @@ def _validate_plan_step_state(
         failures.append(
             f"{relative_path}: missing required step ids: " + ", ".join(missing_required_steps)
         )
+    _validate_closeout_step_order(relative_path, steps, failures)
     active_steps = [step.step_id for step in steps if step.status == "active"]
     if len(active_steps) > 1:
         failures.append(f"{relative_path}: more than one active step: " + ", ".join(active_steps))
@@ -637,6 +651,24 @@ def _validate_plan_step_state(
         failures.append(f"{relative_path}: pending plan cannot have active steps")
     if plan_status == "active" and all(step.status == "done" for step in steps):
         failures.append(f"{relative_path}: all steps are done but plan is still active")
+
+
+def _validate_closeout_step_order(
+    relative_path: str,
+    steps: Sequence[PlanStepRecord],
+    failures: list[str],
+) -> None:
+    step_by_id = {step.step_id: step for step in steps}
+    review_step = step_by_id.get(EXTERNAL_REVIEW_STEP_ID)
+    if (
+        review_step is not None
+        and GOVERNANCE_DOC_AUDIT_STEP_ID in step_by_id
+        and GOVERNANCE_DOC_AUDIT_STEP_ID not in review_step.depends_on
+    ):
+        failures.append(
+            f"{relative_path}: step {EXTERNAL_REVIEW_STEP_ID} must depend_on "
+            f"{GOVERNANCE_DOC_AUDIT_STEP_ID}"
+        )
 
 
 def _validate_plan_exit_criteria_state(

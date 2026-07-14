@@ -33,10 +33,12 @@ uv run twine check dist/*</code></pre>
 
   <h2>Distribution</h2>
   <p>
-    <code>wn-dev-std</code> is model-only and is not published to PyPI. It still
-    builds wheels and sdists so the packaging path is exercised. Projects based
-    on this standard may opt into PyPI trusted publishing, internal publishing,
-    or no publishing. The installed command is <code>dev-std</code>;
+    <code>wn-dev-std</code> is published to PyPI so downstream projects can pin a
+    reviewed governance tool version in CI. GitHub Release publication triggers
+    release validation, including trusted publishing checks, before a release is
+    treated as ready for downstream use. Projects based on this standard may opt
+    into PyPI trusted publishing, internal publishing, or no publishing. The
+    installed command is <code>dev-std</code>;
     <code>wn-dev-std</code> remains available as a compatibility alias.
   </p>
   <p>

@@ -1,11 +1,18 @@
 from __future__ import annotations
 
+import http.client
 import subprocess
 import sys
 import tomllib
+import urllib.request
 from pathlib import Path
 
+from pytest import MonkeyPatch
+
 from wn_dev_std import __version__
+from wn_dev_std.cli.commands.audit import upstream_check_result
+from wn_dev_std.standards import STANDARD_VERSION
+from wn_dev_std.version_check import UpstreamVersionCheck, check_pypi_version
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -32,6 +39,30 @@ def test_cli_version_command_reports_same_version() -> None:
     result = run_cli("version")
     assert result.returncode == 0
     assert f"wn-dev-std {__version__}" in result.stdout
+
+
+def test_audit_upstream_result_warns_only_for_outdated_or_unavailable() -> None:
+    current = upstream_check_result(UpstreamVersionCheck(STANDARD_VERSION, STANDARD_VERSION, None))
+    outdated = upstream_check_result(UpstreamVersionCheck(STANDARD_VERSION, "9999.1.1", None))
+    unavailable = upstream_check_result(UpstreamVersionCheck(STANDARD_VERSION, None, "timeout"))
+
+    assert not current.warning
+    assert outdated.warning
+    assert unavailable.warning
+
+
+def test_upstream_version_http_protocol_failure_is_warning_only(
+    monkeypatch: MonkeyPatch,
+) -> None:
+    def raise_bad_status_line(*_args: object, **_kwargs: object) -> object:
+        raise http.client.BadStatusLine("bad proxy response")
+
+    monkeypatch.setattr(urllib.request, "urlopen", raise_bad_status_line)
+
+    result = check_pypi_version(__version__)
+
+    assert result.warning is not None
+    assert "unable to check PyPI" in result.detail
 
 
 def test_cli_help_lists_public_commands() -> None:

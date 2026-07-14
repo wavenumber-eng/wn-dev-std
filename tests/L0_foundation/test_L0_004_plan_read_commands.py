@@ -6,11 +6,16 @@ import sys
 from pathlib import Path
 from textwrap import dedent
 
+from config_fixtures import standard_config, standard_pyproject_tool_config
+
 from wn_dev_std.root_discovery import discover_project_root, load_standard_config
 
 
 def test_root_discovery_prefers_dev_std_standalone_config(tmp_path: Path) -> None:
-    write_file(tmp_path / "dev-std.toml", 'profile = "python-package"\n')
+    write_file(
+        tmp_path / "dev-std.toml",
+        standard_config(),
+    )
     nested = tmp_path / "docs" / "plans"
     nested.mkdir(parents=True)
 
@@ -22,7 +27,10 @@ def test_root_discovery_prefers_dev_std_standalone_config(tmp_path: Path) -> Non
 
 
 def test_root_discovery_accepts_legacy_standalone_config(tmp_path: Path) -> None:
-    write_file(tmp_path / "wn-dev-std.toml", 'profile = "python-package"\n')
+    write_file(
+        tmp_path / "wn-dev-std.toml",
+        standard_config(),
+    )
     nested = tmp_path / "docs" / "plans"
     nested.mkdir(parents=True)
 
@@ -36,8 +44,14 @@ def test_root_discovery_accepts_legacy_standalone_config(tmp_path: Path) -> None
 def test_root_discovery_prefers_dev_std_when_both_standalone_configs_exist(
     tmp_path: Path,
 ) -> None:
-    write_file(tmp_path / "dev-std.toml", 'profile = "python-package"\n')
-    write_file(tmp_path / "wn-dev-std.toml", 'profile = "cpp-library"\n')
+    write_file(
+        tmp_path / "dev-std.toml",
+        standard_config(),
+    )
+    write_file(
+        tmp_path / "wn-dev-std.toml",
+        standard_config("cpp-library"),
+    )
     nested = tmp_path / "docs" / "plans"
     nested.mkdir(parents=True)
 
@@ -49,8 +63,14 @@ def test_root_discovery_prefers_dev_std_when_both_standalone_configs_exist(
 
 
 def test_standard_config_loading_prefers_dev_std_over_legacy_marker(tmp_path: Path) -> None:
-    write_file(tmp_path / "dev-std.toml", 'profile = "python-package"\n')
-    write_file(tmp_path / "wn-dev-std.toml", 'profile = "cpp-library"\n')
+    write_file(
+        tmp_path / "dev-std.toml",
+        standard_config(),
+    )
+    write_file(
+        tmp_path / "wn-dev-std.toml",
+        standard_config("cpp-library"),
+    )
 
     config = load_standard_config(tmp_path)
 
@@ -61,12 +81,7 @@ def test_standard_config_loading_prefers_dev_std_over_legacy_marker(tmp_path: Pa
 def test_root_discovery_uses_pyproject_tool_config(tmp_path: Path) -> None:
     write_file(
         tmp_path / "pyproject.toml",
-        dedent(
-            """
-            [tool.wn_dev_std]
-            profile = "python-package"
-            """
-        ).lstrip(),
+        standard_pyproject_tool_config(),
     )
     nested = tmp_path / "src" / "package"
     nested.mkdir(parents=True)
@@ -164,7 +179,10 @@ def test_log_show_json_is_machine_readable(tmp_path: Path) -> None:
 
 
 def test_plan_read_commands_fail_on_noncompliant_catalog(tmp_path: Path) -> None:
-    write_file(tmp_path / "dev-std.toml", 'profile = "python-package"\n')
+    write_file(
+        tmp_path / "dev-std.toml",
+        standard_config(),
+    )
     write_file(tmp_path / "docs" / "plans" / "pcb-a0-plan.md", "# Missing metadata\n")
 
     result = run_cli(tmp_path, "plan", "list")
@@ -187,14 +205,12 @@ def run_cli(cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
 def write_compliant_plan_repo(root: Path) -> None:
     write_file(
         root / "dev-std.toml",
-        dedent(
-            """
-            profile = "python-package"
-
+        standard_config(
+            extra="""
             [documentation.plans]
             roots = ["docs/plans"]
-            """
-        ).lstrip(),
+            """,
+        ),
     )
     write_file(
         root / "docs" / "plans" / "pcb-a0" / "plan.md",
@@ -219,7 +235,7 @@ def write_compliant_plan_repo(root: Path) -> None:
 
             [[steps]]
             id = "design-doc-intent-audit"
-            title = "Audit required design docs against intent and implementation"
+            title = "Audit design docs, ADRs, and requirements against implementation"
             status = "pending"
             depends_on = ["release"]
 
@@ -236,7 +252,7 @@ def write_compliant_plan_repo(root: Path) -> None:
 
             [[exit_criteria]]
             id = "design-doc-intent-audit"
-            title = "Required design docs match intent and implementation"
+            title = "Design docs, ADRs, and requirements match implementation"
             status = "pending"
 
             [[exit_criteria]]

@@ -56,11 +56,22 @@
 
   <h2>Package Root Boundary</h2>
   <p>
-    The current audit model treats the path passed to <code>dev-std audit</code>
-    as one package root. Monorepo packages should run audit from package-level
-    signoff until workspace-level package registration is added. Repo-root
-    workspace audits are a future layer and should not be inferred from the
-    package-local contract.
+    A dev-std config marker defines a policy boundary. Package configs apply to
+    one package or application root. Workspace configs aggregate explicitly
+    registered member policy boundaries and do not imply that every build
+    target, runnable, board app, fixture, sample, or demo folder is a separate
+    member.
+  </p>
+  <pre><code>standard_version = "2026.7.14"
+kind = "workspace"
+
+[workspace]
+members = ["bom_cruncher", "lib_cruncher", "panel-monkey"]</code></pre>
+  <p>
+    First-slice workspace audits run config-version governance at the workspace
+    root and then run each registered member's configured governance. They do
+    not run package/profile checks at the workspace root unless a future
+    workspace-local opt-in is added.
   </p>
   <p>
     Plan and log commands discover the package root by walking upward from the
@@ -69,6 +80,27 @@
     <code>pyproject.toml</code> with <code>[tool.wn_dev_std]</code>. A
     <code>.git</code> directory is a fallback boundary when no Wavenumber config
     marker is present.
+  </p>
+
+  <h2>Config Version And Targeted Scopes</h2>
+  <p>
+    Configured adopters must declare <code>standard_version</code>. Audit fails
+    when the configured version is missing or does not match the installed
+    <code>wn-dev-std</code> standard version. This check always runs when a
+    config marker is present; it is not filtered by <code>--scope</code> or
+    <code>enabled_scopes</code>. Repositories with no dev-std config continue to
+    use default audit behavior and are not part of the first migration ratchet.
+  </p>
+  <pre><code>standard_version = "2026.7.14"
+kind = "package"
+profile = "zephyr-firmware"
+enabled_scopes = ["docs.plans"]</code></pre>
+  <p>
+    <code>enabled_scopes</code> records partial adoption. When no
+    <code>--scope</code> is passed, audit runs the configured scopes. Explicit
+    command-line scopes override the config default. Passing audit with a
+    targeted scope list is not full profile conformance, and audit output must
+    report the configured scopes.
   </p>
 
   <h2>Plan Roots</h2>
@@ -101,9 +133,10 @@ roots = ["docs/pcb/plans", "docs/sch/plans"]</code></pre>
   <p>
     Every active/pending/blocked plan must also include the step ids
     <code>design-doc-intent-audit</code> and <code>external-review</code>.
-    The design-doc audit step verifies required design docs against the user's
-    intent, the implemented behavior, public contracts, and tests. The
-    external-review step records independent review before closeout.
+    The design-doc audit step is the required closeout hook for verifying
+    design docs, ADRs, and requirements against the user's intent, the
+    implemented behavior, public contracts, and tests. The external-review step
+    records independent review before closeout.
   </p>
   <pre><code>+++
 type = "plan_log"
@@ -170,7 +203,9 @@ status = "pending"</code></pre>
     <code>design-doc-intent-audit</code> and <code>external-review</code>.
     These ids are intentionally the same as the required step ids: the step is
     the work item, and the exit criterion is the observable condition that the
-    work satisfied.
+    work satisfied. The design-doc-intent-audit criterion must not be marked
+    met until design docs, ADRs, and requirements have been checked against the
+    completed implementation.
   </p>
   <p>
     Valid exit-criterion statuses are <code>pending</code>, <code>met</code>,
@@ -202,6 +237,18 @@ status = "pending"</code></pre>
     historical or reverse-engineering material may be kept, but it should be
     renamed and classified as history, research, design, or another durable
     document type rather than left as an active-work log.
+    If the audit sees attempted closeout statuses such as <code>done</code>,
+    <code>closed</code>, <code>complete</code>, or <code>finished</code>, it
+    fails with closeout-process guidance instead of treating them as valid
+    states.
+  </p>
+  <p>
+    Closeout is a process, not a status value. The expected sequence is:
+    complete or intentionally block the plan work, run the required
+    design-doc/ADR/requirement alignment audit, update durable artifacts,
+    complete external review, remove the temporary plan and logs from the
+    active plan root, and rerun <code>dev-std audit . --scope docs.plans</code>
+    to prove no active-work residue remains.
   </p>
 
   <h2>ADR And Requirement Audits</h2>
@@ -353,6 +400,15 @@ docs/domains/&lt;domain&gt;.html</code></pre>
   --scope docs.release \
   --scope docs.traceability \
   --scope docs.links</code></pre>
+  <p>
+    CI should run governance before expensive functional or platform matrices.
+    Downstream CI should pin the released PyPI tool version that matches the
+    repository's <code>standard_version</code>, for example
+    <code>uvx --from wn-dev-std==2026.7.14 dev-std audit .</code>. Optional
+    upstream freshness checks may warn when a newer PyPI release exists, but
+    normal audit must remain deterministic and offline unless that check is
+    requested.
+  </p>
   <p>
     Once the source documents are compliant, projects can generate browseable
     governance docs with

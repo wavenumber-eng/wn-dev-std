@@ -4,7 +4,8 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from textwrap import dedent
+
+from config_fixtures import standard_config
 
 
 def test_plan_create_writes_compliant_plan(tmp_path: Path) -> None:
@@ -32,7 +33,8 @@ def test_plan_create_writes_compliant_plan(tmp_path: Path) -> None:
     assert 'id = "external-review"' in plan_text
     assert "[[exit_criteria]]" in plan_text
     assert 'title = "Focused signoff passes"' in plan_text
-    assert 'title = "Required design docs match intent and implementation"' in plan_text
+    assert 'title = "Audit design docs, ADRs, and requirements against implementation"' in plan_text
+    assert 'title = "Design docs, ADRs, and requirements match implementation"' in plan_text
     assert 'title = "Independent external review is complete"' in plan_text
     audit = run_cli(tmp_path, "audit", "--scope", "docs.plans")
     assert audit.returncode == 0
@@ -272,14 +274,12 @@ def run_cli(cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
 def write_plan_config(root: Path) -> None:
     write_file(
         root / "wn-dev-std.toml",
-        dedent(
-            """
-            profile = "python-package"
-
+        standard_config(
+            extra="""
             [documentation.plans]
             roots = ["docs/plans"]
-            """
-        ).lstrip(),
+            """,
+        ),
     )
 
 

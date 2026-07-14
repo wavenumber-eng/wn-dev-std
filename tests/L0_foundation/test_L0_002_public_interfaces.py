@@ -5,6 +5,8 @@ import subprocess
 from pathlib import Path
 from textwrap import dedent
 
+from config_fixtures import standard_config, standard_pyproject_tool_config
+
 from wn_dev_std import (
     PythonStandard,
     StrictRule,
@@ -361,6 +363,17 @@ def test_compatibility_pruning_check_fails_on_forbidden_reference(tmp_path: Path
     assert "WN_LIBZ_ROOT" in pruning.detail
 
 
+def test_compatibility_pruning_skips_posix_virtualenv(tmp_path: Path) -> None:
+    write_minimal_python_js_project(tmp_path)
+    add_compatibility_pruning_config(tmp_path)
+    write_file(tmp_path / ".venv-posix" / "bin" / "python", "WN_LIBZ_ROOT\n")
+
+    results = run_basic_checks(tmp_path)
+    pruning = next(result for result in results if result.name == "compatibility pruning")
+
+    assert pruning.passed
+
+
 def test_pr_hygiene_policy_passes_for_installed_templates(tmp_path: Path) -> None:
     install_pr_hygiene_templates(tmp_path)
 
@@ -468,12 +481,7 @@ def write_minimal_cpp_repo(
     )
     write_file(
         root / "pyproject.toml",
-        dedent(
-            """
-            [tool.wn_dev_std]
-            profile = "cpp-library"
-            """
-        ).lstrip(),
+        standard_pyproject_tool_config("cpp-library"),
     )
     write_file(
         root / "signoff.toml",
@@ -562,15 +570,15 @@ def write_minimal_zephyr_project(root: Path) -> None:
     )
     write_file(
         root / "wn-dev-std.toml",
-        dedent(
+        standard_config(
+            "zephyr-firmware",
             """
-            profile = "zephyr-firmware"
             distribution = "internal"
             languages = ["c", "cpp"]
             strict = true
             artifact_policy = "transient-dist"
-            """
-        ).lstrip(),
+            """,
+        ),
     )
     write_file(
         root / ".clang-format",
@@ -643,15 +651,15 @@ def write_minimal_csharp_project(root: Path) -> None:
         (root / relative_dir).mkdir(parents=True, exist_ok=True)
     write_file(
         root / "wn-dev-std.toml",
-        dedent(
+        standard_config(
+            "csharp-app",
             """
-            profile = "csharp-app"
             distribution = "internal"
             languages = ["csharp"]
             strict = true
             artifact_policy = "committed-extension-dist"
-            """
-        ).lstrip(),
+            """,
+        ),
     )
     write_file(
         root / "Directory.Build.props",
@@ -744,15 +752,15 @@ def write_minimal_javascript_web_project(root: Path) -> None:
     write_minimal_web_files(root)
     write_file(
         root / "wn-dev-std.toml",
-        dedent(
+        standard_config(
+            "javascript-web-app",
             """
-            profile = "javascript-web-app"
             distribution = "internal"
             languages = ["javascript", "css", "html"]
             strict = true
             artifact_policy = "transient-dist"
-            """
-        ).lstrip(),
+            """,
+        ),
     )
 
 
@@ -764,15 +772,15 @@ def write_minimal_python_js_project(root: Path) -> None:
     write_file(root / "uv.lock", "placeholder\n")
     write_file(
         root / "wn-dev-std.toml",
-        dedent(
+        standard_config(
+            "python-js-app",
             """
-            profile = "python-js-app"
             distribution = "internal"
             languages = ["python", "javascript", "css", "html"]
             strict = true
             artifact_policy = "transient-dist"
-            """
-        ).lstrip(),
+            """,
+        ),
     )
     write_file(
         root / "pyproject.toml",
@@ -892,9 +900,9 @@ def write_minimal_governance(root: Path) -> None:
 def add_compatibility_pruning_config(root: Path) -> None:
     write_file(
         root / "wn-dev-std.toml",
-        dedent(
+        standard_config(
+            "python-js-app",
             r"""
-            profile = "python-js-app"
             distribution = "internal"
             languages = ["python", "javascript", "css", "html"]
             strict = true
@@ -907,8 +915,8 @@ def add_compatibility_pruning_config(root: Path) -> None:
               "\\bwn_pcb\\b",
             ]
             excluded_parts = ["test_cases"]
-            """
-        ).lstrip(),
+            """,
+        ),
     )
 
 

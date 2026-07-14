@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from textwrap import dedent
 
+from config_fixtures import standard_config
+
 from wn_dev_std.checks import CheckResult, run_audit_checks
 
 
@@ -111,7 +113,7 @@ def test_docs_plans_audit_fails_plan_without_required_review_step(tmp_path: Path
             ("work", "Execute plan work", "pending", ()),
             (
                 "design-doc-intent-audit",
-                "Audit required design docs",
+                "Audit design docs, ADRs, and requirements",
                 "pending",
                 ("work",),
             ),
@@ -142,6 +144,32 @@ def test_docs_plans_audit_fails_plan_without_design_doc_audit_step(tmp_path: Pat
     assert "missing required step ids: design-doc-intent-audit" in result.detail
 
 
+def test_docs_plans_audit_fails_when_external_review_does_not_depend_on_doc_audit(
+    tmp_path: Path,
+) -> None:
+    write_plan(
+        tmp_path,
+        "docs/plans/pcb-a0/plan.md",
+        "pcb-a0",
+        "active",
+        steps=(
+            ("work", "Execute plan work", "pending", ()),
+            (
+                "design-doc-intent-audit",
+                "Audit design docs, ADRs, and requirements",
+                "pending",
+                ("work",),
+            ),
+            ("external-review", "Obtain independent external review", "pending", ("work",)),
+        ),
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "step external-review must depend_on design-doc-intent-audit" in result.detail
+
+
 def test_docs_plans_audit_fails_plan_without_required_review_exit_criterion(
     tmp_path: Path,
 ) -> None:
@@ -154,7 +182,7 @@ def test_docs_plans_audit_fails_plan_without_required_review_exit_criterion(
             ("signoff", "Run signoff", "pending"),
             (
                 "design-doc-intent-audit",
-                "Required design docs match implementation",
+                "Design docs, ADRs, and requirements match implementation",
                 "pending",
             ),
         ),
@@ -255,13 +283,30 @@ def test_docs_plans_audit_allows_readme_under_plan_root(tmp_path: Path) -> None:
     assert result.passed
 
 
-def test_docs_plans_audit_fails_completed_plan(tmp_path: Path) -> None:
+def test_docs_plans_audit_fails_closeout_status_with_process_guidance(
+    tmp_path: Path,
+) -> None:
     write_plan(tmp_path, "docs/plans/pcb-a0/plan.md", "pcb-a0", "complete")
 
     result = docs_plans_result(tmp_path)
 
     assert not result.passed
-    assert "complete plans must be closed out and removed" in result.detail
+    assert "'complete' is not a plan status; closeout is a process" in result.detail
+    assert "Move durable information into design docs, ADRs, requirements" in result.detail
+    assert "delete the temporary plan/log files" in result.detail
+
+
+def test_docs_plans_audit_fails_common_closeout_status_aliases(
+    tmp_path: Path,
+) -> None:
+    for status in ("closed", "completed", "done", "finished"):
+        plan_root = tmp_path / status
+        write_plan(plan_root, "docs/plans/pcb-a0/plan.md", "pcb-a0", status)
+
+        result = docs_plans_result(plan_root)
+
+        assert not result.passed
+        assert f"{status!r} is not a plan status; closeout is a process" in result.detail
 
 
 def test_docs_plans_audit_fails_duplicate_plan_ids(tmp_path: Path) -> None:
@@ -478,13 +523,14 @@ def test_docs_plans_audit_fails_rogue_log_like_file(tmp_path: Path) -> None:
 def test_docs_plans_audit_ignores_configured_legacy_paths(tmp_path: Path) -> None:
     write_file(
         tmp_path / "wn-dev-std.toml",
-        dedent(
-            """
+        standard_config(
+            profile=None,
+            extra="""
             [documentation.plans]
             roots = ["docs/plans"]
             ignore = ["docs/work_tickets", "src/fum_bringup/SPI_FLASH_PLAN.md"]
-            """
-        ).lstrip(),
+            """,
+        ),
     )
     write_plan(tmp_path, "docs/plans/pcb-a0/plan.md", "pcb-a0", "active")
     write_file(
@@ -507,13 +553,14 @@ def test_docs_plans_audit_ignore_does_not_hide_configured_plan_root(
 ) -> None:
     write_file(
         tmp_path / "wn-dev-std.toml",
-        dedent(
-            """
+        standard_config(
+            profile=None,
+            extra="""
             [documentation.plans]
             roots = ["docs/plans"]
             ignore = ["docs/plans"]
-            """
-        ).lstrip(),
+            """,
+        ),
     )
     write_file(tmp_path / "docs" / "plans" / "bad_plan.md", "# Bad Plan\n")
 
@@ -526,12 +573,13 @@ def test_docs_plans_audit_ignore_does_not_hide_configured_plan_root(
 def test_docs_plans_audit_uses_configured_plan_roots(tmp_path: Path) -> None:
     write_file(
         tmp_path / "wn-dev-std.toml",
-        dedent(
-            """
+        standard_config(
+            profile=None,
+            extra="""
             [documentation.plans]
             roots = ["viz/docs/plans", "data_models/docs/pcb/plans"]
-            """
-        ).lstrip(),
+            """,
+        ),
     )
     write_plan(tmp_path, "viz/docs/plans/viz-roadmap.md", "viz-roadmap", "active")
     write_plan(tmp_path, "data_models/docs/pcb/plans/pcb-a0-plan.md", "pcb-a0", "active")
@@ -563,12 +611,13 @@ def test_docs_plans_scope_does_not_require_python_build_backend(tmp_path: Path) 
 def test_configured_plan_roots_are_allowed_locations_not_required_folders(tmp_path: Path) -> None:
     write_file(
         tmp_path / "wn-dev-std.toml",
-        dedent(
-            """
+        standard_config(
+            profile=None,
+            extra="""
             [documentation.plans]
             roots = ["docs/domain/plans"]
-            """
-        ).lstrip(),
+            """,
+        ),
     )
 
     result = docs_plans_result(tmp_path)
@@ -597,7 +646,7 @@ def write_plan(
             ("work", "Execute plan work", "pending", ()),
             (
                 "design-doc-intent-audit",
-                "Audit required design docs against intent and implementation",
+                "Audit design docs, ADRs, and requirements against implementation",
                 "pending",
                 ("work",),
             ),
@@ -613,7 +662,7 @@ def write_plan(
             ("signoff", "Exit criteria are reviewed", "pending"),
             (
                 "design-doc-intent-audit",
-                "Required design docs match intent and implementation",
+                "Design docs, ADRs, and requirements match implementation",
                 "pending",
             ),
             ("external-review", "Independent external review is complete", "pending"),

@@ -358,8 +358,7 @@ def test_docs_design_audit_fails_when_no_design_docs_exist(tmp_path: Path) -> No
 
 def scope_result(root: Path, scope: str) -> CheckResult:
     results = run_audit_checks(root, (scope,))
-    assert len(results) == 1
-    return results[0]
+    return next(result for result in results if result.scope == scope)
 
 
 def write_file(path: Path, text: str) -> None:

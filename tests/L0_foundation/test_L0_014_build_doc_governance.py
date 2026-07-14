@@ -116,8 +116,7 @@ def test_docs_build_fails_missing_required_topic(tmp_path: Path) -> None:
 
 def scope_result(root: Path) -> CheckResult:
     results = run_audit_checks(root, ("docs.build",))
-    assert len(results) == 1
-    return results[0]
+    return next(result for result in results if result.scope == "docs.build")
 
 
 def write_file(path: Path, text: str) -> None:

@@ -5,6 +5,8 @@ import sys
 from pathlib import Path
 from textwrap import dedent
 
+from config_fixtures import standard_config
+
 from wn_dev_std.checks import run_audit_checks
 from wn_dev_std.governance_links import resolve_governance_links
 
@@ -48,7 +50,11 @@ def test_docs_links_audit_fails_bad_governance_href(tmp_path: Path) -> None:
         '<a href="wrong.html" data-dev-std-gov-ref="core-adr-0001">Decision</a>\n',
     )
 
-    result = run_audit_checks(tmp_path, ("docs.links",))[0]
+    result = next(
+        result
+        for result in run_audit_checks(tmp_path, ("docs.links",))
+        if result.scope == "docs.links"
+    )
 
     assert not result.passed
     assert "should be '../../site/gov/adr/core-adr-0001.html'" in result.detail
@@ -61,7 +67,11 @@ def test_docs_links_audit_fails_missing_governance_href(tmp_path: Path) -> None:
         '<a data-dev-std-gov-ref="core-adr-0001">Decision</a>\n',
     )
 
-    result = run_audit_checks(tmp_path, ("docs.links",))[0]
+    result = next(
+        result
+        for result in run_audit_checks(tmp_path, ("docs.links",))
+        if result.scope == "docs.links"
+    )
 
     assert not result.passed
     assert "missing href" in result.detail
@@ -92,14 +102,12 @@ def test_governance_resolve_cli_writes_links(tmp_path: Path) -> None:
 def write_governance_repo(root: Path) -> None:
     write_file(
         root / "dev-std.toml",
-        dedent(
-            """
-            profile = "python-package"
-
+        standard_config(
+            extra="""
             [governance.html]
             output = "docs/site/gov"
-            """
-        ).lstrip(),
+            """,
+        ),
     )
     write_file(
         root / "docs" / "core" / "adr" / "core-adr-0001-decision.md",

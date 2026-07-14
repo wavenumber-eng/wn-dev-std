@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from textwrap import dedent
 
+from config_fixtures import standard_config
+
 from wn_dev_std.checks import CheckResult, run_audit_checks
 
 
@@ -276,8 +278,7 @@ def test_docs_surfaces_audit_allows_mixed_logical_and_physical_fixtures(
 
 def scope_result(root: Path) -> CheckResult:
     results = run_audit_checks(root, ("docs.surfaces",))
-    assert len(results) == 1
-    return results[0]
+    return next(result for result in results if result.scope == "docs.surfaces")
 
 
 def write_surface_repo(
@@ -301,7 +302,10 @@ def write_surface_repo(
     verification_kind: str = "local_pytest",
     verification_repo: str = "wavenumber-eng/example",
 ) -> None:
-    write_file(root / "dev-std.toml", 'profile = "python-package"\n')
+    write_file(
+        root / "dev-std.toml",
+        standard_config(),
+    )
     write_file(root / "src" / "core" / "api.py", "def list_core():\n    return []\n")
     write_file(root / "tests" / "test_core.py", "def test_core():\n    assert True\n")
     write_file(root / "tests" / "fixtures" / "core.json", "{}\n")
@@ -531,7 +535,10 @@ def write_parity_repo(
     fixture_coverage: str = "equal",
     include_parity_exception_ref: bool = False,
 ) -> None:
-    write_file(root / "dev-std.toml", 'profile = "python-package"\n')
+    write_file(
+        root / "dev-std.toml",
+        standard_config(),
+    )
     write_file(root / "src" / "core" / "api.py", "def list_core():\n    return []\n")
     write_file(root / "tests" / "test_core.py", "def test_core():\n    assert True\n")
     write_file(root / "tests" / "fixtures" / "core.json", "{}\n")
