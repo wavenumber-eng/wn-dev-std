@@ -17,7 +17,7 @@ def register(subparsers: SubparserRegistry) -> None:
     parser = subparsers.add_parser(
         "show",
         help="Show a compliant requirement",
-        description="Show a compliant Wavenumber requirement document.",
+        description="Show a compliant requirement document.",
     )
     parser.add_argument("requirement_id", help="Requirement id to show")
     add_root_argument(parser)
@@ -27,4 +27,10 @@ def register(subparsers: SubparserRegistry) -> None:
 
 def run(args: argparse.Namespace) -> int:
     """Run `requirement show`."""
-    return run_show_command(args, "requirement", "Requirement", "requirement_id")
+    return run_show_command(
+        args,
+        "requirement",
+        "Requirement",
+        "requirement_id",
+        pretty_text=True,
+    )

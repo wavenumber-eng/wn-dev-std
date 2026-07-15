@@ -1,6 +1,6 @@
 schema = 1
 profile = "cpp-library"
-description = "Wavenumber C/C++ native signoff profile."
+description = "C/C++ native signoff profile."
 baseline = "scripts/signoff_baseline.json"
 
 [limits]

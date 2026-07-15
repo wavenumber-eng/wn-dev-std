@@ -116,7 +116,13 @@ depends_on = ["work"]
 id = "external-review"
 title = "Obtain independent external review"
 status = "pending"
-depends_on = ["work", "design-doc-intent-audit"]
+depends_on = ["work", "design-doc-intent-audit", "test-runtime-impact-audit"]
+
+[[steps]]
+id = "test-runtime-impact-audit"
+title = "Audit new test runtime impact"
+status = "pending"
+depends_on = ["work"]
 
 [[exit_criteria]]
 id = "signoff"
@@ -126,6 +132,11 @@ status = "pending"
 [[exit_criteria]]
 id = "design-doc-intent-audit"
 title = "Design docs, ADRs, and requirements match implementation"
+status = "pending"
+
+[[exit_criteria]]
+id = "test-runtime-impact-audit"
+title = "New tests are listed and runtime impact is reviewed"
 status = "pending"
 
 [[exit_criteria]]
@@ -147,7 +158,11 @@ status = "pending"
     must finish or intentionally block the work, update durable artifacts such
     as design docs, ADRs, requirements, release notes, and tests, mark the
     required closeout criteria as met, obtain the required external review, and
-    rerun <code>dev-std audit . --scope docs.plans</code>. After the durable
+    rerun <code>dev-std audit . --scope docs.plans</code>. The
+    <code>test-runtime-impact-audit</code> closeout step must list new or
+    changed tests, review <code>docs/test-strategy.html</code>, record observed
+    runtime impact where available, and document reasonable optimization or
+    slower-lane splitting decisions for long-running tests. After the durable
     artifacts carry the useful history, the temporary plan and attached logs
     should be deleted from the active plan root.
   </p>
@@ -165,14 +180,17 @@ status = "pending"
     content.
   </p>
   <p>
-    Active/pending/blocked plans must include <code>design-doc-intent-audit</code>
-    and <code>external-review</code> as both step ids and exit-criterion ids.
+    Active/pending/blocked plans must include <code>design-doc-intent-audit</code>,
+    <code>test-runtime-impact-audit</code>, and
+    <code>external-review</code> as both step ids and exit-criterion ids.
     The design-doc-intent-audit id is the required closeout hook for checking
     design docs, ADRs, and requirements against the completed implementation.
-    The matching ids make the work item and closeout condition traceable.
+    The test-runtime-impact-audit id is the required closeout hook for checking
+    new tests against the test strategy and runtime-budget expectations. The
+    matching ids make the work item and closeout condition traceable.
   </p>
   <p>
-    Exit criteria are the canonical answer to “are we done?” Each
+    Exit criteria are the canonical answer to "are we done?" Each
     <code>[[exit_criteria]]</code> entry has an <code>id</code>,
     <code>title</code>, and <code>status</code>. Valid statuses are
     <code>pending</code>, <code>met</code>, and <code>blocked</code>.
@@ -538,7 +556,7 @@ rationale = "Python and C++ APIs should cover the same behavior."</code></pre>
   <p>
     The intended signoff integration is a plain audit invocation from the
     package root. Repositories should prefer a generic command such as
-    <code>dev-std audit . --scope docs.plans --scope docs.adrs --scope docs.requirements --scope docs.domains --scope docs.build --scope docs.surfaces --scope docs.traceability --scope docs.links</code>
+    <code>dev-std audit . --scope docs.plans --scope docs.adrs --scope docs.requirements --scope docs.domains --scope docs.build --scope docs.test_strategy --scope docs.surfaces --scope docs.traceability --scope docs.links --scope tests</code>
     over local bespoke scanners unless they need stricter project-specific
     policy. Packages with committed artifacts, vendored source, or configured
     release channels should also add <code>docs.artifacts</code>,

@@ -7,7 +7,7 @@
 <body data-doc="setup" data-profile="python-package">
   <h1>Setup</h1>
   <p>
-    Wavenumber Python projects use uv for environment management, dependency
+    Python projects using this standard use uv for environment management, dependency
     locking, builds, and tool execution.
   </p>
 
@@ -24,6 +24,15 @@ uv run dev-std audit .
 uv run rack run --all
 uv run python -m build
 uv run twine check dist/*</code></pre>
+
+  <h2>CI Order</h2>
+  <p>
+    CI should run <code>dev-std audit .</code> as the first governance job for
+    the package or workspace, then gate expensive test, build, platform,
+    hardware, and release jobs on that result. See
+    <a href="design/ci-standard.html">CI Standard</a> for GitHub Actions and
+    GitLab CI examples.
+  </p>
 
   <h2>Lockfile Policy</h2>
   <p>

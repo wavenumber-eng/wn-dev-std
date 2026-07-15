@@ -22,7 +22,7 @@ def register(subparsers: SubparserRegistry) -> None:
     parser = subparsers.add_parser(
         "create",
         help="Create a compliant ADR",
-        description="Create a compliant Wavenumber ADR document.",
+        description="Create a compliant ADR document.",
     )
     parser.add_argument("adr_id", help="ADR id, for example core-adr-0001")
     parser.add_argument("--domain", required=True, help="Governance domain")

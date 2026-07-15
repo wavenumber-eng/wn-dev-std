@@ -13,8 +13,8 @@ def register(subparsers: SubparserRegistry) -> None:
     """Register the command with the root parser."""
     parser = subparsers.add_parser(
         "standard",
-        help="Print a Wavenumber standard profile summary",
-        description="Print a Wavenumber project standard profile.",
+        help="Print a standard profile summary",
+        description="Print a project standard profile.",
     )
     parser.add_argument(
         "--profile",

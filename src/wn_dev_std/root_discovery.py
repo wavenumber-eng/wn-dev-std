@@ -24,7 +24,7 @@ class DiscoveredRoot:
 
 
 def discover_project_root(start: Path) -> DiscoveredRoot:
-    """Discover the nearest Wavenumber project root from a start path."""
+    """Discover the nearest project root from a start path."""
     current = _start_directory(start).resolve()
     git_fallback: Path | None = None
 
@@ -59,7 +59,7 @@ def load_standard_config(
     root: Path,
     pyproject: Mapping[str, object] | None = None,
 ) -> Mapping[str, object] | None:
-    """Load Wavenumber standard config from standalone TOML or pyproject."""
+    """Load standard config from standalone TOML or pyproject."""
     standalone = _standalone_config_path(root)
     if standalone is not None:
         with standalone.open("rb") as handle:

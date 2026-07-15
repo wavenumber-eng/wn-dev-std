@@ -30,11 +30,14 @@ def test_plan_create_writes_compliant_plan(tmp_path: Path) -> None:
     assert "[[steps]]" in plan_text
     assert 'id = "work"' in plan_text
     assert 'id = "design-doc-intent-audit"' in plan_text
+    assert 'id = "test-runtime-impact-audit"' in plan_text
     assert 'id = "external-review"' in plan_text
     assert "[[exit_criteria]]" in plan_text
     assert 'title = "Focused signoff passes"' in plan_text
     assert 'title = "Audit design docs, ADRs, and requirements against implementation"' in plan_text
+    assert 'title = "Audit new test runtime impact"' in plan_text
     assert 'title = "Design docs, ADRs, and requirements match implementation"' in plan_text
+    assert 'title = "New tests are listed and runtime impact is reviewed"' in plan_text
     assert 'title = "Independent external review is complete"' in plan_text
     audit = run_cli(tmp_path, "audit", "--scope", "docs.plans")
     assert audit.returncode == 0

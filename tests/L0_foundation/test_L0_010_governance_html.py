@@ -112,10 +112,16 @@ def write_governance_repo(root: Path) -> None:
             depends_on = ["implement"]
 
             [[steps]]
+            id = "test-runtime-impact-audit"
+            title = "Audit new test runtime impact"
+            status = "pending"
+            depends_on = ["implement"]
+
+            [[steps]]
             id = "external-review"
             title = "Obtain independent external review"
             status = "pending"
-            depends_on = ["implement", "design-doc-intent-audit"]
+            depends_on = ["implement", "design-doc-intent-audit", "test-runtime-impact-audit"]
 
             [[exit_criteria]]
             id = "review"
@@ -125,6 +131,11 @@ def write_governance_repo(root: Path) -> None:
             [[exit_criteria]]
             id = "design-doc-intent-audit"
             title = "Design docs, ADRs, and requirements match implementation"
+            status = "pending"
+
+            [[exit_criteria]]
+            id = "test-runtime-impact-audit"
+            title = "New tests are listed and runtime impact is reviewed"
             status = "pending"
 
             [[exit_criteria]]

@@ -45,6 +45,10 @@ from wn_dev_std.plan_hygiene import check_plan_hygiene_policy
 from wn_dev_std.pr_hygiene import check_pr_hygiene_policy
 from wn_dev_std.root_discovery import load_pyproject, load_standard_config, standard_config_path
 from wn_dev_std.secret_hygiene import check_root_env_policy
+from wn_dev_std.test_governance import (
+    check_test_suite_governance,
+    has_test_governance_config,
+)
 from wn_dev_std.web_policy import check_web_policy
 
 JAVASCRIPT_STANDARD_DOC_PATHS = (
@@ -96,6 +100,7 @@ def _run_selected_audit_checks(
     checks.extend(_language_checks(resolved_root, profile, requested_scopes))
     checks.extend(_compat_checks(resolved_root, resolved_config, requested_scopes))
     checks.extend(_ci_checks(resolved_root, resolved_config, requested_scopes))
+    checks.extend(_test_suite_checks(resolved_root, resolved_config, requested_scopes))
     checks.extend(_plan_checks(resolved_root, resolved_config, requested_scopes))
     checks.extend(governance_doc_checks(resolved_root, requested_scopes))
     return tuple(checks)
@@ -159,6 +164,26 @@ def _ci_checks(
             pr_hygiene_result.passed,
             pr_hygiene_result.detail,
             "ci",
+        )
+    ]
+
+
+def _test_suite_checks(
+    root: Path,
+    config: Mapping[str, object] | None,
+    requested_scopes: Sequence[str],
+) -> list[CheckResult]:
+    if not scope_is_selected("tests", requested_scopes):
+        return []
+    if not has_test_governance_config(config) and "tests" not in requested_scopes:
+        return []
+    test_result = check_test_suite_governance(root, config)
+    return [
+        CheckResult(
+            "test suite governance",
+            test_result.passed,
+            test_result.detail,
+            "tests",
         )
     ]
 

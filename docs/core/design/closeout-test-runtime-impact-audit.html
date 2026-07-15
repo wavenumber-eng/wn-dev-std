@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plan Test Runtime Impact Audit</title>
+</head>
+<body data-domain="core" data-design="plan-test-runtime-impact-audit" data-doc-status="accepted">
+  <h1>Plan Test Runtime Impact Audit</h1>
+  <p>
+    The <code>docs.plans</code> audit requires
+    <code>test-runtime-impact-audit</code> as a plan closeout step and exit
+    criterion. The durable governance records are <code>core-adr-0004</code>
+    and <code>core-req-0004</code>.
+  </p>
+
+  <h2>Executor Evidence</h2>
+  <p>
+    The executor should use the step log to list new or changed tests found
+    from git diff, Rack manifest changes, and direct test-file additions. The
+    log should identify the relevant Rack stratum or file, summarize observed
+    timing when available, and record optimization passes or slower-lane
+    routing for tests that are expensive enough to affect normal development.
+  </p>
+
+  <h2>Reviewer Obligation</h2>
+  <p>
+    External review happens after the runtime-impact audit. The reviewer should
+    inspect the step log, compare it with the test strategy document at
+    <code>docs/test-strategy.html</code>, and challenge unoptimized
+    minute-scale tests that should be made faster or split out of the normal
+    edit-loop path.
+  </p>
+
+  <h2>Audit Boundary</h2>
+  <p>
+    Dev-std enforces the presence of the step id, the matching
+    exit-criterion id, and the external-review dependency. It does not parse free
+    text timing logs or impose one universal time budget, because acceptable
+    runtime depends on the repository, lane, hardware, and signoff purpose.
+  </p>
+</body>
+</html>

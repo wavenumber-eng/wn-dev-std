@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Test Strategy</title>
+</head>
+<body data-doc="test-strategy" data-doc-status="accepted">
+  <h1>Test Strategy</h1>
+
+  <h2>Scope And Architecture</h2>
+  <p>
+    This package uses a Rack suite under <code>tests/</code> as the primary
+    test architecture. The strategy covers the package boundary for source,
+    documentation, contracts, generated governance output, and release-facing
+    checks. Workspaces that aggregate multiple packages should keep one
+    equivalent strategy document at each audited package boundary and may add a
+    workspace overview when cross-package signoff matters.
+  </p>
+
+  <h2>Rack And Signoff</h2>
+  <p>
+    Rack is the suite manifest and execution model. The suite manifest at
+    <a href="../tests/rack.toml">tests/rack.toml</a> declares ordered strata,
+    and each stratum declares subtests in <code>STRATUM.toml</code>. The
+    <code>L99_signoff</code> stratum is the release-facing gate and includes
+    the project audit, contract checks, documentation checks, repository
+    hygiene checks, lockfile validation, and packaging-signoff expectations.
+  </p>
+
+  <h2>Lanes, Parity, And Surfaces</h2>
+  <p>
+    The reference package is a pure Python tool, so it does not currently have
+    separate Python/C++ parity lanes. Projects with multiple runtimes, such as
+    Python wrappers over native code or browser/WASM lanes, should document
+    which public surfaces are tested in each lane, how parity is established,
+    and which gaps are tracked as accepted exceptions or follow-up work.
+  </p>
+
+  <h2>Fixtures, Assets, And Oracles</h2>
+  <p>
+    This repository has a small fixture footprint and no custom oracle
+    generator. Larger adopters should describe fixture data, generated assets,
+    captured cases, golden files, oracle tools, and any asset-discovery checks
+    that prevent missing or orphaned test material from silently falling out of
+    coverage.
+  </p>
+
+  <h2>Coverage, Gaps, And Evidence</h2>
+  <p>
+    Coverage evidence is intentionally layered. Rack manifests explain the
+    executable suite shape, dev-std governance records link requirements and
+    ADRs to verification refs, and audit scopes catch missing manifests,
+    missing documentation, stale links, and orphan plan/log material. Known
+    gaps should be visible as issue refs, exceptions, or explicit release
+    signoff notes rather than implicit omissions.
+  </p>
+
+  <h2>Runtime Impact Review</h2>
+  <p>
+    Plans that add or modify tests must use the
+    <code>test-runtime-impact-audit</code> closeout step to list those tests,
+    identify their Rack strata or files, and record observed runtime impact
+    where available. New minute-scale tests should receive a reasonable
+    optimization pass or be split into an appropriate slower signoff lane so
+    routine development loops do not grow by accident.
+  </p>
+
+  <h2>Local Commands</h2>
+  <pre><code>uv run rack run L0_foundation
+uv run rack run L99_signoff
+uv run dev-std audit . --scope docs.test_strategy
+uv run dev-std audit . --scope tests</code></pre>
+</body>
+</html>

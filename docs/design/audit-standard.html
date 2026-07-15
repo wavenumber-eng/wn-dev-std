@@ -8,7 +8,7 @@
   <h1>Audit Standard</h1>
   <p>
     <code>dev-std audit</code> is the canonical read-only signoff command for
-    Wavenumber repository checks. It groups checks by scope so projects can run
+    repository checks. It groups checks by scope so projects can run
     the full release-facing audit or focus on one policy area while migrating.
   </p>
 
@@ -35,7 +35,10 @@
     validates ADR metadata and standing-decision hygiene, including failure
     when no ADR inventory exists. <code>docs.build</code> validates the
     canonical build document and its minimal setup, invocation, output, and
-    validation topics. <code>docs.domains</code> validates the
+    validation topics. <code>docs.test_strategy</code> validates the canonical
+    package or workspace test strategy document and its high-level coverage of
+    Rack, signoff, lanes, parity, fixtures, assets, oracles, and evidence
+    surfaces. <code>docs.domains</code> validates the
     domain registry, domain HTML coverage, and file-to-domain ownership under
     configured owned roots, including failure when no registry exists.
     <code>docs.requirements</code> validates requirement metadata and
@@ -62,7 +65,7 @@
     target, runnable, board app, fixture, sample, or demo folder is a separate
     member.
   </p>
-  <pre><code>standard_version = "2026.7.14"
+  <pre><code>standard_version = "2026.7.15"
 kind = "workspace"
 
 [workspace]
@@ -78,7 +81,7 @@ members = ["bom_cruncher", "lib_cruncher", "panel-monkey"]</code></pre>
     current directory or <code>--root</code> value until they find
     <code>dev-std.toml</code>, legacy <code>wn-dev-std.toml</code>, or a
     <code>pyproject.toml</code> with <code>[tool.wn_dev_std]</code>. A
-    <code>.git</code> directory is a fallback boundary when no Wavenumber config
+    <code>.git</code> directory is a fallback boundary when no dev-std config
     marker is present.
   </p>
 
@@ -91,7 +94,7 @@ members = ["bom_cruncher", "lib_cruncher", "panel-monkey"]</code></pre>
     <code>enabled_scopes</code>. Repositories with no dev-std config continue to
     use default audit behavior and are not part of the first migration ratchet.
   </p>
-  <pre><code>standard_version = "2026.7.14"
+  <pre><code>standard_version = "2026.7.15"
 kind = "package"
 profile = "zephyr-firmware"
 enabled_scopes = ["docs.plans"]</code></pre>
@@ -101,6 +104,49 @@ enabled_scopes = ["docs.plans"]</code></pre>
     command-line scopes override the config default. Passing audit with a
     targeted scope list is not full profile conformance, and audit output must
     report the configured scopes.
+  </p>
+
+  <h2>Test Suite Governance</h2>
+  <p>
+    The <code>tests</code> scope validates Rack test-suite structure for
+    projects that opt into strict test governance. The dev-std config registers
+    test roots with <code>[tests]</code> or
+    <code>[tool.wn_dev_std.tests]</code>. Each root must contain
+    <code>rack.toml</code>; each Rack stratum listed in
+    <code>[strata].order</code> must have a matching directory and
+    <code>STRATUM.toml</code>; every discovered <code>test_*.py</code> file
+    must be declared in <code>[[subtests]]</code>; every declared subtest file
+    must exist; and the configured signoff stratum must exist with at least one
+    signoff subtest.
+  </p>
+  <pre><code>[tests]
+roots = ["tests"]
+signoff_strata = ["L99_signoff"]</code></pre>
+  <p>
+    In the first dev-std slice, Rack manifest validation is implemented locally
+    because Rack does not yet expose a failing audit command. Future dev-std
+    versions should delegate to Rack once a native Rack audit/check command is
+    available.
+  </p>
+
+  <h2>Test Strategy Documents</h2>
+  <p>
+    The <code>docs.test_strategy</code> scope requires a canonical
+    <code>docs/test-strategy.html</code> file with
+    <code>data-doc="test-strategy"</code> and
+    <code>data-doc-status="accepted"</code>. Rack manifests describe executable
+    strata and subtests; the test strategy document describes the human-review
+    architecture of the suite. It should explain the package or workspace test
+    scope, Rack and signoff gates, execution lanes, runtime parity
+    expectations, tested public surfaces, fixture/data assets, oracle tools,
+    coverage evidence, known missing coverage, and orphan/missing-asset
+    controls.
+  </p>
+  <p>
+    Simple packages may state that parity lanes, custom oracle tooling, or
+    fixture catalogs are not applicable. Complex packages should use the same
+    document to orient reviewers before they inspect Rack manifests, generated
+    surface databases, custom test tools, and release signoff output.
   </p>
 
   <h2>Plan Roots</h2>
@@ -132,11 +178,26 @@ roots = ["docs/pcb/plans", "docs/sch/plans"]</code></pre>
   </p>
   <p>
     Every active/pending/blocked plan must also include the step ids
-    <code>design-doc-intent-audit</code> and <code>external-review</code>.
+    <code>design-doc-intent-audit</code>,
+    <code>test-runtime-impact-audit</code>, and
+    <code>external-review</code>.
     The design-doc audit step is the required closeout hook for verifying
     design docs, ADRs, and requirements against the user's intent, the
-    implemented behavior, public contracts, and tests. The external-review step
-    records independent review before closeout.
+    implemented behavior, public contracts, and tests. The test-runtime impact
+    step is the required closeout hook for listing new or changed tests from
+    git diff and Rack manifests, reviewing <code>docs/test-strategy.html</code>,
+    recording observed runtime impact, and documenting reasonable optimization
+    or splitting decisions for long-running tests. The external-review step
+    records independent review after both closeout audits.
+  </p>
+  <p>
+    The runtime-impact hook is a current-standard migration requirement.
+    Existing active plan catalogs must add the
+    <code>test-runtime-impact-audit</code> step and exit criterion before
+    <code>docs.plans</code> or full audit passes with this tool version. Repos
+    that cannot migrate immediately should keep CI pinned to the previous
+    reviewed <code>wn-dev-std</code> release or defer the
+    <code>docs.plans</code> scope until active plans are updated.
   </p>
   <pre><code>+++
 type = "plan_log"
@@ -179,6 +240,14 @@ depends_on = ["audit-existing-plans"]</code></pre>
     state.
   </p>
   <p>
+    Logs for <code>test-runtime-impact-audit</code> should list the new or
+    changed tests, their Rack stratum or file location, measured or observed
+    runtime impact when available, any order-of-magnitude optimization pass,
+    and whether minute-scale tests should be split into a slower lane. This is
+    the executor evidence that the external reviewer should inspect before
+    plan closeout.
+  </p>
+  <p>
     <code>log create &lt;plan-id&gt; &lt;step-id&gt;</code> accepts
     <code>--body</code> for short one-line notes and <code>--body-file</code>
     for longer Markdown. Agents should prefer <code>--body-file</code> when a
@@ -200,12 +269,18 @@ title = "Focused signoff passes"
 status = "pending"</code></pre>
   <p>
     Every active/pending/blocked plan must include exit criteria with ids
-    <code>design-doc-intent-audit</code> and <code>external-review</code>.
+    <code>design-doc-intent-audit</code>,
+    <code>test-runtime-impact-audit</code>, and
+    <code>external-review</code>.
     These ids are intentionally the same as the required step ids: the step is
     the work item, and the exit criterion is the observable condition that the
     work satisfied. The design-doc-intent-audit criterion must not be marked
     met until design docs, ADRs, and requirements have been checked against the
-    completed implementation.
+    completed implementation. The test-runtime-impact-audit criterion must not
+    be marked met until <code>New tests are listed and runtime impact is reviewed</code>:
+    new tests have been listed, the test strategy document has been reviewed,
+    and unreasonable runtime bloat has either been optimized or explicitly
+    routed to an appropriate slower lane.
   </p>
   <p>
     Valid exit-criterion statuses are <code>pending</code>, <code>met</code>,
@@ -245,10 +320,11 @@ status = "pending"</code></pre>
   <p>
     Closeout is a process, not a status value. The expected sequence is:
     complete or intentionally block the plan work, run the required
-    design-doc/ADR/requirement alignment audit, update durable artifacts,
-    complete external review, remove the temporary plan and logs from the
-    active plan root, and rerun <code>dev-std audit . --scope docs.plans</code>
-    to prove no active-work residue remains.
+    design-doc/ADR/requirement alignment audit, run the required test runtime
+    impact audit, update durable artifacts, complete external review, remove
+    the temporary plan and logs from the active plan root, and rerun
+    <code>dev-std audit . --scope docs.plans</code> to prove no active-work
+    residue remains.
   </p>
 
   <h2>ADR And Requirement Audits</h2>
@@ -394,17 +470,19 @@ docs/domains/&lt;domain&gt;.html</code></pre>
   --scope docs.requirements \
   --scope docs.domains \
   --scope docs.build \
+  --scope docs.test_strategy \
   --scope docs.surfaces \
   --scope docs.artifacts \
   --scope docs.vendors \
   --scope docs.release \
   --scope docs.traceability \
-  --scope docs.links</code></pre>
+  --scope docs.links \
+  --scope tests</code></pre>
   <p>
     CI should run governance before expensive functional or platform matrices.
     Downstream CI should pin the released PyPI tool version that matches the
     repository's <code>standard_version</code>, for example
-    <code>uvx --from wn-dev-std==2026.7.14 dev-std audit .</code>. Optional
+    <code>uvx --from wn-dev-std==2026.7.15 dev-std audit .</code>. Optional
     upstream freshness checks may warn when a newer PyPI release exists, but
     normal audit must remain deterministic and offline unless that check is
     requested.

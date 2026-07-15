@@ -28,7 +28,7 @@ def register(subparsers: SubparserRegistry) -> None:
     parser = subparsers.add_parser(
         "show",
         help="Show a compliant plan",
-        description="Show a compliant Wavenumber plan document.",
+        description="Show a compliant plan document.",
     )
     parser.add_argument("plan_id", help="Plan id to show")
     add_root_argument(parser)

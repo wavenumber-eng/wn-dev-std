@@ -96,10 +96,19 @@ PLAN_STATUSES = ("active", "pending", "blocked")
 PLAN_CLOSEOUT_STATUS_ALIASES = ("closed", "complete", "completed", "done", "finished")
 PLAN_STEP_STATUSES = ("pending", "active", "blocked", "done")
 PLAN_EXIT_CRITERION_STATUSES = ("pending", "met", "blocked")
-REQUIRED_PLAN_STEP_IDS = ("design-doc-intent-audit", "external-review")
-REQUIRED_PLAN_EXIT_CRITERION_IDS = ("design-doc-intent-audit", "external-review")
 GOVERNANCE_DOC_AUDIT_STEP_ID = "design-doc-intent-audit"
+TEST_RUNTIME_IMPACT_STEP_ID = "test-runtime-impact-audit"
 EXTERNAL_REVIEW_STEP_ID = "external-review"
+REQUIRED_PLAN_STEP_IDS = (
+    GOVERNANCE_DOC_AUDIT_STEP_ID,
+    TEST_RUNTIME_IMPACT_STEP_ID,
+    EXTERNAL_REVIEW_STEP_ID,
+)
+REQUIRED_PLAN_EXIT_CRITERION_IDS = (
+    GOVERNANCE_DOC_AUDIT_STEP_ID,
+    TEST_RUNTIME_IMPACT_STEP_ID,
+    EXTERNAL_REVIEW_STEP_ID,
+)
 PLAN_LIKE_NAME_TOKENS = ("plan", "roadmap")
 LOG_LIKE_NAME_TOKENS = (
     "plan_log",
@@ -380,9 +389,10 @@ def _plan_closeout_status_failure(relative_path: str, status: str) -> str:
     return (
         f"{relative_path}: {status!r} is not a plan status; closeout is a process. "
         "Move durable information into design docs, ADRs, requirements, tests, or "
-        "release notes, complete the required design-doc-intent-audit and "
-        "external-review checks, delete the temporary plan/log files from the active "
-        "plan root, then rerun dev-std audit . --scope docs.plans."
+        "release notes, complete the required design-doc-intent-audit, "
+        "test-runtime-impact-audit, and external-review checks, delete the temporary "
+        "plan/log files from the active plan root, then rerun "
+        "dev-std audit . --scope docs.plans."
     )
 
 
@@ -668,6 +678,15 @@ def _validate_closeout_step_order(
         failures.append(
             f"{relative_path}: step {EXTERNAL_REVIEW_STEP_ID} must depend_on "
             f"{GOVERNANCE_DOC_AUDIT_STEP_ID}"
+        )
+    if (
+        review_step is not None
+        and TEST_RUNTIME_IMPACT_STEP_ID in step_by_id
+        and TEST_RUNTIME_IMPACT_STEP_ID not in review_step.depends_on
+    ):
+        failures.append(
+            f"{relative_path}: step {EXTERNAL_REVIEW_STEP_ID} must depend_on "
+            f"{TEST_RUNTIME_IMPACT_STEP_ID}"
         )
 
 

@@ -800,6 +800,19 @@ def write_minimal_python_js_project(root: Path) -> None:
 
 def write_minimal_governance(root: Path) -> None:
     write_file(
+        root / "docs" / "test-strategy.html",
+        (
+            '<!doctype html><html><body data-doc="test-strategy" data-doc-status="accepted">'
+            "<h1>Test Strategy</h1>"
+            "<p>Package test strategy and suite architecture.</p>"
+            "<p>Rack strata and signoff gates.</p>"
+            "<p>Lane, runtime, parity, and surface coverage.</p>"
+            "<p>Fixture assets, oracle tools, case data.</p>"
+            "<p>Coverage evidence, missing coverage, orphan assets, and manifest checks.</p>"
+            "</body></html>\n"
+        ),
+    )
+    write_file(
         root / "docs" / "build.html",
         (
             '<!doctype html><html><body data-doc="build" data-doc-status="accepted">'

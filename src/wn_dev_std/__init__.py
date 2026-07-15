@@ -1,4 +1,4 @@
-"""Wavenumber development standards reference package."""
+"""Development standards reference package."""
 
 from wn_dev_std._version import __version__
 from wn_dev_std.standards import (

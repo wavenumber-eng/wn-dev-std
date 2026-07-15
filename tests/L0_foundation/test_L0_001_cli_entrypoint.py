@@ -41,6 +41,19 @@ def test_cli_version_command_reports_same_version() -> None:
     assert f"wn-dev-std {__version__}" in result.stdout
 
 
+def test_cli_stdout_is_padded_before_and_after_output() -> None:
+    for args in (
+        ("version",),
+        ("standard", "--format", "json"),
+        ("--help",),
+    ):
+        result = run_cli(*args)
+
+        assert result.returncode == 0
+        assert result.stdout.startswith("\n")
+        assert result.stdout.endswith("\n\n")
+
+
 def test_audit_upstream_result_warns_only_for_outdated_or_unavailable() -> None:
     current = upstream_check_result(UpstreamVersionCheck(STANDARD_VERSION, STANDARD_VERSION, None))
     outdated = upstream_check_result(UpstreamVersionCheck(STANDARD_VERSION, "9999.1.1", None))
@@ -145,9 +158,11 @@ def test_audit_docs_governance_scopes_run() -> None:
         "docs.release",
         "docs.requirements",
         "docs.surfaces",
+        "docs.test_strategy",
         "docs.traceability",
         "docs.vendors",
         "docs.links",
+        "tests",
     ):
         result = run_cli("audit", "--scope", scope)
         assert result.returncode == 0
@@ -166,9 +181,11 @@ def test_audit_default_all_includes_governance_scopes() -> None:
         "docs.release",
         "docs.requirements",
         "docs.surfaces",
+        "docs.test_strategy",
         "docs.traceability",
         "docs.vendors",
         "docs.links",
+        "tests",
     ):
         assert f'"scope": "{scope}"' in result.stdout
 

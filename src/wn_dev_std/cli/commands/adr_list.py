@@ -17,7 +17,7 @@ def register(subparsers: SubparserRegistry) -> None:
     parser = subparsers.add_parser(
         "list",
         help="List compliant ADRs",
-        description="List compliant Wavenumber ADR documents.",
+        description="List compliant ADR documents.",
     )
     add_root_argument(parser)
     add_format_argument(parser)
@@ -26,4 +26,4 @@ def register(subparsers: SubparserRegistry) -> None:
 
 def run(args: argparse.Namespace) -> int:
     """Run `adr list`."""
-    return run_list_command(args, "adr", "ADRs", "adrs")
+    return run_list_command(args, "adr", "ADRs", "adrs", pretty_text=True)

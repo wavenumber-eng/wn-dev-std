@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Test Strategy Document Audit</title>
+</head>
+<body data-domain="core" data-design="test-strategy-doc-audit" data-doc-status="accepted">
+  <h1>Test Strategy Document Audit</h1>
+  <p>
+    The <code>docs.test_strategy</code> audit scope requires a canonical
+    <code>docs/test-strategy.html</code> document for each audited package or
+    workspace boundary. The durable governance records are
+    <code>core-adr-0003</code> and <code>core-req-0003</code>.
+  </p>
+
+  <h2>Purpose</h2>
+  <p>
+    Rack manifests are necessary but not sufficient for large test programs.
+    They tell reviewers which strata and subtests exist, but they do not always
+    explain parity lanes, custom evidence databases, fixture discovery,
+    generated assets, oracle tools, or why some surfaces intentionally lack
+    equivalent coverage.
+  </p>
+
+  <h2>Canonical Document</h2>
+  <p>
+    The audited source is <code>docs/test-strategy.html</code>. It must be an
+    accepted HTML document with <code>data-doc="test-strategy"</code>. It should
+    summarize the package or workspace test architecture before a reviewer
+    drills into <code>tests/rack.toml</code>, <code>STRATUM.toml</code>, surface
+    manifests, fixture catalogs, or generated signoff evidence.
+  </p>
+
+  <h2>Required Topics</h2>
+  <p>
+    The first audit slice checks that the document covers scope/architecture,
+    Rack/signoff, lanes/parity/surfaces, fixtures/assets/oracles, and
+    coverage/gaps/evidence. A simple package may explicitly state that a topic
+    is not applicable. A complex package should describe the support code,
+    assets, and generated evidence needed to understand the suite.
+  </p>
+
+  <h2>Verification</h2>
+  <p>
+    The implementation lives in
+    <a href="../../../src/wn_dev_std/test_strategy_doc_governance.py">src/wn_dev_std/test_strategy_doc_governance.py</a>
+    and is covered by
+    <a href="../../../tests/L0_foundation/test_L0_017_test_strategy_doc_governance.py">tests/L0_foundation/test_L0_017_test_strategy_doc_governance.py</a>.
+  </p>
+</body>
+</html>

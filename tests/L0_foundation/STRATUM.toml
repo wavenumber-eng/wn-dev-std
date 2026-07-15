@@ -36,3 +36,131 @@ test_cases = "../../docs/contracts/interface_manifest.v0.json"
 
 [subtests.code_under_test]
 module = "wn_dev_std.standards"
+
+[[subtests]]
+id = "L0_003"
+file = "test_L0_003_plan_hygiene.py"
+name = "Plan Hygiene"
+description = "Validate plan and log governance policy"
+concerns = ["contracts"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_004"
+file = "test_L0_004_plan_read_commands.py"
+name = "Plan Read Commands"
+description = "Validate plan and log read command behavior"
+concerns = ["cli", "contracts"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_005"
+file = "test_L0_005_plan_mutation_commands.py"
+name = "Plan Mutation Commands"
+description = "Validate plan and log mutation command behavior"
+concerns = ["cli", "contracts"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_006"
+file = "test_L0_006_doc_governance.py"
+name = "Document Governance"
+description = "Validate ADR, requirement, traceability, link, domain, and design checks"
+concerns = ["contracts", "docs"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_007"
+file = "test_L0_007_governance_read_commands.py"
+name = "Governance Read Commands"
+description = "Validate ADR and requirement read command behavior"
+concerns = ["cli", "contracts", "docs"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_008"
+file = "test_L0_008_domain_governance.py"
+name = "Domain Governance"
+description = "Validate domain registry and ownership checks"
+concerns = ["contracts", "docs"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_009"
+file = "test_L0_009_surface_governance.py"
+name = "Surface Governance"
+description = "Validate governed surface and fixture checks"
+concerns = ["contracts", "docs"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_010"
+file = "test_L0_010_governance_html.py"
+name = "Governance HTML"
+description = "Validate generated governance HTML output"
+concerns = ["contracts", "docs"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_011_links"
+file = "test_L0_011_governance_links.py"
+name = "Governance Links"
+description = "Validate governance link resolution and audit behavior"
+concerns = ["cli", "contracts", "docs"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_011_markdown"
+file = "test_L0_011_governance_markdown.py"
+name = "Governance Markdown"
+description = "Validate governance Markdown rendering behavior"
+concerns = ["contracts", "docs"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_012"
+file = "test_L0_012_governance_mutation_commands.py"
+name = "Governance Mutation Commands"
+description = "Validate ADR and requirement mutation command behavior"
+concerns = ["cli", "contracts", "docs"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_013"
+file = "test_L0_013_artifact_vendor_governance.py"
+name = "Artifact And Vendor Governance"
+description = "Validate artifact, vendor, and release governance checks"
+concerns = ["contracts", "docs"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_014"
+file = "test_L0_014_build_doc_governance.py"
+name = "Build Doc Governance"
+description = "Validate build document governance checks"
+concerns = ["contracts", "docs"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_015"
+file = "test_L0_015_workspace_governance.py"
+name = "Workspace Governance"
+description = "Validate workspace, config, and scoped audit behavior"
+concerns = ["contracts"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_016"
+file = "test_L0_016_test_suite_governance.py"
+name = "Test Suite Governance"
+description = "Validate Rack manifest and signoff test-suite governance"
+concerns = ["contracts", "signoff"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_017"
+file = "test_L0_017_test_strategy_doc_governance.py"
+name = "Test Strategy Doc Governance"
+description = "Validate canonical test strategy documentation checks"
+concerns = ["contracts", "docs", "signoff"]
+test_case_type = "audit_meta"

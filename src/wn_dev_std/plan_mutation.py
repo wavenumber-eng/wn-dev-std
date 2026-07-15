@@ -63,50 +63,7 @@ def create_plan(
         raise PlanMutationError(f"plan path already exists: {path}")
 
     created_value = created or date.today().isoformat()
-    front_matter = [
-        'type = "plan"',
-        f"id = {_toml_string(plan_id)}",
-        f"status = {_toml_string(status)}",
-        f"created = {_toml_string(created_value)}",
-    ]
-    if depends_on:
-        front_matter.append(f"depends_on = {_toml_string_array(depends_on)}")
-    front_matter.extend(
-        [
-            "",
-            "[[steps]]",
-            'id = "work"',
-            'title = "Execute plan work"',
-            'status = "pending"',
-            "",
-            "[[steps]]",
-            'id = "design-doc-intent-audit"',
-            'title = "Audit design docs, ADRs, and requirements against implementation"',
-            'status = "pending"',
-            'depends_on = ["work"]',
-            "",
-            "[[steps]]",
-            'id = "external-review"',
-            'title = "Obtain independent external review"',
-            'status = "pending"',
-            'depends_on = ["work", "design-doc-intent-audit"]',
-            "",
-            "[[exit_criteria]]",
-            'id = "signoff"',
-            'title = "Focused signoff passes"',
-            'status = "pending"',
-            "",
-            "[[exit_criteria]]",
-            'id = "design-doc-intent-audit"',
-            'title = "Design docs, ADRs, and requirements match implementation"',
-            'status = "pending"',
-            "",
-            "[[exit_criteria]]",
-            'id = "external-review"',
-            'title = "Independent external review is complete"',
-            'status = "pending"',
-        ]
-    )
+    front_matter = _new_plan_front_matter(plan_id, status, created_value, depends_on)
     text = _front_matter_document(front_matter, _plan_body(title, body))
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
@@ -238,6 +195,72 @@ def _required_plan(context: PlanReadContext, plan_id: str) -> PlanRecord:
     if plan is None:
         raise PlanMutationError(f"plan not found: {plan_id}")
     return plan
+
+
+def _new_plan_front_matter(
+    plan_id: str,
+    status: str,
+    created: str,
+    depends_on: tuple[str, ...],
+) -> list[str]:
+    front_matter = [
+        'type = "plan"',
+        f"id = {_toml_string(plan_id)}",
+        f"status = {_toml_string(status)}",
+        f"created = {_toml_string(created)}",
+    ]
+    if depends_on:
+        front_matter.append(f"depends_on = {_toml_string_array(depends_on)}")
+    front_matter.extend(_default_plan_blocks())
+    return front_matter
+
+
+def _default_plan_blocks() -> list[str]:
+    return [
+        "",
+        "[[steps]]",
+        'id = "work"',
+        'title = "Execute plan work"',
+        'status = "pending"',
+        "",
+        "[[steps]]",
+        'id = "design-doc-intent-audit"',
+        'title = "Audit design docs, ADRs, and requirements against implementation"',
+        'status = "pending"',
+        'depends_on = ["work"]',
+        "",
+        "[[steps]]",
+        'id = "test-runtime-impact-audit"',
+        'title = "Audit new test runtime impact"',
+        'status = "pending"',
+        'depends_on = ["work"]',
+        "",
+        "[[steps]]",
+        'id = "external-review"',
+        'title = "Obtain independent external review"',
+        'status = "pending"',
+        'depends_on = ["work", "design-doc-intent-audit", "test-runtime-impact-audit"]',
+        "",
+        "[[exit_criteria]]",
+        'id = "signoff"',
+        'title = "Focused signoff passes"',
+        'status = "pending"',
+        "",
+        "[[exit_criteria]]",
+        'id = "design-doc-intent-audit"',
+        'title = "Design docs, ADRs, and requirements match implementation"',
+        'status = "pending"',
+        "",
+        "[[exit_criteria]]",
+        'id = "test-runtime-impact-audit"',
+        'title = "New tests are listed and runtime impact is reviewed"',
+        'status = "pending"',
+        "",
+        "[[exit_criteria]]",
+        'id = "external-review"',
+        'title = "Independent external review is complete"',
+        'status = "pending"',
+    ]
 
 
 def _selected_plan_root(context: PlanReadContext, requested: str | None) -> str:

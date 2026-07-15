@@ -19,7 +19,7 @@ def register(subparsers: SubparserRegistry) -> None:
     parser = subparsers.add_parser(
         "audit",
         help="Run repository audit checks",
-        description="Run Wavenumber repository audit checks.",
+        description="Run repository audit checks.",
     )
     add_audit_arguments(parser)
     parser.set_defaults(handler=run)

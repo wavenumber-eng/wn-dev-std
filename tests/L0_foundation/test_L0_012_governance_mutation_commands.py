@@ -74,7 +74,8 @@ def test_requirement_create_writes_compliant_draft_from_body_file(tmp_path: Path
     assert "Draft requirement." in text
     shown = run_cli(tmp_path, "requirement", "show", "core-req-0001")
     assert shown.returncode == 0
-    assert "Requirement: core-req-0001" in shown.stdout
+    assert "Requirement:\n  - core-req-0001 [draft]" in shown.stdout
+    assert "Draft requirement." in shown.stdout
 
 
 def test_adr_create_rejects_duplicate_document(tmp_path: Path) -> None:

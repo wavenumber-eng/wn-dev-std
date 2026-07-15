@@ -7,6 +7,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, cast
 
+from wn_dev_std.audit_config import AUDIT_SCOPES
 from wn_dev_std.cli.main import build_parser
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -37,6 +38,16 @@ def string_sequence(value: object) -> Sequence[str]:
             raise TypeError("expected list of strings")
         items.append(item)
     return items
+
+
+def object_mapping(value: object) -> Mapping[str, object]:
+    if isinstance(value, dict):
+        return cast(Mapping[str, object], value)
+    raise TypeError("expected object")
+
+
+def properties_of(schema: Mapping[str, object]) -> Mapping[str, object]:
+    return object_mapping(schema["properties"])
 
 
 def test_command_manifest_matches_cli_and_design_doc() -> None:
@@ -93,3 +104,54 @@ def test_config_and_exception_schemas_are_json_schema_documents() -> None:
         schema = load_json_mapping(ROOT / "docs" / "contracts" / name)
         assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
         assert isinstance(schema["title"], str)
+
+
+def test_config_schema_matches_runtime_config_surface() -> None:
+    schema = load_json_mapping(ROOT / "docs" / "contracts" / "wn_dev_std_config.schema.v0.json")
+    properties = properties_of(schema)
+
+    for key in (
+        "standard_version",
+        "kind",
+        "enabled_scopes",
+        "workspace",
+        "tests",
+        "documentation",
+        "governance",
+        "compatibility_pruning",
+        "pr_hygiene",
+    ):
+        assert key in properties
+
+    schema_defs = object_mapping(schema["$defs"])
+    audit_scope_def = object_mapping(schema_defs["auditScope"])
+    assert set(string_sequence(audit_scope_def["enum"])) == set(AUDIT_SCOPES)
+
+    workspace_properties = properties_of(object_mapping(properties["workspace"]))
+    assert "members" in workspace_properties
+
+    governance_properties = properties_of(object_mapping(properties["governance"]))
+    governance_html_properties = properties_of(object_mapping(governance_properties["html"]))
+    assert "output" in governance_html_properties
+
+    documentation_properties = properties_of(object_mapping(properties["documentation"]))
+    documentation_governance_properties = properties_of(
+        object_mapping(documentation_properties["governance"])
+    )
+    assert "output" in documentation_governance_properties
+
+    plan_properties = properties_of(object_mapping(documentation_properties["plans"]))
+    assert "roots" in plan_properties
+    assert "ignore" in plan_properties
+
+    compatibility_properties = properties_of(object_mapping(properties["compatibility_pruning"]))
+    for key in (
+        "root",
+        "forbidden_patterns",
+        "excluded_parts",
+        "excluded_paths",
+        "excluded_names",
+        "suffixes",
+        "names",
+    ):
+        assert key in compatibility_properties

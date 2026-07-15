@@ -1,6 +1,6 @@
 schema = 1
 profile = "zephyr-firmware"
-description = "Wavenumber Zephyr application signoff profile."
+description = "Zephyr application signoff profile."
 baseline = "scripts/signoff_baseline.json"
 
 [limits]

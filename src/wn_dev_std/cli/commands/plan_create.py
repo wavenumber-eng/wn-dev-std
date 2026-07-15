@@ -23,7 +23,7 @@ def register(subparsers: SubparserRegistry) -> None:
     parser = subparsers.add_parser(
         "create",
         help="Create a compliant plan",
-        description="Create a compliant Wavenumber plan document.",
+        description="Create a compliant plan document.",
     )
     parser.add_argument("plan_id", help="Plan id to create")
     parser.add_argument("--title", required=True, help="Plan title")

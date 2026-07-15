@@ -4,7 +4,17 @@
   "title": "wn-dev-std project configuration",
   "type": "object",
   "additionalProperties": false,
+  "required": ["standard_version"],
   "properties": {
+    "standard_version": {
+      "type": "string",
+      "description": "Installed standard version this configuration targets, for example 2026.7.15."
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["package", "workspace"],
+      "description": "Audit boundary kind. Omitted kind defaults to package."
+    },
     "profile": {
       "type": "string",
       "enum": [
@@ -17,6 +27,24 @@
         "zephyr-firmware"
       ],
       "description": "Primary project profile such as python-package, python-native-wasm, cpp-library, csharp-app, javascript-web-app, python-js-app, or zephyr-firmware."
+    },
+    "enabled_scopes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/auditScope" },
+      "uniqueItems": true,
+      "description": "Default audit scopes to run when the CLI call does not pass --scope. Workspace configs must not declare enabled_scopes."
+    },
+    "workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Explicit member list for kind='workspace' audit aggregation.",
+      "required": ["members"],
+      "properties": {
+        "members": {
+          "$ref": "#/$defs/stringArray",
+          "description": "Relative package/application roots that each contain their own dev-std config marker."
+        }
+      }
     },
     "distribution": {
       "type": "string",
@@ -40,7 +68,7 @@
     "governance": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Governance catalog path overrides.",
+      "description": "Governance catalog path and generated HTML output overrides.",
       "properties": {
         "catalogs": {
           "type": "object",
@@ -59,6 +87,31 @@
               "description": "Relative path to release-channel governance catalog. Defaults to docs/governance/release.toml."
             }
           }
+        },
+        "html": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "output": {
+              "type": "string",
+              "description": "Relative path to generated governance HTML output. Defaults to docs/generated/governance."
+            }
+          }
+        }
+      }
+    },
+    "tests": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Rack test-suite governance configuration.",
+      "properties": {
+        "roots": {
+          "$ref": "#/$defs/stringArray",
+          "description": "Registered test roots containing rack.toml. Defaults are not inferred for strict test governance."
+        },
+        "signoff_strata": {
+          "$ref": "#/$defs/stringArray",
+          "description": "Rack strata that serve as release signoff gates. Defaults to L99_signoff when omitted."
         }
       }
     },
@@ -78,17 +131,66 @@
             }
           }
         },
+        "governance": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "output": {
+              "type": "string",
+              "description": "Legacy-compatible generated governance HTML output path. [governance.html].output takes precedence when both are present."
+            }
+          }
+        },
         "plans": {
           "type": "object",
           "additionalProperties": false,
           "description": "Plan and work-log audit configuration.",
           "properties": {
             "roots": {
-              "type": "array",
-              "items": { "type": "string" },
+              "$ref": "#/$defs/stringArray",
               "description": "Configured active plan roots. Defaults to docs/plans."
+            },
+            "ignore": {
+              "$ref": "#/$defs/stringArray",
+              "description": "Project-relative legacy plan/log-like files or directories to ignore during migration. Configured plan roots remain strict."
             }
           }
+        }
+      }
+    },
+    "compatibility_pruning": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Configurable scan for retired compatibility surfaces that must stay removed.",
+      "required": ["forbidden_patterns"],
+      "properties": {
+        "root": {
+          "type": "string",
+          "description": "Relative scan root. Defaults to the audited project root."
+        },
+        "forbidden_patterns": {
+          "$ref": "#/$defs/stringArray",
+          "description": "Regular expressions that must not appear in scanned paths."
+        },
+        "excluded_parts": {
+          "$ref": "#/$defs/stringArray",
+          "description": "Additional path parts to exclude from the compatibility scan."
+        },
+        "excluded_paths": {
+          "$ref": "#/$defs/stringArray",
+          "description": "Additional project-relative file paths to exclude from the compatibility scan."
+        },
+        "excluded_names": {
+          "$ref": "#/$defs/stringArray",
+          "description": "Additional filenames to exclude from the compatibility scan."
+        },
+        "suffixes": {
+          "$ref": "#/$defs/stringArray",
+          "description": "File suffixes to scan instead of the default text suffix set."
+        },
+        "names": {
+          "$ref": "#/$defs/stringArray",
+          "description": "Exact filenames to scan instead of the default text filename set."
         }
       }
     },
@@ -114,6 +216,37 @@
           "description": "Whether the local check requires a PR template with Linked issue guidance."
         }
       }
+    }
+  },
+  "$defs": {
+    "auditScope": {
+      "type": "string",
+      "enum": [
+        "all",
+        "repo",
+        "docs",
+        "docs.adrs",
+        "docs.artifacts",
+        "docs.build",
+        "docs.design",
+        "docs.domains",
+        "docs.links",
+        "docs.plans",
+        "docs.release",
+        "docs.requirements",
+        "docs.surfaces",
+        "docs.test_strategy",
+        "docs.traceability",
+        "docs.vendors",
+        "tests",
+        "language",
+        "ci",
+        "compat"
+      ]
+    },
+    "stringArray": {
+      "type": "array",
+      "items": { "type": "string" }
     }
   }
 }

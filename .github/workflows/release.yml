@@ -30,6 +30,8 @@ jobs:
           grep -F "\`${VERSION}\`" "docs/releases/${RELEASE_DATE}.md"
       - name: Sync
         run: uv sync --all-extras
+      - name: Run dev-std governance audit
+        run: uv run dev-std audit .
       - name: Run Rack signoff
         run: uv run rack run --all
       - name: Build package

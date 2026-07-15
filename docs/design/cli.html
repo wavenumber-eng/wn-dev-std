@@ -11,7 +11,9 @@
     file per public command, split subcommand modules when a command grows,
     command-level help, and version reporting. The primary executable is
     <code>dev-std</code>; <code>wn-dev-std</code> remains a compatibility
-    alias.
+    alias. Text output, JSON output, and help output leave one blank padding
+    line before the first content line and one blank padding line after the
+    final content line before returning to the shell prompt.
   </p>
 
   <section data-command="audit">
@@ -24,9 +26,12 @@
       narrower scopes such as
       <code>docs.plans</code>, <code>docs.adrs</code>,
       <code>docs.domains</code>, <code>docs.requirements</code>,
-      <code>docs.build</code>, <code>docs.surfaces</code>, <code>docs.traceability</code>,
+      <code>docs.build</code>, <code>docs.test_strategy</code> for the
+      canonical test strategy document,
+      <code>docs.surfaces</code>, <code>docs.traceability</code>,
       <code>docs.links</code>, <code>docs.artifacts</code>,
-      <code>docs.vendors</code>, and <code>docs.release</code>. Text and JSON
+      <code>docs.vendors</code>, <code>docs.release</code>, and
+      <code>tests</code>. Text and JSON
       output are supported. <code>--check-upstream-version</code> performs an
       optional PyPI freshness check and reports only a warning.
     </p>
@@ -38,8 +43,12 @@
       Helpers for compliant ADR documents. <code>adr list</code> lists ADRs
       from the discovered project root, <code>adr show</code> renders one ADR
       by id, and <code>adr create</code> writes a canonical ADR source file.
-      Text output is the default and JSON output follows the same root, marker,
-      path, metadata, and body conventions used by plan and log read commands.
+      Text output is the default. <code>adr list</code> starts with the
+      discovered root, an indented status summary, status sections, and record
+      entries with colored TTY status badges and record ids. ADR titles and
+      paths render on indented continuation lines to keep terminal rows narrow.
+      JSON output follows the same root, marker, path, metadata, and body
+      conventions used by plan and log read commands.
     </p>
   </section>
 
@@ -72,15 +81,27 @@
     <h2>plan</h2>
     <p>
       Helpers for compliant plan documents. <code>plan list</code> lists plans
-      from the discovered project root, <code>plan show</code> renders one plan
-      by id, <code>plan create</code> writes a new canonical plan,
+      from the discovered project root, grouping the text view into
+      current, dependency-waiting, parked/pending, and blocked sections with TTY
+      color unless <code>NO_COLOR</code> is set. Section headings have divider
+      rules, official states render as background-color badges in TTY output,
+      plan ids render as black text on white, and step ids use a different
+      treatment so dependency chains and step lists are easier to scan. The text
+      view starts with the discovered root, then a blank line, then an indented
+      summary block with one state count per line. Each plan item shows the plan
+      id and official state, created date, nested latest attached log detail
+      with its step id, supporting path, nested dependency detail, grouped step
+      lists with colored headings, step titles on indented continuation lines,
+      nested step-dependency bullets, and explicit exit-criteria status counts.
+      JSON output remains the stable machine-readable form. <code>plan show</code>
+      renders one plan by id, <code>plan create</code> writes a new canonical plan,
       <code>plan status</code> updates the plan status, and
-      <code>plan step</code> lists, adds, or updates structured step state. The command
-      also reports structured exit criteria from <code>[[exit_criteria]]</code>
-      metadata so users and agents can determine whether a plan is ready for
-      closeout. Newly created plans include a default pending exit criterion.
-      Dedicated exit-criterion mutation commands are a future slice. The command
-      discovers the package root by walking upward to
+      <code>plan step</code> lists, adds, or updates structured step state. The
+      command also reports structured exit criteria from
+      <code>[[exit_criteria]]</code> metadata so users and agents can determine
+      whether a plan is ready for closeout. Newly created plans include a default
+      pending exit criterion. Dedicated exit-criterion mutation commands are a
+      future slice. The command discovers the package root by walking upward to
       <code>dev-std.toml</code>, legacy <code>wn-dev-std.toml</code>, a
       configured <code>pyproject.toml</code>, or a <code>.git</code> fallback
       boundary.
@@ -94,24 +115,36 @@
       <code>requirement list</code> lists requirements from the discovered
       project root, <code>requirement show</code> renders one requirement by
       id, and <code>requirement create</code> writes a canonical requirement
-      source file. Read commands fail when the governance catalog has metadata,
-      traceability, or rogue legacy-document failures.
+      source file. Text output is the default. <code>requirement list</code>
+      starts with the discovered root, an indented status summary, status
+      sections, and record entries with colored TTY status badges and record
+      ids. Requirement titles and paths render on indented continuation lines
+      to keep terminal rows narrow. JSON output follows the same root, marker,
+      path, metadata, and body conventions used by plan and log read commands.
+      Read commands fail when the governance catalog has metadata, traceability,
+      or rogue legacy-document failures.
     </p>
   </section>
 
   <section data-command="log">
     <h2>log</h2>
     <p>
-      Helpers for compliant plan work logs. <code>log list</code> lists logs
-      attached to a plan id, <code>log show</code> renders one log by globally
-      unique log id, and <code>log create &lt;plan-id&gt; &lt;step-id&gt;</code>
+      Helpers for compliant plan work logs. Bare <code>log list</code> lists
+      logs across all plans, <code>log list &lt;plan-id&gt;</code> filters to one
+      plan, <code>log show</code> renders one log by globally unique log id, and
+      <code>log create &lt;plan-id&gt; &lt;step-id&gt;</code>
       writes a new timestamped log entry attached to a specific plan step after
       the same root discovery and catalog validation used by <code>plan</code>.
       Log creation accepts either <code>--body</code> for short text or
       <code>--body-file</code> for longer Markdown that should avoid shell
       command-line length, newline, and quoting limits. Agents should prefer
       <code>--body-file</code> whenever the log body is more than a short
-      one-line note.
+      one-line note. Bare <code>log list</code> groups text output by plan and
+      then step; filtered <code>log list &lt;plan-id&gt;</code> groups by step. Both
+      views include an indented summary, nested log entries, wrapped path fields,
+      and TTY color for plan, step, and log ids unless <code>NO_COLOR</code> is set.
+      <code>log show</code> renders log metadata as a compact nested block before
+      the body. JSON output remains the stable machine-readable form.
     </p>
   </section>
 
@@ -132,8 +165,8 @@
   <section data-command="version">
     <h2>version</h2>
     <p>
-      Reports the package version, Python version, and major Wavenumber
-      dependency versions. <code>--check-upstream</code> checks PyPI for a newer
+      Reports the package version, Python version, and major dependency
+      versions. <code>--check-upstream</code> checks PyPI for a newer
       released <code>wn-dev-std</code> version and reports only a warning.
     </p>
   </section>

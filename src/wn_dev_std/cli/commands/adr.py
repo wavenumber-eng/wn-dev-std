@@ -14,7 +14,7 @@ def register(subparsers: SubparserRegistry) -> None:
     parser = subparsers.add_parser(
         "adr",
         help="Read and create compliant ADRs",
-        description="Read and create compliant Wavenumber ADR documents.",
+        description="Read and create compliant ADR documents.",
     )
     command_parsers = parser.add_subparsers(dest="adr_command", metavar="<adr-command>")
     adr_create.register(command_parsers)

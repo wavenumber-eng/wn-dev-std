@@ -13,6 +13,17 @@ from wn_dev_std.cli.commands.governance_common import (
     record_body,
     string_attr,
 )
+from wn_dev_std.cli.commands.governance_text import (
+    role_style,
+    status_token,
+)
+from wn_dev_std.cli.commands.text_format import (
+    FIELD_VALUE_INDENT,
+    normalized_width,
+    output_width,
+    should_use_color,
+    wrap_indented_text,
+)
 from wn_dev_std.doc_governance import GovernanceRecord
 
 
@@ -21,6 +32,8 @@ def run_show_command(
     record_type: str,
     title: str,
     id_arg: str,
+    *,
+    pretty_text: bool = False,
 ) -> int:
     """Run a governance record show command."""
     context = context_from_args(args)
@@ -34,6 +47,17 @@ def run_show_command(
     body = record_body(context.catalog, record)
     if output_format(args) == "json":
         print(json.dumps(_record_payload(record, body), indent=2, sort_keys=True))
+        return 0
+    if pretty_text:
+        print(
+            _format_pretty_record_show_text(
+                title,
+                record,
+                body,
+                use_color=should_use_color(),
+                width=output_width(),
+            )
+        )
         return 0
     print(_format_record_show_text(title, record, body))
     return 0
@@ -64,3 +88,32 @@ def _format_record_show_text(title: str, record: GovernanceRecord, body: str) ->
     if body:
         lines.extend(["", body])
     return "\n".join(lines)
+
+
+def _format_pretty_record_show_text(
+    title: str,
+    record: GovernanceRecord,
+    body: str,
+    *,
+    use_color: bool = False,
+    width: int = 100,
+) -> str:
+    formatted_width = normalized_width(width)
+    record_id = role_style(record.record_id, "record", use_color)
+    lines = [
+        f"{title}:",
+        f"  - {record_id} {status_token(record.status, use_color)}",
+        f"    created: {record.created}",
+        f"    domain: {record.domain}",
+        "    title:",
+        *wrap_indented_text(record.title, indent=FIELD_VALUE_INDENT, width=formatted_width),
+        "    path:",
+        *wrap_indented_text(
+            record.relative_path,
+            indent=FIELD_VALUE_INDENT,
+            width=formatted_width,
+        ),
+    ]
+    if body:
+        lines.extend(["", body])
+    return "\n".join(lines) + "\n"

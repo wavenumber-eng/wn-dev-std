@@ -14,7 +14,7 @@ def register(subparsers: SubparserRegistry) -> None:
     parser = subparsers.add_parser(
         "plan",
         help="Read and update compliant plans",
-        description="Read and update compliant Wavenumber plan documents.",
+        description="Read and update compliant plan documents.",
     )
     command_parsers = parser.add_subparsers(dest="plan_command", metavar="<plan-command>")
     plan_create.register(command_parsers)

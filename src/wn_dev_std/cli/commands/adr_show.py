@@ -17,7 +17,7 @@ def register(subparsers: SubparserRegistry) -> None:
     parser = subparsers.add_parser(
         "show",
         help="Show a compliant ADR",
-        description="Show a compliant Wavenumber ADR document.",
+        description="Show a compliant ADR document.",
     )
     parser.add_argument("adr_id", help="ADR id to show")
     add_root_argument(parser)
@@ -27,4 +27,4 @@ def register(subparsers: SubparserRegistry) -> None:
 
 def run(args: argparse.Namespace) -> int:
     """Run `adr show`."""
-    return run_show_command(args, "adr", "ADR", "adr_id")
+    return run_show_command(args, "adr", "ADR", "adr_id", pretty_text=True)

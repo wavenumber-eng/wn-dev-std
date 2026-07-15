@@ -51,10 +51,16 @@ def test_docs_plans_audit_passes_plan_with_steps(tmp_path: Path) -> None:
                 ("verify",),
             ),
             (
+                "test-runtime-impact-audit",
+                "Audit new test runtime impact",
+                "pending",
+                ("verify",),
+            ),
+            (
                 "external-review",
                 "Obtain independent external review",
                 "pending",
-                ("design-doc-intent-audit",),
+                ("design-doc-intent-audit", "test-runtime-impact-audit"),
             ),
         ),
     )
@@ -123,7 +129,8 @@ def test_docs_plans_audit_fails_plan_without_required_review_step(tmp_path: Path
     result = docs_plans_result(tmp_path)
 
     assert not result.passed
-    assert "missing required step ids: external-review" in result.detail
+    assert "missing required step ids:" in result.detail
+    assert "external-review" in result.detail
 
 
 def test_docs_plans_audit_fails_plan_without_design_doc_audit_step(tmp_path: Path) -> None:
@@ -170,6 +177,74 @@ def test_docs_plans_audit_fails_when_external_review_does_not_depend_on_doc_audi
     assert "step external-review must depend_on design-doc-intent-audit" in result.detail
 
 
+def test_docs_plans_audit_fails_when_external_review_does_not_depend_on_runtime_audit(
+    tmp_path: Path,
+) -> None:
+    write_plan(
+        tmp_path,
+        "docs/plans/pcb-a0/plan.md",
+        "pcb-a0",
+        "active",
+        steps=(
+            ("work", "Execute plan work", "pending", ()),
+            (
+                "design-doc-intent-audit",
+                "Audit design docs, ADRs, and requirements",
+                "pending",
+                ("work",),
+            ),
+            (
+                "test-runtime-impact-audit",
+                "Audit new test runtime impact",
+                "pending",
+                ("work",),
+            ),
+            (
+                "external-review",
+                "Obtain independent external review",
+                "pending",
+                ("work", "design-doc-intent-audit"),
+            ),
+        ),
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "step external-review must depend_on test-runtime-impact-audit" in result.detail
+
+
+def test_docs_plans_audit_allows_project_specific_runtime_audit_step_title(
+    tmp_path: Path,
+) -> None:
+    write_plan(
+        tmp_path,
+        "docs/plans/pcb-a0/plan.md",
+        "pcb-a0",
+        "active",
+        steps=(
+            ("work", "Execute plan work", "pending", ()),
+            (
+                "design-doc-intent-audit",
+                "Audit design docs, ADRs, and requirements",
+                "pending",
+                ("work",),
+            ),
+            ("test-runtime-impact-audit", "Review slow tests", "pending", ("work",)),
+            (
+                "external-review",
+                "Obtain independent external review",
+                "pending",
+                ("work", "design-doc-intent-audit", "test-runtime-impact-audit"),
+            ),
+        ),
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert result.passed
+
+
 def test_docs_plans_audit_fails_plan_without_required_review_exit_criterion(
     tmp_path: Path,
 ) -> None:
@@ -191,7 +266,58 @@ def test_docs_plans_audit_fails_plan_without_required_review_exit_criterion(
     result = docs_plans_result(tmp_path)
 
     assert not result.passed
-    assert "missing required exit criterion ids: external-review" in result.detail
+    assert "missing required exit criterion ids:" in result.detail
+    assert "external-review" in result.detail
+
+
+def test_docs_plans_audit_fails_plan_without_runtime_audit_exit_criterion(
+    tmp_path: Path,
+) -> None:
+    write_plan(
+        tmp_path,
+        "docs/plans/pcb-a0/plan.md",
+        "pcb-a0",
+        "active",
+        exit_criteria=(
+            ("signoff", "Run signoff", "pending"),
+            (
+                "design-doc-intent-audit",
+                "Design docs, ADRs, and requirements match implementation",
+                "pending",
+            ),
+            ("external-review", "Independent external review is complete", "pending"),
+        ),
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert not result.passed
+    assert "missing required exit criterion ids: test-runtime-impact-audit" in result.detail
+
+
+def test_docs_plans_audit_allows_project_specific_runtime_audit_exit_title(
+    tmp_path: Path,
+) -> None:
+    write_plan(
+        tmp_path,
+        "docs/plans/pcb-a0/plan.md",
+        "pcb-a0",
+        "active",
+        exit_criteria=(
+            ("signoff", "Run signoff", "pending"),
+            (
+                "design-doc-intent-audit",
+                "Design docs, ADRs, and requirements match implementation",
+                "pending",
+            ),
+            ("test-runtime-impact-audit", "Runtime reviewed", "pending"),
+            ("external-review", "Independent external review is complete", "pending"),
+        ),
+    )
+
+    result = docs_plans_result(tmp_path)
+
+    assert result.passed
 
 
 def test_docs_plans_audit_fails_plan_without_design_doc_audit_exit_criterion(
@@ -651,10 +777,16 @@ def write_plan(
                 ("work",),
             ),
             (
+                "test-runtime-impact-audit",
+                "Audit new test runtime impact",
+                "pending",
+                ("work",),
+            ),
+            (
                 "external-review",
                 "Obtain independent external review",
                 "pending",
-                ("work", "design-doc-intent-audit"),
+                ("work", "design-doc-intent-audit", "test-runtime-impact-audit"),
             ),
         )
     if exit_criteria is None:
@@ -663,6 +795,11 @@ def write_plan(
             (
                 "design-doc-intent-audit",
                 "Design docs, ADRs, and requirements match implementation",
+                "pending",
+            ),
+            (
+                "test-runtime-impact-audit",
+                "New tests are listed and runtime impact is reviewed",
                 "pending",
             ),
             ("external-review", "Independent external review is complete", "pending"),

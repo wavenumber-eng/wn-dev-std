@@ -46,6 +46,8 @@ def test_release_workflow_uses_github_release_published() -> None:
     workflow = (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
     assert "release:" in workflow
     assert "types: [published]" in workflow
+    assert "Run dev-std governance audit" in workflow
+    assert "uv run dev-std audit ." in workflow
     assert "python -m build" in workflow
     assert "twine check dist/*" in workflow
     assert "environment: pypi" in workflow

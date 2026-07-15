@@ -8,7 +8,7 @@ CLANG_TIDY_REQUIRED_CHECKS = ("google-runtime-int",)
 
 
 def check_clang_tidy_policy(root: Path) -> tuple[bool, str]:
-    """Return whether clang-tidy enforces required Wavenumber C++ checks."""
+    """Return whether clang-tidy enforces required C++ checks."""
     path = root / ".clang-tidy"
     if not path.exists():
         return False, ".clang-tidy is required"

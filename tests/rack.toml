@@ -1,7 +1,7 @@
 [rack]
 name = "wn-dev-std Public Tests"
 version = "1.0"
-description = "Rack suite for the Wavenumber development standards reference package"
+description = "Rack suite for the development standards reference package"
 default_lane = "fast"
 
 [strata]

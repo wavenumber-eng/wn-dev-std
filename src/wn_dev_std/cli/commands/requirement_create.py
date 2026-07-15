@@ -22,7 +22,7 @@ def register(subparsers: SubparserRegistry) -> None:
     parser = subparsers.add_parser(
         "create",
         help="Create a compliant requirement",
-        description="Create a compliant Wavenumber requirement document.",
+        description="Create a compliant requirement document.",
     )
     parser.add_argument("requirement_id", help="Requirement id, for example core-req-0001")
     parser.add_argument("--domain", required=True, help="Governance domain")

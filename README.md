@@ -1,8 +1,8 @@
 # wn-dev-std
 
-`wn-dev-std` is Wavenumber's development standards reference package. It gives
-projects strict baselines for packaging, tests, documentation, governance,
-release hygiene, and agent-readable repo structure.
+`wn-dev-std` is a development standards reference package. It gives projects
+strict baselines for packaging, tests, documentation, governance, release
+hygiene, and agent-readable repo structure.
 
 The repository is also a working example. It installs as a Python package and
 exposes a small CLI whose code, docs, contracts, tests, and release metadata are
@@ -25,6 +25,8 @@ policy from source layout:
 - [Documentation Standard](docs/design/documentation-standard.html): ADR,
   requirement, plan, log, domain, surface, fixture, and generated HTML rules.
 - [CLI Design](docs/design/cli.html): public command surface.
+- [CI Standard](docs/design/ci-standard.html): governance-first CI gating for
+  GitHub Actions and GitLab CI.
 - [Artifact And Vendor Governance](docs/design/artifact-vendor-governance.html):
   build outputs, release channels, vendored code, and generated source.
 - [JSON Contract Standard](docs/design/json-contract-standard.html): JSON
@@ -79,7 +81,7 @@ requires it.
 
 ## Rack Model
 
-All Wavenumber projects should use the Rack model for validation structure.
+Projects using this standard should use the Rack model for validation structure.
 Rack keeps test and signoff intent explicit through suite manifests, ordered
 strata, lanes, concerns, dependencies, and durable result artifacts.
 
@@ -110,7 +112,7 @@ dev-std governance.
 
 ## Use Cases
 
-- Start a new strict Python package with known Wavenumber defaults.
+- Start a new strict Python package with known development-standard defaults.
 - Check whether a repository has required public project hygiene files.
 - Provide agents with a concrete example of Rack, signoff, docs, contracts, and
   release metadata working together.
@@ -145,14 +147,20 @@ Run the repository audit checks against the current repo:
 dev-std audit .
 dev-std audit . --format json
 dev-std audit . --scope docs.plans
+dev-std audit . --scope docs.test_strategy
+dev-std audit . --scope tests
 dev-std audit . --check-upstream-version
 ```
 
 Configured repositories must declare the standard version they target:
 
 ```toml
-standard_version = "2026.7.14"
+standard_version = "2026.7.15"
 profile = "python-package"
+
+[tests]
+roots = ["tests"]
+signoff_strata = ["L99_signoff"]
 ```
 
 When the config has `enabled_scopes`, `dev-std audit .` runs those scopes by
@@ -160,7 +168,7 @@ default and still runs the unfiltered config-version check. Passing a targeted
 scope set is partial governance adoption, not full profile conformance:
 
 ```toml
-standard_version = "2026.7.14"
+standard_version = "2026.7.15"
 profile = "zephyr-firmware"
 enabled_scopes = ["docs.plans"]
 ```
@@ -169,7 +177,7 @@ Workspace roots aggregate explicitly registered package/application policy
 boundaries. Members are policy boundaries, not every build target:
 
 ```toml
-standard_version = "2026.7.14"
+standard_version = "2026.7.15"
 kind = "workspace"
 
 [workspace]
@@ -177,10 +185,13 @@ members = ["bom_cruncher", "lib_cruncher", "panel-monkey"]
 ```
 
 GitHub Actions should run this governance gate before expensive platform jobs,
-using a pinned PyPI release that matches `standard_version`:
+and every expensive job should be gated on that first result. GitLab pipelines
+should use the same shape with a first `governance` stage and later jobs using
+`needs: ["governance"]`. Use a pinned PyPI release that matches
+`standard_version`:
 
 ```bash
-uvx --from wn-dev-std==2026.7.14 dev-std audit .
+uvx --from wn-dev-std==2026.7.15 dev-std audit .
 ```
 
 The `check` command is a compatibility alias for `audit`:
@@ -199,6 +210,7 @@ dev-std plan create pcb-a0 --title "PCB A0"
 dev-std plan status pcb-a0 blocked
 dev-std plan step add pcb-a0 audit --title "Audit old plans"
 dev-std plan step list pcb-a0
+dev-std log list
 dev-std log list pcb-a0
 dev-std log show pcb-a0-2026-06-27-001
 dev-std log create pcb-a0 audit --body "Captured cleanup notes."
@@ -206,6 +218,16 @@ dev-std log create pcb-a0 audit --body-file notes.md
 dev-std adr create core-adr-0001 --domain core --title "Record Decisions"
 dev-std requirement create core-req-0001 --domain core --title "Audit Requirements"
 ```
+
+CLI output leaves a blank padding line before the first content line and a
+blank padding line after the final content line, including JSON and help output.
+
+ADR and requirement text reads follow the same pretty-print conventions as plan
+lists: `adr list` and `requirement list` start with the discovered root, an
+indented status summary, status sections, and record entries with colored TTY
+status badges and record ids. Titles and paths render on indented continuation
+lines to keep terminal rows narrow, while JSON output remains the stable
+machine-readable form.
 
 Generate governance browse pages and resolve stable governance refs in
 hand-authored HTML docs:
@@ -388,11 +410,20 @@ folders, so packages with no active plans do not need empty placeholders. Plan
 documents use `type = "plan"` and work logs use `type = "plan_log"`.
 Plans must declare `[[exit_criteria]]` entries so closeout state is
 machine-readable.
-Every active/pending/blocked plan must include `design-doc-intent-audit` and
-`external-review` as both `[[steps]]` ids and `[[exit_criteria]]` ids. The
-design-doc audit step verifies required design docs still match the user's
-intent and the implemented behavior. The external-review step records
-independent review before closeout.
+Every active/pending/blocked plan must include `design-doc-intent-audit`,
+`test-runtime-impact-audit`, and `external-review` as both `[[steps]]` ids and
+`[[exit_criteria]]` ids. The design-doc audit step verifies required design docs
+still match the user's intent and the implemented behavior. The runtime-impact
+audit step lists new or changed tests, reviews `docs/test-strategy.html`, and
+records optimization or slower-lane decisions when new tests add meaningful
+runtime. Its matching exit criterion is `New tests are listed and runtime
+impact is reviewed`. The external-review step records independent review after
+those closeout checks.
+This is a current-standard migration requirement: existing active plans must add
+the runtime-impact step and exit criterion before `docs.plans` or full audit
+passes with this tool version. Repositories that cannot migrate immediately
+should keep CI pinned to the previous reviewed `wn-dev-std` release or defer the
+`docs.plans` scope until their active plan catalog is updated.
 Markdown names with a standalone `log` token, such as `v1_1_log.md`, are treated
 as log-like and must either be compliant `plan_log` files or be renamed and
 classified as durable documentation. Completed work is closed out into durable
@@ -402,10 +433,21 @@ Multi-step plans may declare `[[steps]]` metadata with `pending`, `active`,
 `blocked`, or `done` status values.
 Exit criteria use `pending`, `met`, or `blocked` status values. Steps describe
 execution progress; exit criteria describe the conditions that must be true
-before the plan can be retired. `dev-std plan list` and `dev-std plan show`
-report exit-criterion status, and `docs.plans` fails active plans with no exit
-criteria or plans whose criteria are all met while the plan still remains
-active.
+before the plan can be retired. `dev-std plan list` groups the text view into
+current, dependency-waiting, parked/pending, and blocked sections, with TTY
+color unless `NO_COLOR` is set. Section headings have divider rules, official
+states render as background-color badges in TTY output, plan ids render as black
+text on white, and step ids use a different treatment so dependency chains and
+step lists are easier to scan. The text view starts with the discovered root,
+then a blank line, then an indented summary block with one state count per line.
+Each plan item shows the plan id and official state, created date, nested latest
+attached log detail with its step id, supporting path, nested dependency detail,
+grouped step lists with colored headings, step titles on indented continuation
+lines, nested step-dependency bullets, and explicit exit-criteria status counts.
+`dev-std plan list --format json` remains the stable
+machine-readable form. `dev-std plan list` and `dev-std plan show` report
+exit-criterion status, and `docs.plans` fails active plans with no exit criteria
+or plans whose criteria are all met while the plan still remains active.
 
 ```toml
 [documentation.plans]
@@ -426,8 +468,13 @@ catalog. The first mutation slice is non-destructive: create plans, set plan
 status, add/update step status, list step ids, and create step-attached logs.
 Use `log create <plan-id> <step-id> --body` for short one-line notes. Use
 `--body-file` for longer Markdown bodies so shell command-line length, newline,
-and quoting limits do not shape the log content. `log show` reads one attached
-log body by globally unique log id. Plan deletion, retirement, and migration
+and quoting limits do not shape the log content. Bare `log list` lists logs
+across all plans, grouped by plan and then by step; `log list <plan-id>` keeps a
+focused per-plan view grouped by step. Both text views include an indented
+summary, nested log entries, wrapped path fields, and TTY color for plan, step,
+and log ids unless `NO_COLOR` is set. `log show` reads one attached log body by
+globally unique log id and renders its metadata as a compact nested block before
+the body. Plan deletion, retirement, and migration
 helpers are intentionally left for a later tool pass.
 
 ## Documentation
@@ -435,16 +482,18 @@ helpers are intentionally left for a later tool pass.
 - [Setup](docs/setup.html)
 - [Architecture](docs/architecture.html), including the Rack/signoff quality model
 - [CLI Design](docs/design/cli.html)
+- [CI Standard](docs/design/ci-standard.html)
 - [Audit Standard](docs/design/audit-standard.html)
 - [Documentation Standard](docs/design/documentation-standard.html)
 - [Artifact And Vendor Governance](docs/design/artifact-vendor-governance.html)
 - [JSON Contract Standard](docs/design/json-contract-standard.html)
 - [Build Documentation](docs/build.html)
+- [Test Strategy](docs/test-strategy.html)
 - [Python Standard Design](docs/design/python-standard.html)
 - [C++ Standard](docs/design/cpp-standard.html)
 - [Mixed Mode Standard](docs/design/mixed-mode.html)
 - [JavaScript Web App Standard](docs/design/javascript-standard.html)
-- [Release Notes](docs/releases/2026-07-14.md)
+- [Release Notes](docs/releases/2026-07-15.md)
 
 ## License
 

@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>CI Standard</title>
+</head>
+<body data-design="ci-standard" data-doc-status="accepted">
+  <h1>CI Standard</h1>
+  <p>
+    CI should fail fast on governance before it spends time on expensive build,
+    hardware, platform, browser, native, or release matrices. For a single
+    package, the first CI job should run <code>dev-std audit .</code>. For a
+    workspace, the first CI job should run the workspace-level
+    <code>dev-std audit .</code> so each registered package boundary is checked
+    before downstream jobs start.
+  </p>
+
+  <h2>Gating Rule</h2>
+  <p>
+    Expensive jobs must depend on the governance job. A dev-std failure means
+    the governance or documentation contract is already broken, and that should
+    be fixed before using CI minutes on long-running tests, cross-platform
+    builds, packaging, deployment, or hardware lanes.
+  </p>
+
+  <h2>GitHub Actions Shape</h2>
+  <pre><code>jobs:
+  governance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uvx --from wn-dev-std==2026.7.15 dev-std audit .
+
+  test:
+    needs: governance
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv run rack run --all</code></pre>
+
+  <h2>GitLab CI Shape</h2>
+  <pre><code>stages:
+  - governance
+  - test
+
+governance:
+  stage: governance
+  image: ghcr.io/astral-sh/uv:python3.12-bookworm
+  script:
+    - uvx --from wn-dev-std==2026.7.15 dev-std audit .
+
+test:
+  stage: test
+  needs: ["governance"]
+  script:
+    - uv run rack run --all</code></pre>
+
+  <h2>Version Pinning</h2>
+  <p>
+    Downstream CI should pin the released dev-std version that matches the
+    repository's <code>standard_version</code>. Local development may use the
+    workspace checkout, but shared CI should be deterministic unless a job is
+    explicitly testing the next standard version.
+  </p>
+</body>
+</html>

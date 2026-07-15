@@ -14,7 +14,7 @@ def register(subparsers: SubparserRegistry) -> None:
     parser = subparsers.add_parser(
         "log",
         help="Read, show, and create compliant plan logs",
-        description="Read, show, and create compliant Wavenumber plan work logs.",
+        description="Read, show, and create compliant plan work logs.",
     )
     command_parsers = parser.add_subparsers(dest="log_command", metavar="<log-command>")
     log_create.register(command_parsers)

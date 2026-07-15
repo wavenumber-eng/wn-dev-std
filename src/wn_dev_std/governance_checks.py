@@ -23,6 +23,7 @@ from wn_dev_std.doc_governance import (
 )
 from wn_dev_std.domain_governance import check_domain_governance_policy
 from wn_dev_std.surface_governance import check_surface_governance_policy
+from wn_dev_std.test_strategy_doc_governance import check_test_strategy_doc_policy
 
 
 class _GovernanceReport(Protocol):
@@ -54,6 +55,7 @@ GOVERNANCE_CHECKS = (
     GovernanceCheck("docs.release", "docs.release", check_release_governance_policy),
     GovernanceCheck("docs.requirements", "docs.requirements", check_requirement_policy),
     GovernanceCheck("docs.surfaces", "docs.surfaces", check_surface_governance_policy),
+    GovernanceCheck("docs.test_strategy", "docs.test_strategy", check_test_strategy_doc_policy),
     GovernanceCheck("docs.traceability", "docs.traceability", check_traceability_policy),
     GovernanceCheck("docs.vendors", "docs.vendors", check_vendor_governance_policy),
     GovernanceCheck("docs.links", "docs.links", check_link_policy),

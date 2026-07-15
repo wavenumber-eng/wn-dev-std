@@ -17,7 +17,7 @@ def register(subparsers: SubparserRegistry) -> None:
     parser = subparsers.add_parser(
         "list",
         help="List compliant requirements",
-        description="List compliant Wavenumber requirement documents.",
+        description="List compliant requirement documents.",
     )
     add_root_argument(parser)
     add_format_argument(parser)
@@ -26,4 +26,10 @@ def register(subparsers: SubparserRegistry) -> None:
 
 def run(args: argparse.Namespace) -> int:
     """Run `requirement list`."""
-    return run_list_command(args, "requirement", "Requirements", "requirements")
+    return run_list_command(
+        args,
+        "requirement",
+        "Requirements",
+        "requirements",
+        pretty_text=True,
+    )

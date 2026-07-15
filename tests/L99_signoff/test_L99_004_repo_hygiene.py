@@ -71,7 +71,7 @@ def test_readme_documents_public_rack_package_and_project_model() -> None:
     for expected in (
         "https://pypi.org/project/wn-rack/",
         "uv add --dev wn-rack",
-        "All Wavenumber projects should use the Rack model",
+        "Projects using this standard should use the Rack model",
         "Non-Python projects should still follow the same model",
         "Every project needs a signoff gate",
         "L99_signoff",
@@ -196,6 +196,36 @@ def test_public_pr_hygiene_policy_is_documented_and_installed() -> None:
     assert hygiene_check.passed
 
 
+def test_ci_governance_first_policy_is_documented_and_installed() -> None:
+    ci_doc = (ROOT / "docs" / "design" / "ci-standard.html").read_text(encoding="utf-8")
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    setup_doc = (ROOT / "docs" / "setup.html").read_text(encoding="utf-8")
+    workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+
+    for expected in (
+        'data-doc-status="accepted"',
+        "GitHub Actions",
+        "GitLab CI",
+        "governance",
+        "dev-std audit .",
+        "needs: governance",
+        'needs: ["governance"]',
+        "expensive",
+    ):
+        assert expected in ci_doc
+
+    for text in (readme, setup_doc):
+        assert "CI Standard" in text
+        assert "dev-std audit ." in text
+        assert "governance" in text
+        assert "expensive" in text
+
+    assert "governance:" in workflow
+    assert "Run dev-std governance audit" in workflow
+    assert "uv run dev-std audit ." in workflow
+    assert "needs: governance" in workflow
+
+
 def test_design_doc_status_policy_is_documented_and_clean() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     standard_doc = (ROOT / "docs" / "design" / "documentation-standard.html").read_text(
@@ -313,8 +343,10 @@ def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:
         "docs.domains",
         "docs.requirements",
         "docs.surfaces",
+        "docs.test_strategy",
         "docs.traceability",
         "docs.links",
+        "tests",
         "no ADR inventory",
         "no requirement inventory",
         "no domain registry",
@@ -336,8 +368,10 @@ def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:
         "docs.domains",
         "docs.requirements",
         "docs.surfaces",
+        "docs.test_strategy",
         "docs.traceability",
         "docs.links",
+        "tests",
         "governance html",
         "governance resolve",
         "adr create",
@@ -352,8 +386,142 @@ def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:
         "docs.domains",
         "docs.requirements",
         "docs.surfaces",
+        "docs.test_strategy",
         "docs.traceability",
         "docs.links",
+        "test suite governance",
     ):
         result = next(item for item in results if item.name == name)
         assert result.passed
+
+
+def test_test_strategy_doc_policy_is_documented_and_clean() -> None:
+    adr = ROOT / "docs" / "core" / "adr" / "core-adr-0003-test-strategy-documents-are-audited.md"
+    requirement = (
+        ROOT / "docs" / "core" / "requirements" / "core-req-0003-test-strategy-doc-audit.md"
+    )
+    design = ROOT / "docs" / "core" / "design" / "test-strategy-doc-audit.html"
+    strategy_doc = (ROOT / "docs" / "test-strategy.html").read_text(encoding="utf-8")
+    audit_doc = (ROOT / "docs" / "design" / "audit-standard.html").read_text(encoding="utf-8")
+    cli_doc = (ROOT / "docs" / "design" / "cli.html").read_text(encoding="utf-8")
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+
+    for path in (adr, requirement, design):
+        assert path.exists(), path
+
+    adr_text = adr.read_text(encoding="utf-8")
+    requirement_text = requirement.read_text(encoding="utf-8")
+    design_text = design.read_text(encoding="utf-8")
+
+    assert 'id = "core-adr-0003"' in adr_text
+    assert 'status = "accepted"' in adr_text
+    assert "core-req-0003" in adr_text
+    assert "src/wn_dev_std/test_strategy_doc_governance.py" in adr_text
+
+    assert 'id = "core-req-0003"' in requirement_text
+    assert 'status = "implemented"' in requirement_text
+    assert "core-adr-0003" in requirement_text
+    assert "tests/L0_foundation/test_L0_017_test_strategy_doc_governance.py" in requirement_text
+
+    assert 'data-doc-status="accepted"' in design_text
+    assert "docs.test_strategy" in design_text
+    assert "core-adr-0003" in design_text
+    assert "core-req-0003" in design_text
+
+    for expected in (
+        'data-doc="test-strategy"',
+        'data-doc-status="accepted"',
+        "Rack",
+        "L99_signoff",
+        "Python/C++ parity lanes",
+        "oracle",
+        "missing or orphaned test material",
+        "docs.test_strategy",
+    ):
+        assert expected in strategy_doc
+
+    for text in (audit_doc, cli_doc, readme):
+        assert "docs.test_strategy" in text
+        assert "test strategy" in text.lower()
+
+    result = next(item for item in run_basic_checks(ROOT) if item.name == "docs.test_strategy")
+    assert result.passed
+
+
+def test_plan_runtime_impact_closeout_policy_is_documented_and_clean() -> None:
+    adr = ROOT / "docs" / "core" / "adr" / "core-adr-0004-closeout-test-runtime-review.md"
+    requirement = (
+        ROOT / "docs" / "core" / "requirements" / "core-req-0004-closeout-test-runtime-review.md"
+    )
+    design = ROOT / "docs" / "core" / "design" / "closeout-test-runtime-impact-audit.html"
+    audit_doc = (ROOT / "docs" / "design" / "audit-standard.html").read_text(encoding="utf-8")
+    documentation_doc = (ROOT / "docs" / "design" / "documentation-standard.html").read_text(
+        encoding="utf-8"
+    )
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+
+    for path in (adr, requirement, design):
+        assert path.exists(), path
+
+    adr_text = adr.read_text(encoding="utf-8")
+    requirement_text = requirement.read_text(encoding="utf-8")
+    design_text = design.read_text(encoding="utf-8")
+
+    assert 'id = "core-adr-0004"' in adr_text
+    assert 'status = "accepted"' in adr_text
+    assert "core-req-0004" in adr_text
+    assert "src/wn_dev_std/plan_hygiene.py" in adr_text
+
+    assert 'id = "core-req-0004"' in requirement_text
+    assert 'status = "implemented"' in requirement_text
+    assert "core-adr-0004" in requirement_text
+    assert "test-runtime-impact-audit" in requirement_text
+
+    for expected in (
+        'data-doc-status="accepted"',
+        "core-adr-0004",
+        "core-req-0004",
+        "docs/test-strategy.html",
+        "minute-scale tests",
+    ):
+        assert expected in design_text
+
+    for text in (audit_doc, documentation_doc, readme):
+        normalized = " ".join(text.split())
+        assert "test-runtime-impact-audit" in text
+        assert "New tests are listed and runtime impact is reviewed" in normalized
+
+
+def test_test_suite_governance_audit_has_durable_docs() -> None:
+    adr = ROOT / "docs" / "core" / "adr" / "core-adr-0002-test-suite-governance-audit.md"
+    requirement = (
+        ROOT / "docs" / "core" / "requirements" / "core-req-0002-test-suite-governance-audit.md"
+    )
+    design = ROOT / "docs" / "core" / "design" / "test-suite-governance-audit.html"
+
+    for path in (adr, requirement, design):
+        assert path.exists(), path
+
+    adr_text = adr.read_text(encoding="utf-8")
+    requirement_text = requirement.read_text(encoding="utf-8")
+    design_text = design.read_text(encoding="utf-8")
+
+    assert 'id = "core-adr-0002"' in adr_text
+    assert 'status = "accepted"' in adr_text
+    assert "core-req-0002" in adr_text
+    assert "src/wn_dev_std/test_governance.py" in adr_text
+
+    assert 'id = "core-req-0002"' in requirement_text
+    assert 'status = "implemented"' in requirement_text
+    assert "core-adr-0002" in requirement_text
+    assert "tests/L0_foundation/test_L0_016_test_suite_governance.py" in requirement_text
+
+    for expected in (
+        'data-doc-status="accepted"',
+        "core-adr-0002",
+        "core-req-0002",
+        "[tests]",
+        "signoff_strata",
+        "failing audit command",
+    ):
+        assert expected in design_text

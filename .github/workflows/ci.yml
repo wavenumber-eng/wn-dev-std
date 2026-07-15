@@ -7,8 +7,20 @@ on:
   workflow_dispatch:
 
 jobs:
+  governance:
+    name: governance / dev-std
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Sync
+        run: uv sync --all-extras
+      - name: Run dev-std governance audit
+        run: uv run dev-std audit .
+
   test:
     name: ${{ matrix.os }} / Python 3.12
+    needs: governance
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026.7.15
+
+- Improve plan, log, ADR, and requirement CLI text output with padded terminal
+  spacing, scan-friendly sections, wrapped descriptions, and clearer status
+  summaries while keeping JSON output machine-readable.
+- Add Rack-backed test-suite governance and a required
+  `docs/test-strategy.html` audit so packages document their high-level test
+  architecture beyond Rack manifests.
+- Add required plan closeout review of new test runtime impact before external
+  review, with migration guidance for existing active plans.
+- Add governance-first CI guidance and wire this repository's CI/release
+  workflows to run `dev-std audit .` before expensive validation.
+- Expand the config schema to match the implemented config surface, including
+  workspace roots, configured scopes, Rack test governance, plan ignores,
+  generated governance output, compatibility pruning, and PR hygiene.
+- Retire the issue-19 temporary plan chain after independent review and full
+  signoff.
+
 ## 2026.7.14
 
 - Add `standard_version` config alignment checks, configured audit scopes,

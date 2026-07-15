@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Test Suite Governance Audit</title>
+</head>
+<body data-domain="core" data-design="test-suite-governance-audit" data-doc-status="accepted">
+  <h1>Test Suite Governance Audit</h1>
+  <p>
+    The test-suite governance audit is the core design for the
+    <code>tests</code> scope described by
+    <a href="../../design/audit-standard.html">docs/design/audit-standard.html</a>.
+    The durable governance records are <code>core-adr-0002</code> and
+    <code>core-req-0002</code>.
+  </p>
+
+  <h2>Problem</h2>
+  <p>
+    Rack can run discovered tests, but committed Rack manifests can drift away
+    from the real test tree. A stale manifest hides missing signoff coverage
+    and makes the repository look governed even when new test files have not
+    been declared in <code>STRATUM.toml</code>.
+  </p>
+
+  <h2>Configuration</h2>
+  <p>
+    Repositories opt in by registering test roots and signoff strata in their
+    dev-std config. The root-relative paths are intentionally explicit so
+    workspaces and packages do not infer test ownership from unrelated folders.
+  </p>
+  <pre><code>[tests]
+roots = ["tests"]
+signoff_strata = ["L99_signoff"]</code></pre>
+
+  <h2>Audit Contract</h2>
+  <p>
+    For each configured test root, the audit requires <code>rack.toml</code>,
+    reads <code>[strata].order</code>, verifies that every declared stratum has
+    a matching directory and <code>STRATUM.toml</code>, reports stratum-like
+    directories missing from <code>rack.toml</code>, and compares discovered
+    <code>test_*.py</code> files with declared <code>[[subtests]].file</code>
+    entries. Duplicate subtest ids or files fail because they make review
+    evidence ambiguous.
+  </p>
+  <p>
+    Each configured signoff stratum must be declared in <code>rack.toml</code>,
+    must declare at least one subtest, and must include the
+    <code>signoff</code> concern. That keeps release-facing test suites visible
+    to both humans and automation.
+  </p>
+
+  <h2>Boundary With Rack</h2>
+  <p>
+    Dev-std owns this first-pass committed-manifest check because Rack does not
+    yet expose a failing audit command for stale manifests. Rack remains the
+    owner of test discovery, test execution, and future runtime evidence. Once
+    Rack provides native audit behavior, dev-std should delegate the manifest
+    check instead of maintaining a parallel interpretation indefinitely.
+  </p>
+
+  <h2>Verification</h2>
+  <p>
+    The implementation lives in
+    <a href="../../../src/wn_dev_std/test_governance.py">src/wn_dev_std/test_governance.py</a>
+    and is covered by
+    <a href="../../../tests/L0_foundation/test_L0_016_test_suite_governance.py">tests/L0_foundation/test_L0_016_test_suite_governance.py</a>.
+    The config schema at
+    <a href="../../contracts/wn_dev_std_config.schema.v0.json">docs/contracts/wn_dev_std_config.schema.v0.json</a>
+    documents the <code>[tests]</code> keys used by this scope.
+  </p>
+</body>
+</html>

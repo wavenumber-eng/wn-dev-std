@@ -14,7 +14,7 @@ def register(subparsers: SubparserRegistry) -> None:
     parser = subparsers.add_parser(
         "requirement",
         help="Read and create compliant requirements",
-        description="Read and create compliant Wavenumber requirement documents.",
+        description="Read and create compliant requirement documents.",
     )
     command_parsers = parser.add_subparsers(
         dest="requirement_command",
