@@ -142,6 +142,9 @@ The cross-repo dependency should be handled in this order:
 
 This prevents a circular release dependency: Rack can use unreleased dev-std as a development tool, but released dev-std should depend only on a released Rack capability.
 
+The Rack release produced by this plan uses Wavenumber date-versioning. The
+current Rack release target is `2026.7.16`, not semantic versioning.
+
 ## Rack CLI Governance Dogfood
 
 Rack should adopt the new `docs.cli` governance while this dev-std version is
