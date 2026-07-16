@@ -7,7 +7,7 @@ created = "2026-07-16"
 [[steps]]
 id = "settle-rack-audit-contract"
 title = "Settle Rack native audit contract"
-status = "active"
+status = "done"
 
 [[steps]]
 id = "bootstrap-rack-dev-std"
@@ -18,7 +18,7 @@ depends_on = ["settle-rack-audit-contract"]
 [[steps]]
 id = "implement-rack-native-audit"
 title = "Implement Rack native test-suite audit"
-status = "pending"
+status = "active"
 depends_on = ["settle-rack-audit-contract"]
 
 [[steps]]
