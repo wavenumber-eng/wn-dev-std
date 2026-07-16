@@ -48,13 +48,13 @@ depends_on = ["adopt-rack-in-dev-std"]
 [[steps]]
 id = "design-doc-intent-audit"
 title = "Audit design docs, ADRs, and requirements against implementation"
-status = "active"
+status = "done"
 depends_on = ["update-dev-std-governance-docs"]
 
 [[steps]]
 id = "test-runtime-impact-audit"
 title = "Audit new test runtime impact"
-status = "pending"
+status = "active"
 depends_on = ["implement-rack-native-audit", "adopt-rack-in-dev-std"]
 
 [[steps]]
@@ -92,7 +92,7 @@ status = "met"
 [[exit_criteria]]
 id = "design-doc-intent-audit"
 title = "Design docs, ADRs, requirements, and release notes match implementation"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "test-runtime-impact-audit"
