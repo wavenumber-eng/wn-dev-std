@@ -54,13 +54,13 @@ depends_on = ["update-dev-std-governance-docs"]
 [[steps]]
 id = "test-runtime-impact-audit"
 title = "Audit new test runtime impact"
-status = "active"
+status = "done"
 depends_on = ["implement-rack-native-audit", "adopt-rack-in-dev-std"]
 
 [[steps]]
 id = "dev-std-signoff"
 title = "Run dev-std local signoff"
-status = "pending"
+status = "active"
 depends_on = ["design-doc-intent-audit", "test-runtime-impact-audit"]
 
 [[steps]]
@@ -97,7 +97,7 @@ status = "met"
 [[exit_criteria]]
 id = "test-runtime-impact-audit"
 title = "New tests are listed and runtime impact is reviewed"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "signoff"
