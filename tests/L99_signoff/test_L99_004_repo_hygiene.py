@@ -37,6 +37,22 @@ def test_sdist_excludes_temporary_plans_and_research() -> None:
     assert "docs/research/**" in exclude
 
 
+def test_runtime_schema_contracts_are_packaged() -> None:
+    with (ROOT / "pyproject.toml").open("rb") as handle:
+        pyproject = cast(Mapping[str, object], tomllib.load(handle))
+    tool = cast(Mapping[str, object], pyproject["tool"])
+    hatch = cast(Mapping[str, object], tool["hatch"])
+    build = cast(Mapping[str, object], hatch["build"])
+    targets = cast(Mapping[str, object], build["targets"])
+    wheel = cast(Mapping[str, object], targets["wheel"])
+    force_include = cast(Mapping[str, object], wheel["force-include"])
+
+    assert (
+        force_include["docs/contracts/command_manifest.a0.schema.json"]
+        == "wn_dev_std/contracts/command_manifest.a0.schema.json"
+    )
+
+
 def test_binary_distribution_policy_is_documented() -> None:
     setup_doc = (ROOT / "docs" / "setup.html").read_text(encoding="utf-8")
     mixed_mode_doc = (ROOT / "docs" / "design" / "mixed-mode.html").read_text(encoding="utf-8")
@@ -303,6 +319,9 @@ def test_json_contract_policy_is_documented() -> None:
         assert "kind" in normalized
         assert "JSON Schema" in normalized
     for expected in (
+        "Draft 2020-12",
+        "real JSON Schema validator",
+        "path-addressed",
         "schema-labeled",
         "Pydantic",
         "FastAPI",

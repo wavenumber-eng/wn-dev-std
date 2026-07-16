@@ -24,7 +24,9 @@ policy from source layout:
   `dev-std audit` is intended to fail.
 - [Documentation Standard](docs/design/documentation-standard.html): ADR,
   requirement, plan, log, domain, surface, fixture, and generated HTML rules.
-- [CLI Design](docs/design/cli.html): public command surface.
+- [CLI Standard](docs/design/cli-standard.html): command inventory,
+  parser/design parity, and CLI contract governance.
+- [CLI Design](docs/design/cli.html): this package's public command surface.
 - [CI Standard](docs/design/ci-standard.html): governance-first CI gating for
   GitHub Actions and GitLab CI.
 - [Artifact And Vendor Governance](docs/design/artifact-vendor-governance.html):
@@ -147,6 +149,7 @@ Run the repository audit checks against the current repo:
 dev-std audit .
 dev-std audit . --format json
 dev-std audit . --scope docs.plans
+dev-std audit . --scope docs.cli
 dev-std audit . --scope docs.test_strategy
 dev-std audit . --scope tests
 dev-std audit . --check-upstream-version

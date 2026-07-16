@@ -15,6 +15,7 @@ from wn_dev_std.artifact_governance import (
 from wn_dev_std.audit_config import scope_is_selected
 from wn_dev_std.build_doc_governance import check_build_doc_policy
 from wn_dev_std.checks_types import CheckResult
+from wn_dev_std.cli_governance import check_cli_governance_policy
 from wn_dev_std.doc_governance import (
     check_adr_policy,
     check_link_policy,
@@ -51,6 +52,7 @@ GOVERNANCE_CHECKS = (
     GovernanceCheck("docs.adrs", "docs.adrs", check_adr_policy),
     GovernanceCheck("docs.artifacts", "docs.artifacts", check_artifact_governance_policy),
     GovernanceCheck("docs.build", "docs.build", check_build_doc_policy),
+    GovernanceCheck("docs.cli", "docs.cli", check_cli_governance_policy),
     GovernanceCheck("docs.domains", "docs.domains", check_domain_governance_policy),
     GovernanceCheck("docs.release", "docs.release", check_release_governance_policy),
     GovernanceCheck("docs.requirements", "docs.requirements", check_requirement_policy),

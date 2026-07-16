@@ -1,0 +1,150 @@
+{
+  "schema": "wn_dev_std.command_manifest.a0",
+  "commands": [
+    {
+      "path": ["adr"],
+      "name": "adr",
+      "status": "public",
+      "summary": "Read and create compliant ADRs.",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "adr",
+      "verification_refs": [
+        {
+          "kind": "local_pytest",
+          "target": "tests/L99_signoff/test_L99_002_docs_contracts.py::test_command_manifest_matches_cli_and_design_doc",
+          "coverage_mode": "inventory",
+          "rationale": "Verifies the public parser, command manifest, and aggregate CLI design doc remain synchronized."
+        }
+      ]
+    },
+    {
+      "path": ["audit"],
+      "name": "audit",
+      "status": "public",
+      "summary": "Run repository audit checks.",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "audit",
+      "verification_refs": [
+        {
+          "kind": "local_pytest",
+          "target": "tests/L99_signoff/test_L99_002_docs_contracts.py::test_command_manifest_matches_cli_and_design_doc",
+          "coverage_mode": "inventory",
+          "rationale": "Verifies the public parser, command manifest, and aggregate CLI design doc remain synchronized."
+        }
+      ]
+    },
+    {
+      "path": ["check"],
+      "name": "check",
+      "status": "public",
+      "summary": "Compatibility alias for audit.",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "check",
+      "verification_refs": [
+        {
+          "kind": "local_pytest",
+          "target": "tests/L99_signoff/test_L99_002_docs_contracts.py::test_command_manifest_matches_cli_and_design_doc",
+          "coverage_mode": "inventory",
+          "rationale": "Verifies the public parser, command manifest, and aggregate CLI design doc remain synchronized."
+        }
+      ]
+    },
+    {
+      "path": ["governance"],
+      "name": "governance",
+      "status": "public",
+      "summary": "Generate governance documentation.",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "governance",
+      "aliases": ["gov"],
+      "verification_refs": [
+        {
+          "kind": "local_pytest",
+          "target": "tests/L99_signoff/test_L99_002_docs_contracts.py::test_command_manifest_matches_cli_and_design_doc",
+          "coverage_mode": "inventory",
+          "rationale": "Verifies the public parser, command manifest, and aggregate CLI design doc remain synchronized."
+        }
+      ]
+    },
+    {
+      "path": ["log"],
+      "name": "log",
+      "status": "public",
+      "summary": "Read, show, and create compliant plan logs.",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "log",
+      "verification_refs": [
+        {
+          "kind": "local_pytest",
+          "target": "tests/L99_signoff/test_L99_002_docs_contracts.py::test_command_manifest_matches_cli_and_design_doc",
+          "coverage_mode": "inventory",
+          "rationale": "Verifies the public parser, command manifest, and aggregate CLI design doc remain synchronized."
+        }
+      ]
+    },
+    {
+      "path": ["plan"],
+      "name": "plan",
+      "status": "public",
+      "summary": "Read and update compliant plans.",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "plan",
+      "verification_refs": [
+        {
+          "kind": "local_pytest",
+          "target": "tests/L99_signoff/test_L99_002_docs_contracts.py::test_command_manifest_matches_cli_and_design_doc",
+          "coverage_mode": "inventory",
+          "rationale": "Verifies the public parser, command manifest, and aggregate CLI design doc remain synchronized."
+        }
+      ]
+    },
+    {
+      "path": ["requirement"],
+      "name": "requirement",
+      "status": "public",
+      "summary": "Read and create compliant requirements.",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "requirement",
+      "verification_refs": [
+        {
+          "kind": "local_pytest",
+          "target": "tests/L99_signoff/test_L99_002_docs_contracts.py::test_command_manifest_matches_cli_and_design_doc",
+          "coverage_mode": "inventory",
+          "rationale": "Verifies the public parser, command manifest, and aggregate CLI design doc remain synchronized."
+        }
+      ]
+    },
+    {
+      "path": ["standard"],
+      "name": "standard",
+      "status": "public",
+      "summary": "Print a standard profile summary.",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "standard",
+      "verification_refs": [
+        {
+          "kind": "local_pytest",
+          "target": "tests/L99_signoff/test_L99_002_docs_contracts.py::test_command_manifest_matches_cli_and_design_doc",
+          "coverage_mode": "inventory",
+          "rationale": "Verifies the public parser, command manifest, and aggregate CLI design doc remain synchronized."
+        }
+      ]
+    },
+    {
+      "path": ["version"],
+      "name": "version",
+      "status": "public",
+      "summary": "Print package and dependency versions.",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "version",
+      "verification_refs": [
+        {
+          "kind": "local_pytest",
+          "target": "tests/L99_signoff/test_L99_002_docs_contracts.py::test_command_manifest_matches_cli_and_design_doc",
+          "coverage_mode": "inventory",
+          "rationale": "Verifies the public parser, command manifest, and aggregate CLI design doc remain synchronized."
+        }
+      ]
+    }
+  ]
+}

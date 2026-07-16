@@ -43,7 +43,10 @@
     configured owned roots, including failure when no registry exists.
     <code>docs.requirements</code> validates requirement metadata and
     verification obligations, including failure when no requirement inventory
-    exists. <code>docs.surfaces</code> validates optional
+    exists. <code>docs.cli</code> validates optional command-line governance
+    manifests that connect command inventory, canonical command paths, aliases,
+    deterministic parser/help parity, design-doc coverage, and config/output
+    contract links. <code>docs.surfaces</code> validates optional
     governed-surface manifests that connect public APIs, workflows, transforms,
     schemas, and other owned surfaces to implementation refs, verification refs,
     fixture/data refs, and typed exceptions. <code>docs.artifacts</code>,
@@ -346,6 +349,18 @@ status = "pending"</code></pre>
 
   <h2>Traceability And Links</h2>
   <p>
+    <code>docs.cli</code> validates
+    <code>docs/contracts/command_manifest.a0.json</code> when present, while
+    allowing explicit legacy <code>command_manifest.v0.json</code> paths for
+    repositories that have not migrated to the richer contract. The scope checks
+    command identity, command status, design references, aggregate
+    <code>section[data-command]</code> coverage, per-command design docs,
+    config/output schema links, and deterministic parser/help inventory parity
+    when a provider is configured. It does not replace
+    <code>docs.surfaces</code>; command entries should link to governed
+    surfaces or use the same typed evidence semantics.
+  </p>
+  <p>
     <code>docs.surfaces</code> validates
     <code>docs/governance/governed_surfaces.toml</code> when present. Active
     and implemented surfaces must have structured verification refs or a typed
@@ -431,8 +446,10 @@ status = "pending"</code></pre>
     can start with <code>dev-std audit . --scope docs.adrs</code> or
     <code>dev-std audit . --scope docs.requirements</code> in its local signoff
     and then add <code>docs.traceability</code> and <code>docs.links</code> as
-    the repo is converted. Repos with declared API, transform, serialization,
-    porting, or workflow surfaces should add <code>docs.surfaces</code> once
+    the repo is converted. Repos with public CLIs should add
+    <code>docs.cli</code> once a command manifest and design-doc coverage are
+    available. Repos with declared API, transform, serialization, porting, or
+    workflow surfaces should add <code>docs.surfaces</code> once
     the first governed-surface manifest exists. Repos with committed artifacts,
     vendored source, or configured release channels should add
     <code>docs.artifacts</code>, <code>docs.vendors</code>, and
@@ -471,6 +488,7 @@ docs/domains/&lt;domain&gt;.html</code></pre>
   --scope docs.domains \
   --scope docs.build \
   --scope docs.test_strategy \
+  --scope docs.cli \
   --scope docs.surfaces \
   --scope docs.artifacts \
   --scope docs.vendors \

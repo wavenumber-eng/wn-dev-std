@@ -155,6 +155,56 @@
               "description": "Project-relative legacy plan/log-like files or directories to ignore during migration. Configured plan roots remain strict."
             }
           }
+        },
+        "cli": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "CLI command governance configuration.",
+          "properties": {
+            "manifest_path": {
+              "type": "string",
+              "description": "Relative path to a command manifest. Defaults to docs/contracts/command_manifest.a0.json when present. Legacy v0 manifests must be configured explicitly during migration."
+            },
+            "manifest": {
+              "type": "string",
+              "description": "Legacy-compatible alias for manifest_path."
+            },
+            "enforced_statuses": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/commandStatus" },
+              "minItems": 1,
+              "uniqueItems": true,
+              "description": "Command statuses enforced by docs.cli. Defaults to public, experimental, and deprecated."
+            },
+            "inventory_provider": {
+              "type": "object",
+              "additionalProperties": false,
+              "description": "Deterministic parser/help inventory provider for command parity.",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": ["python_parser", "static_json"]
+                },
+                "module": {
+                  "type": "string",
+                  "description": "Python module for kind=python_parser."
+                },
+                "function": {
+                  "type": "string",
+                  "description": "Zero-argument function returning argparse.ArgumentParser for kind=python_parser."
+                },
+                "path": {
+                  "type": "string",
+                  "description": "Static inventory JSON path for kind=static_json."
+                },
+                "max_depth": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Maximum parser command path depth to compare."
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -228,6 +278,7 @@
         "docs.adrs",
         "docs.artifacts",
         "docs.build",
+        "docs.cli",
         "docs.design",
         "docs.domains",
         "docs.links",
@@ -247,6 +298,10 @@
     "stringArray": {
       "type": "array",
       "items": { "type": "string" }
+    },
+    "commandStatus": {
+      "type": "string",
+      "enum": ["public", "experimental", "deprecated", "hidden", "deferred"]
     }
   }
 }
