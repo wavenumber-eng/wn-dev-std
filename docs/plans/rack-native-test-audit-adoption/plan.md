@@ -30,13 +30,13 @@ depends_on = ["bootstrap-rack-dev-std", "implement-rack-native-audit"]
 [[steps]]
 id = "release-rack-capability"
 title = "Publish Rack audit capability"
-status = "active"
+status = "done"
 depends_on = ["dogfood-rack-audit"]
 
 [[steps]]
 id = "adopt-rack-in-dev-std"
 title = "Delegate dev-std tests audit to Rack"
-status = "pending"
+status = "active"
 depends_on = ["release-rack-capability"]
 
 [[steps]]
@@ -87,7 +87,7 @@ status = "pending"
 [[exit_criteria]]
 id = "release-order"
 title = "Release sequencing uses development-only pins and requires a published Rack audit version before dev-std release"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "design-doc-intent-audit"
