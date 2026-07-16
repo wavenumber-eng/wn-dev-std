@@ -36,19 +36,19 @@ depends_on = ["dogfood-rack-audit"]
 [[steps]]
 id = "adopt-rack-in-dev-std"
 title = "Delegate dev-std tests audit to Rack"
-status = "active"
+status = "done"
 depends_on = ["release-rack-capability"]
 
 [[steps]]
 id = "update-dev-std-governance-docs"
 title = "Update dev-std governance docs and contracts"
-status = "pending"
+status = "done"
 depends_on = ["adopt-rack-in-dev-std"]
 
 [[steps]]
 id = "design-doc-intent-audit"
 title = "Audit design docs, ADRs, and requirements against implementation"
-status = "pending"
+status = "active"
 depends_on = ["update-dev-std-governance-docs"]
 
 [[steps]]
@@ -82,7 +82,7 @@ status = "met"
 [[exit_criteria]]
 id = "dev-std-rack-delegation"
 title = "dev-std tests-scope audit delegates to Rack native audit instead of owning duplicate Rack semantics"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "release-order"

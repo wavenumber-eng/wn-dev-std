@@ -638,7 +638,7 @@ requires-dist = [
     { name = "pytest-json-report", marker = "extra == 'test'", specifier = ">=1.5.0" },
     { name = "ruff", marker = "extra == 'test'", specifier = ">=0.8.0" },
     { name = "twine", marker = "extra == 'test'", specifier = ">=5.0.0" },
-    { name = "wn-rack", specifier = ">=1.1.0" },
+    { name = "wn-rack", specifier = ">=2026.7.16" },
 ]
 provides-extras = ["test"]
 
@@ -654,14 +654,14 @@ dev = [
 
 [[package]]
 name = "wn-rack"
-version = "1.1.0"
+version = "2026.7.16"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pytest" },
     { name = "pytest-json-report" },
     { name = "tomli-w" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/aa/32/a019256f221264e484b00abe8b4d0735f8a33bd4e267f74a0a99af1b0233/wn_rack-1.1.0.tar.gz", hash = "sha256:40f93191230921e0bd3f150b9d9bf9cba2a38cc0316f9fc5868bcc3d91049efe", size = 42640, upload-time = "2026-05-16T19:52:33.695Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f6/98/5ebb6c678b2668c68ce22a94acdb86994349510b6f9c52b053e481759f1c/wn_rack-2026.7.16.tar.gz", hash = "sha256:282dd1032088a2178ccc413b9a4dfaf25cf11f1edf2fc19f4487dcde3b75beb7", size = 70052, upload-time = "2026-07-16T15:23:01.289Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3e/a7/59a70638d917e8ff343c7cc28c0511ddb12aff2ca6648dffe80ffcdd01c4/wn_rack-1.1.0-py3-none-any.whl", hash = "sha256:7157f8347266972d530fa5d5951ad60638d543295c3a1d7618cb5483625e58d8", size = 36348, upload-time = "2026-05-16T19:52:32.19Z" },
+    { url = "https://files.pythonhosted.org/packages/dc/ed/87f1533ebd4e8735336191af352547e9d69c9b599e0eb4d9143f6c821c0f/wn_rack-2026.7.16-py3-none-any.whl", hash = "sha256:b785450c16d13762bc02ce3ea518d44343b120dd08aba26b0f560412ee0fd2b6", size = 49784, upload-time = "2026-07-16T15:22:59.959Z" },
 ]

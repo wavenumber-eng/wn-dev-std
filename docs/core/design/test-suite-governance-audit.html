@@ -34,28 +34,29 @@ signoff_strata = ["L99_signoff"]</code></pre>
 
   <h2>Audit Contract</h2>
   <p>
-    For each configured test root, the audit requires <code>rack.toml</code>,
-    reads <code>[strata].order</code>, verifies that every declared stratum has
-    a matching directory and <code>STRATUM.toml</code>, reports stratum-like
-    directories missing from <code>rack.toml</code>, and compares discovered
-    <code>test_*.py</code> files with declared <code>[[subtests]].file</code>
-    entries. Duplicate subtest ids or files fail because they make review
-    evidence ambiguous.
+    For each configured test root, dev-std calls Rack's native
+    failing audit command/API surface from
+    <code>wn-rack&gt;=2026.7.16</code>. Rack validates
+    <code>rack.toml</code>, declared strata, stratum directories,
+    <code>STRATUM.toml</code>, discovered <code>test_*.py</code> files,
+    declared subtest files, duplicate manifest entries, and signoff stratum
+    existence.
   </p>
   <p>
-    Each configured signoff stratum must be declared in <code>rack.toml</code>,
-    must declare at least one subtest, and must include the
-    <code>signoff</code> concern. That keeps release-facing test suites visible
-    to both humans and automation.
+    Dev-std keeps the standard-facing wrapper around that Rack result. Test
+    roots must be explicit root-relative paths, Rack failures are mapped into
+    normal dev-std audit output, missing Rack audit support fails with upgrade
+    guidance, and each configured signoff stratum must include the
+    <code>signoff</code> concern.
   </p>
 
   <h2>Boundary With Rack</h2>
   <p>
-    Dev-std owns this first-pass committed-manifest check because Rack does not
-    yet expose a failing audit command for stale manifests. Rack remains the
-    owner of test discovery, test execution, and future runtime evidence. Once
-    Rack provides native audit behavior, dev-std should delegate the manifest
-    check instead of maintaining a parallel interpretation indefinitely.
+    Rack owns Rack manifest and test-tree semantics. Dev-std owns standards
+    adoption policy, configuration requirements, and audit-result integration.
+    The current adapter uses Rack's non-strict audit mode to preserve the
+    existing manifest-drift contract; Rack's strict metadata checks can be
+    adopted later after migration impact is reviewed.
   </p>
 
   <h2>Verification</h2>

@@ -114,22 +114,20 @@ enabled_scopes = ["docs.plans"]</code></pre>
     The <code>tests</code> scope validates Rack test-suite structure for
     projects that opt into strict test governance. The dev-std config registers
     test roots with <code>[tests]</code> or
-    <code>[tool.wn_dev_std.tests]</code>. Each root must contain
-    <code>rack.toml</code>; each Rack stratum listed in
-    <code>[strata].order</code> must have a matching directory and
-    <code>STRATUM.toml</code>; every discovered <code>test_*.py</code> file
-    must be declared in <code>[[subtests]]</code>; every declared subtest file
-    must exist; and the configured signoff stratum must exist with at least one
-    signoff subtest.
+    <code>[tool.wn_dev_std.tests]</code>. For each configured root, dev-std
+    delegates Rack manifest/layout checks to Rack's native audit surface from
+    <code>wn-rack&gt;=2026.7.16</code> and maps Rack failures into normal
+    dev-std audit output.
   </p>
   <pre><code>[tests]
 roots = ["tests"]
 signoff_strata = ["L99_signoff"]</code></pre>
   <p>
-    In the first dev-std slice, Rack manifest validation is implemented locally
-    because Rack does not yet expose a failing audit command. Future dev-std
-    versions should delegate to Rack once a native Rack audit/check command is
-    available.
+    Rack owns <code>rack.toml</code>, <code>STRATUM.toml</code>, discovered
+    test files, declared subtest files, duplicate manifest entries, and signoff
+    stratum existence. Dev-std owns explicit root configuration, upgrade
+    guidance when Rack audit support is missing, and the requirement that each
+    configured signoff stratum declare the <code>signoff</code> concern.
   </p>
 
   <h2>Test Strategy Documents</h2>
