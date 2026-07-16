@@ -12,13 +12,13 @@ status = "done"
 [[steps]]
 id = "bootstrap-rack-dev-std"
 title = "Bootstrap Rack against latest dev-std"
-status = "pending"
+status = "active"
 depends_on = ["settle-rack-audit-contract"]
 
 [[steps]]
 id = "implement-rack-native-audit"
 title = "Implement Rack native test-suite audit"
-status = "active"
+status = "done"
 depends_on = ["settle-rack-audit-contract"]
 
 [[steps]]
@@ -72,7 +72,7 @@ depends_on = ["design-doc-intent-audit", "test-runtime-impact-audit", "dev-std-s
 [[exit_criteria]]
 id = "rack-audit-contract"
 title = "Rack exposes a stable failing audit command or API for manifest-vs-test-suite drift"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "rack-latest-dev-std-bootstrap"
