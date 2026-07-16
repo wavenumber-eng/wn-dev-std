@@ -158,7 +158,7 @@ dev-std audit . --check-upstream-version
 Configured repositories must declare the standard version they target:
 
 ```toml
-standard_version = "2026.7.15"
+standard_version = "2026.7.16"
 profile = "python-package"
 
 [tests]
@@ -171,7 +171,7 @@ default and still runs the unfiltered config-version check. Passing a targeted
 scope set is partial governance adoption, not full profile conformance:
 
 ```toml
-standard_version = "2026.7.15"
+standard_version = "2026.7.16"
 profile = "zephyr-firmware"
 enabled_scopes = ["docs.plans"]
 ```
@@ -180,7 +180,7 @@ Workspace roots aggregate explicitly registered package/application policy
 boundaries. Members are policy boundaries, not every build target:
 
 ```toml
-standard_version = "2026.7.15"
+standard_version = "2026.7.16"
 kind = "workspace"
 
 [workspace]
@@ -194,7 +194,7 @@ should use the same shape with a first `governance` stage and later jobs using
 `standard_version`:
 
 ```bash
-uvx --from wn-dev-std==2026.7.15 dev-std audit .
+uvx --from wn-dev-std==2026.7.16 dev-std audit .
 ```
 
 The `check` command is a compatibility alias for `audit`:
@@ -496,7 +496,7 @@ helpers are intentionally left for a later tool pass.
 - [C++ Standard](docs/design/cpp-standard.html)
 - [Mixed Mode Standard](docs/design/mixed-mode.html)
 - [JavaScript Web App Standard](docs/design/javascript-standard.html)
-- [Release Notes](docs/releases/2026-07-15.md)
+- [Release Notes](docs/releases/2026-07-16.md)
 
 ## License
 

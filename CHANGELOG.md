@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026.7.16
+
+- Delegate the `tests` audit scope to Rack native audit from
+  `wn-rack>=2026.7.16` instead of maintaining a duplicate Rack manifest parser.
+- Keep dev-std-owned test-suite policy for explicit configured roots, mapped
+  Rack audit failures, upgrade guidance when Rack audit support is missing, and
+  the `signoff` concern on configured signoff strata.
+- Add CLI command governance and reusable JSON Schema contract validation for
+  command manifests and future schema-backed contracts.
+- Document the Rack/dev-std test-audit ownership boundary and the deferred
+  strict Rack metadata migration.
+
 ## 2026.7.15
 
 - Improve plan, log, ADR, and requirement CLI text output with padded terminal

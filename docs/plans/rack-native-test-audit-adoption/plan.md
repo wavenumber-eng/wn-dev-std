@@ -60,13 +60,13 @@ depends_on = ["implement-rack-native-audit", "adopt-rack-in-dev-std"]
 [[steps]]
 id = "dev-std-signoff"
 title = "Run dev-std local signoff"
-status = "active"
+status = "done"
 depends_on = ["design-doc-intent-audit", "test-runtime-impact-audit"]
 
 [[steps]]
 id = "external-review"
 title = "Obtain independent external review"
-status = "pending"
+status = "active"
 depends_on = ["design-doc-intent-audit", "test-runtime-impact-audit", "dev-std-signoff"]
 
 [[exit_criteria]]
@@ -102,7 +102,7 @@ status = "met"
 [[exit_criteria]]
 id = "signoff"
 title = "Focused local signoff passes"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "external-review"

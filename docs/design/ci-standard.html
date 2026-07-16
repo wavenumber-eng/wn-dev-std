@@ -30,7 +30,7 @@
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - run: uvx --from wn-dev-std==2026.7.15 dev-std audit .
+      - run: uvx --from wn-dev-std==2026.7.16 dev-std audit .
 
   test:
     needs: governance
@@ -52,7 +52,7 @@ governance:
   stage: governance
   image: ghcr.io/astral-sh/uv:python3.12-bookworm
   script:
-    - uvx --from wn-dev-std==2026.7.15 dev-std audit .
+    - uvx --from wn-dev-std==2026.7.16 dev-std audit .
 
 test:
   stage: test
