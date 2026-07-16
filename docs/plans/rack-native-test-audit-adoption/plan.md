@@ -12,7 +12,7 @@ status = "done"
 [[steps]]
 id = "bootstrap-rack-dev-std"
 title = "Bootstrap Rack against latest dev-std"
-status = "active"
+status = "done"
 depends_on = ["settle-rack-audit-contract"]
 
 [[steps]]
@@ -24,13 +24,13 @@ depends_on = ["settle-rack-audit-contract"]
 [[steps]]
 id = "dogfood-rack-audit"
 title = "Dogfood Rack audit with latest dev-std checks"
-status = "pending"
+status = "done"
 depends_on = ["bootstrap-rack-dev-std", "implement-rack-native-audit"]
 
 [[steps]]
 id = "release-rack-capability"
 title = "Publish Rack audit capability"
-status = "pending"
+status = "active"
 depends_on = ["dogfood-rack-audit"]
 
 [[steps]]
@@ -77,7 +77,7 @@ status = "met"
 [[exit_criteria]]
 id = "rack-latest-dev-std-bootstrap"
 title = "Rack dogfoods latest dev-std CLI audit through a documented temporary unreleased-version lane"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "dev-std-rack-delegation"
