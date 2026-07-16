@@ -398,6 +398,30 @@ output = "docs/generated/governance"</code></pre>
     to tests, implementation files, and related governance records.
   </p>
 
+  <h2>CLI Command Governance</h2>
+  <p>
+    Public command-line interfaces should declare a command manifest and
+    command design references. The <code>docs.cli</code> scope validates
+    command inventory, canonical command paths, aliases, deterministic
+    parser/help parity, design-doc coverage, config/output contract links, and
+    migration allowances. It supports both per-command docs and aggregate CLI
+    docs with command sections such as <code>section[data-command]</code>.
+  </p>
+  <p>
+    <code>docs.cli</code> is not a second behavior-evidence graph. Commands
+    should link to governed surfaces with <code>surface_ref</code> or use the
+    same typed-ref semantics as <code>docs.surfaces</code>. This keeps CLI
+    inventory, cross-language parity, fixture coverage, and exceptions
+    reviewable without weakening the existing governed-surface model.
+  </p>
+  <p>
+    Existing <code>command_manifest.v0.json</code> files remain valid for
+    repositories that have not adopted richer CLI metadata. The a0 command
+    manifest adds canonical command paths, statuses, design refs, aliases,
+    contract refs, and surface or evidence disposition without redefining the
+    v0 shape.
+  </p>
+
   <h2>Domain Registry</h2>
   <p>
     Packages declare a domain registry at
@@ -548,15 +572,16 @@ rationale = "Python and C++ APIs should cover the same behavior."</code></pre>
     Existing packages may keep legacy <code>wn-dev-std.toml</code> until they
     migrate. Governance adoption can begin with narrow scopes and add files as
     each ratchet becomes useful: plan roots for temporary execution work,
-    domain registry for ownership coverage, governed-surface manifests for
-    API/workflow verification, ADRs for decisions, requirements for durable
+    command manifests for CLI governance, domain registry for ownership
+    coverage, governed-surface manifests for API/workflow verification, ADRs
+    for decisions, requirements for durable
     obligations, and generated or hand-authored domain HTML for browseable
     context.
   </p>
   <p>
     The intended signoff integration is a plain audit invocation from the
     package root. Repositories should prefer a generic command such as
-    <code>dev-std audit . --scope docs.plans --scope docs.adrs --scope docs.requirements --scope docs.domains --scope docs.build --scope docs.test_strategy --scope docs.surfaces --scope docs.traceability --scope docs.links --scope tests</code>
+    <code>dev-std audit . --scope docs.plans --scope docs.adrs --scope docs.requirements --scope docs.domains --scope docs.build --scope docs.test_strategy --scope docs.cli --scope docs.surfaces --scope docs.traceability --scope docs.links --scope tests</code>
     over local bespoke scanners unless they need stricter project-specific
     policy. Packages with committed artifacts, vendored source, or configured
     release channels should also add <code>docs.artifacts</code>,

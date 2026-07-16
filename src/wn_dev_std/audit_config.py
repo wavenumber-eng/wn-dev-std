@@ -17,6 +17,7 @@ AUDIT_SCOPES = (
     "docs.adrs",
     "docs.artifacts",
     "docs.build",
+    "docs.cli",
     "docs.design",
     "docs.domains",
     "docs.links",

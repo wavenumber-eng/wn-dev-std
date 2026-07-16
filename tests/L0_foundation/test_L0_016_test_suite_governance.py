@@ -4,7 +4,9 @@ from pathlib import Path
 from textwrap import dedent
 
 from config_fixtures import standard_config
+from pytest import MonkeyPatch
 
+import wn_dev_std.test_governance as test_governance
 from wn_dev_std.checks import run_audit_checks
 from wn_dev_std.checks_types import CheckResult
 
@@ -15,7 +17,7 @@ def test_tests_scope_passes_when_rack_manifests_match_reality(tmp_path: Path) ->
     result = tests_result(tmp_path)
 
     assert result.passed
-    assert "Rack test manifests match discovered tests" in result.detail
+    assert "Rack native audit passed" in result.detail
 
 
 def test_tests_scope_requires_dev_std_test_config(tmp_path: Path) -> None:
@@ -39,7 +41,8 @@ def test_tests_scope_fails_when_discovered_test_is_missing_from_manifest(
     result = tests_result(tmp_path)
 
     assert not result.passed
-    assert "missing discovered test files: test_L0_002_extra.py" in result.detail
+    assert "[missing_discovered_subtest]" in result.detail
+    assert "test_L0_002_extra.py" in result.detail
 
 
 def test_tests_scope_fails_when_manifest_declares_missing_test_file(tmp_path: Path) -> None:
@@ -49,7 +52,8 @@ def test_tests_scope_fails_when_manifest_declares_missing_test_file(tmp_path: Pa
     result = tests_result(tmp_path)
 
     assert not result.passed
-    assert "declares missing test files: test_L0_001_demo.py" in result.detail
+    assert "[missing_declared_subtest_file]" in result.detail
+    assert "test_L0_001_demo.py" in result.detail
 
 
 def test_tests_scope_requires_signoff_stratum(tmp_path: Path) -> None:
@@ -71,6 +75,41 @@ def test_tests_scope_requires_signoff_stratum(tmp_path: Path) -> None:
 
     assert not result.passed
     assert "missing signoff stratum L99_signoff" in result.detail
+
+
+def test_tests_scope_requires_signoff_concern(tmp_path: Path) -> None:
+    write_valid_test_governance_repo(tmp_path)
+    write_stratum(
+        tmp_path,
+        "L99_signoff",
+        "L99_001",
+        "test_L99_001_signoff.py",
+        ["release"],
+    )
+
+    result = tests_result(tmp_path)
+
+    assert not result.passed
+    assert "[missing_signoff_concern]" in result.detail
+
+
+def test_tests_scope_fails_closed_when_rack_audit_surface_is_missing(
+    tmp_path: Path,
+    monkeypatch: MonkeyPatch,
+) -> None:
+    write_valid_test_governance_repo(tmp_path)
+
+    def fake_import_module(name: str) -> object:
+        assert name == "rack"
+        return object()
+
+    monkeypatch.setattr(test_governance, "import_module", fake_import_module)
+
+    result = tests_result(tmp_path)
+
+    assert not result.passed
+    assert "wn-rack>=2026.7.16" in result.detail
+    assert "rack.audit_suite" in result.detail
 
 
 def write_valid_test_governance_repo(root: Path) -> None:

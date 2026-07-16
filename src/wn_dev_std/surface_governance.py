@@ -9,6 +9,12 @@ from pathlib import Path
 from typing import cast
 
 from wn_dev_std.surface_fixtures import validate_fixture_catalog
+from wn_dev_std.typed_refs import (
+    required_string,
+    string_value,
+    validate_local_path_ref,
+    validate_typed_ref,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -23,20 +29,6 @@ DEFAULT_SURFACE_PATH = Path("docs/governance/governed_surfaces.toml")
 DEFAULT_DOMAIN_REGISTRY_PATH = Path("docs/governance/domain_registry.toml")
 ACTIVE_SURFACE_STATUSES = {"active", "implemented"}
 EXCEPTION_STATUSES_REQUIRING_ISSUES = {"deferred", "missing_capability"}
-LOCAL_REF_KINDS = {"local_file", "local_pytest", "fixture_file"}
-LOGICAL_REF_KINDS = {
-    "fixture_case",
-    "fixture_set",
-    "synthetic_vector",
-    "oracle_artifact",
-    "rack_evidence",
-}
-EXTERNAL_REF_KINDS = {
-    "external_source",
-    "external_test",
-    "external_pytest",
-    "external_cpp_test",
-}
 PARITY_MODES = {
     "exact_parity",
     "semantic_parity",
@@ -111,11 +103,11 @@ def _validate_surfaces(
     seen: set[str] = set()
     for index, surface in enumerate(surfaces, start=1):
         label = f"{_rel(root, manifest_path)}: surfaces[{index}]"
-        surface_id = _required_string(surface, "id", label, failures)
-        domain = _required_string(surface, "domain", label, failures)
-        _required_string(surface, "kind", label, failures)
-        status = _required_string(surface, "status", label, failures)
-        _required_string(surface, "purpose", label, failures)
+        surface_id = required_string(surface, "id", label, failures)
+        domain = required_string(surface, "domain", label, failures)
+        required_string(surface, "kind", label, failures)
+        status = required_string(surface, "status", label, failures)
+        required_string(surface, "purpose", label, failures)
         _validate_surface_identity(label, surface_id, seen, failures)
         _validate_surface_domain(label, domain, domain_ids, failures)
         _validate_reference_list(root, label, "implementation_refs", surface, failures)
@@ -177,7 +169,7 @@ def _validate_reference_list(
         failures.append(f"{label}: {key} must be a string array")
         return
     for ref in refs:
-        _validate_local_path_ref(root, f"{label}: {key}", ref, failures)
+        validate_local_path_ref(root, f"{label}: {key}", ref, failures)
 
 
 def _validate_verification_refs(
@@ -191,7 +183,7 @@ def _validate_verification_refs(
         failures.append(f"{label}: verification_refs must be an array of tables")
         return
     for index, ref in enumerate(refs, start=1):
-        _validate_one_typed_ref(root, f"{label}: verification_refs[{index}]", ref, failures)
+        validate_typed_ref(root, f"{label}: verification_refs[{index}]", ref, failures)
 
 
 def _validate_fixture_refs(
@@ -205,73 +197,7 @@ def _validate_fixture_refs(
         failures.append(f"{label}: fixture_refs must be an array of tables")
         return
     for index, ref in enumerate(refs, start=1):
-        _validate_one_typed_ref(root, f"{label}: fixture_refs[{index}]", ref, failures)
-
-
-def _validate_one_typed_ref(
-    root: Path,
-    label: str,
-    ref: Mapping[str, object],
-    failures: list[str],
-) -> None:
-    kind = _required_string(ref, "kind", label, failures)
-    target = _required_string(ref, "target", label, failures)
-    _required_string(ref, "coverage_mode", label, failures)
-    _required_string(ref, "rationale", label, failures)
-    if kind in LOCAL_REF_KINDS:
-        _validate_local_typed_ref(root, label, kind, target, failures)
-    elif kind in LOGICAL_REF_KINDS:
-        return
-    elif kind in EXTERNAL_REF_KINDS:
-        _validate_external_typed_ref(label, ref, failures)
-    elif kind:
-        failures.append(f"{label}: unknown kind {kind!r}")
-
-
-def _validate_local_typed_ref(
-    root: Path,
-    label: str,
-    kind: str,
-    target: str,
-    failures: list[str],
-) -> None:
-    if not target:
-        return
-    path_text = target.split("::", 1)[0]
-    path = (root / path_text).resolve()
-    if not _is_within_root(root, path):
-        failures.append(f"{label}: local target escapes repository root {target!r}")
-        return
-    if not path.exists():
-        failures.append(f"{label}: missing local target {target!r}")
-    if kind == "local_pytest" and "::" not in target:
-        failures.append(f"{label}: local_pytest target should include :: test selector")
-
-
-def _validate_external_typed_ref(
-    label: str,
-    ref: Mapping[str, object],
-    failures: list[str],
-) -> None:
-    if not _string_value(ref.get("repo")):
-        failures.append(f"{label}: external refs require repo")
-
-
-def _validate_local_path_ref(
-    root: Path,
-    label: str,
-    target: str,
-    failures: list[str],
-) -> None:
-    if not target:
-        return
-    path_text = target.replace("\\", "/").split("#", 1)[0].split("?", 1)[0]
-    path = (root / path_text).resolve()
-    if not _is_within_root(root, path):
-        failures.append(f"{label}: local target escapes repository root {target!r}")
-        return
-    if not path.exists():
-        failures.append(f"{label}: missing local target {target!r}")
+        validate_typed_ref(root, f"{label}: fixture_refs[{index}]", ref, failures)
 
 
 def _validate_exceptions(
@@ -284,10 +210,10 @@ def _validate_exceptions(
     ids: set[str] = set()
     for index, exception in enumerate(exceptions, start=1):
         label = f"{_rel(root, manifest_path)}: exceptions[{index}]"
-        exception_id = _required_string(exception, "id", label, failures)
-        surface_ref = _required_string(exception, "surface_ref", label, failures)
-        status = _required_string(exception, "status", label, failures)
-        _required_string(exception, "rationale", label, failures)
+        exception_id = required_string(exception, "id", label, failures)
+        surface_ref = required_string(exception, "surface_ref", label, failures)
+        status = required_string(exception, "status", label, failures)
+        required_string(exception, "rationale", label, failures)
         if status in EXCEPTION_STATUSES_REQUIRING_ISSUES:
             _validate_issue_refs(exception, label, failures)
         if exception_id:
@@ -314,13 +240,13 @@ def _validate_parity_relationships(
     seen: set[str] = set()
     for index, relationship in enumerate(relationships, start=1):
         label = f"{_rel(root, manifest_path)}: parity_relationships[{index}]"
-        relationship_id = _required_string(relationship, "id", label, failures)
-        source = _required_string(relationship, "source_surface_ref", label, failures)
-        target = _required_string(relationship, "target_surface_ref", label, failures)
-        mode = _required_string(relationship, "mode", label, failures)
-        fixture_coverage = _required_string(relationship, "fixture_coverage", label, failures)
-        _required_string(relationship, "status", label, failures)
-        _required_string(relationship, "rationale", label, failures)
+        relationship_id = required_string(relationship, "id", label, failures)
+        source = required_string(relationship, "source_surface_ref", label, failures)
+        target = required_string(relationship, "target_surface_ref", label, failures)
+        mode = required_string(relationship, "mode", label, failures)
+        fixture_coverage = required_string(relationship, "fixture_coverage", label, failures)
+        required_string(relationship, "status", label, failures)
+        required_string(relationship, "rationale", label, failures)
         _validate_unique_relationship_id(label, relationship_id, seen, failures)
         _validate_surface_ref(label, "source_surface_ref", source, surface_ids, failures)
         _validate_surface_ref(label, "target_surface_ref", target, surface_ids, failures)
@@ -334,14 +260,14 @@ def _validate_parity_relationships(
 
 
 def _surface_ids(surfaces: tuple[Mapping[str, object], ...]) -> set[str]:
-    return {surface_id for surface in surfaces if (surface_id := _string_value(surface.get("id")))}
+    return {surface_id for surface in surfaces if (surface_id := string_value(surface.get("id")))}
 
 
 def _surface_fixture_targets(surfaces: tuple[Mapping[str, object], ...]) -> set[str]:
     targets: set[str] = set()
     for surface in surfaces:
         for ref in _table_array(surface.get("fixture_refs")):
-            target = _string_value(ref.get("target"))
+            target = string_value(ref.get("target"))
             if target:
                 targets.add(target)
     return targets
@@ -392,7 +318,7 @@ def _validate_divergence_tracking(
 ) -> None:
     if "accepted_divergence" not in {mode, fixture_coverage}:
         return
-    exception_ref = _string_value(relationship.get("exception_ref"))
+    exception_ref = string_value(relationship.get("exception_ref"))
     issue_refs = _string_array(relationship.get("issue_refs"))
     if exception_ref and exception_ref not in exception_ids:
         failures.append(f"{label}: unknown exception_ref {exception_ref!r}")
@@ -416,29 +342,12 @@ def _domain_ids(root: Path) -> set[str] | None:
         return None
     payload = _load_toml(registry_path)
     domains = _table_array(payload.get("domains"))
-    return {domain_id for domain in domains if (domain_id := _string_value(domain.get("id")))}
+    return {domain_id for domain in domains if (domain_id := string_value(domain.get("id")))}
 
 
 def _load_toml(path: Path) -> Mapping[str, object]:
     with path.open("rb") as handle:
         return cast(Mapping[str, object], tomllib.load(handle))
-
-
-def _required_string(
-    metadata: Mapping[str, object],
-    key: str,
-    label: str,
-    failures: list[str],
-) -> str:
-    value = _string_value(metadata.get(key))
-    if value:
-        return value
-    failures.append(f"{label}: missing {key}")
-    return ""
-
-
-def _string_value(value: object) -> str:
-    return value.strip() if isinstance(value, str) else ""
 
 
 def _string_array(value: object) -> tuple[str, ...]:
@@ -466,14 +375,6 @@ def _table_array(value: object) -> tuple[Mapping[str, object], ...]:
 
 def _rel(root: Path, path: Path) -> str:
     return path.resolve().relative_to(root).as_posix()
-
-
-def _is_within_root(root: Path, target: Path) -> bool:
-    try:
-        target.relative_to(root.resolve())
-    except ValueError:
-        return False
-    return True
 
 
 def _summarize_failures(label: str, failures: Sequence[str], limit: int = 10) -> str:

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>CLI Governance Audit</title>
+</head>
+<body data-domain="core" data-design="cli-governance-audit" data-doc-status="accepted">
+  <h1>CLI Governance Audit</h1>
+  <p>
+    The <code>docs.cli</code> scope validates command-line interface
+    governance. It ensures repositories can audit command inventories, command
+    identity, design-document coverage, contract links, and deterministic
+    parser/help parity without relying on README prose as the source of truth.
+  </p>
+  <p>
+    The scope is intentionally narrower than <code>docs.surfaces</code>.
+    <code>docs.cli</code> owns CLI structure and navigation; governed surfaces
+    own reusable behavior evidence, exceptions, fixture coverage, and
+    cross-language parity.
+  </p>
+  <p>
+    The implementation lives in <code>src/wn_dev_std/cli_governance.py</code>
+    and is wired into the documentation governance audit registry. Manifest
+    structure is validated through
+    <code>src/wn_dev_std/json_contracts.py</code> and the packaged
+    <code>command_manifest.a0.schema.json</code> contract before CLI-specific
+    semantic checks run.
+  </p>
+</body>
+</html>

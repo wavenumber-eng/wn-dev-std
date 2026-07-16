@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "wn-dev-std"
-version = "2026.7.15"
+version = "2026.7.16"
 description = "Development standards reference package and conformance checks."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
@@ -28,7 +28,8 @@ classifiers = [
     "Topic :: Software Development :: Quality Assurance",
 ]
 dependencies = [
-    "wn-rack>=1.1.0",
+    "jsonschema>=4.26.0",
+    "wn-rack>=2026.7.16",
 ]
 
 [project.optional-dependencies]
@@ -61,7 +62,7 @@ dev-std = "wn_dev_std.cli.main:main"
 wn-dev-std = "wn_dev_std.cli.main:main"
 
 [tool.wn_dev_std]
-standard_version = "2026.7.15"
+standard_version = "2026.7.16"
 profile = "python-package"
 distribution = "pypi"
 languages = ["python"]
@@ -74,6 +75,15 @@ enabled = true
 [tool.wn_dev_std.tests]
 roots = ["tests"]
 signoff_strata = ["L99_signoff"]
+
+[tool.wn_dev_std.documentation.cli]
+manifest_path = "docs/contracts/command_manifest.a0.json"
+
+[tool.wn_dev_std.documentation.cli.inventory_provider]
+kind = "python_parser"
+module = "wn_dev_std.cli.main"
+function = "build_parser"
+max_depth = 1
 
 [tool.uv]
 package = true
@@ -104,6 +114,9 @@ exclude = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/wn_dev_std"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"docs/contracts/command_manifest.a0.schema.json" = "wn_dev_std/contracts/command_manifest.a0.schema.json"
 
 [tool.hatch.version]
 path = "src/wn_dev_std/_version.py"

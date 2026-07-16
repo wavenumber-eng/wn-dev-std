@@ -59,6 +59,25 @@
     accepted contract.
   </p>
 
+  <h2>Validation Tooling</h2>
+  <p>
+    Structural contract checks should use a real JSON Schema validator, such as
+    a Draft 2020-12 implementation, rather than reimplementing schema rules in
+    project-specific audit code. JSON Schema owns required fields, field types,
+    enums, array uniqueness, object shape, and additional-property policy.
+    Repository audits own semantics the schema cannot know: path containment,
+    referenced file existence, evidence disposition, generated-artifact policy,
+    and project-specific migration allowances.
+  </p>
+  <p>
+    Validator diagnostics should be concise and path-addressed so a signoff
+    failure points to the exact payload field, for example
+    <code>docs/contracts/example.json: commands[0].aliases must be array</code>.
+    This is the standard pattern for reusable contract tooling; bespoke
+    validators should be limited to semantic checks that cannot be expressed in
+    JSON Schema.
+  </p>
+
   <h2>Pydantic And Generated Schemas</h2>
   <p>
     Pydantic models are a good implementation mechanism for Python services,

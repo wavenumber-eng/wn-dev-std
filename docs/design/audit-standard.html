@@ -43,7 +43,10 @@
     configured owned roots, including failure when no registry exists.
     <code>docs.requirements</code> validates requirement metadata and
     verification obligations, including failure when no requirement inventory
-    exists. <code>docs.surfaces</code> validates optional
+    exists. <code>docs.cli</code> validates optional command-line governance
+    manifests that connect command inventory, canonical command paths, aliases,
+    deterministic parser/help parity, design-doc coverage, and config/output
+    contract links. <code>docs.surfaces</code> validates optional
     governed-surface manifests that connect public APIs, workflows, transforms,
     schemas, and other owned surfaces to implementation refs, verification refs,
     fixture/data refs, and typed exceptions. <code>docs.artifacts</code>,
@@ -65,7 +68,7 @@
     target, runnable, board app, fixture, sample, or demo folder is a separate
     member.
   </p>
-  <pre><code>standard_version = "2026.7.15"
+  <pre><code>standard_version = "2026.7.16"
 kind = "workspace"
 
 [workspace]
@@ -94,7 +97,7 @@ members = ["bom_cruncher", "lib_cruncher", "panel-monkey"]</code></pre>
     <code>enabled_scopes</code>. Repositories with no dev-std config continue to
     use default audit behavior and are not part of the first migration ratchet.
   </p>
-  <pre><code>standard_version = "2026.7.15"
+  <pre><code>standard_version = "2026.7.16"
 kind = "package"
 profile = "zephyr-firmware"
 enabled_scopes = ["docs.plans"]</code></pre>
@@ -111,22 +114,20 @@ enabled_scopes = ["docs.plans"]</code></pre>
     The <code>tests</code> scope validates Rack test-suite structure for
     projects that opt into strict test governance. The dev-std config registers
     test roots with <code>[tests]</code> or
-    <code>[tool.wn_dev_std.tests]</code>. Each root must contain
-    <code>rack.toml</code>; each Rack stratum listed in
-    <code>[strata].order</code> must have a matching directory and
-    <code>STRATUM.toml</code>; every discovered <code>test_*.py</code> file
-    must be declared in <code>[[subtests]]</code>; every declared subtest file
-    must exist; and the configured signoff stratum must exist with at least one
-    signoff subtest.
+    <code>[tool.wn_dev_std.tests]</code>. For each configured root, dev-std
+    delegates Rack manifest/layout checks to Rack's native audit surface from
+    <code>wn-rack&gt;=2026.7.16</code> and maps Rack failures into normal
+    dev-std audit output.
   </p>
   <pre><code>[tests]
 roots = ["tests"]
 signoff_strata = ["L99_signoff"]</code></pre>
   <p>
-    In the first dev-std slice, Rack manifest validation is implemented locally
-    because Rack does not yet expose a failing audit command. Future dev-std
-    versions should delegate to Rack once a native Rack audit/check command is
-    available.
+    Rack owns <code>rack.toml</code>, <code>STRATUM.toml</code>, discovered
+    test files, declared subtest files, duplicate manifest entries, and signoff
+    stratum existence. Dev-std owns explicit root configuration, upgrade
+    guidance when Rack audit support is missing, and the requirement that each
+    configured signoff stratum declare the <code>signoff</code> concern.
   </p>
 
   <h2>Test Strategy Documents</h2>
@@ -346,6 +347,18 @@ status = "pending"</code></pre>
 
   <h2>Traceability And Links</h2>
   <p>
+    <code>docs.cli</code> validates
+    <code>docs/contracts/command_manifest.a0.json</code> when present, while
+    allowing explicit legacy <code>command_manifest.v0.json</code> paths for
+    repositories that have not migrated to the richer contract. The scope checks
+    command identity, command status, design references, aggregate
+    <code>section[data-command]</code> coverage, per-command design docs,
+    config/output schema links, and deterministic parser/help inventory parity
+    when a provider is configured. It does not replace
+    <code>docs.surfaces</code>; command entries should link to governed
+    surfaces or use the same typed evidence semantics.
+  </p>
+  <p>
     <code>docs.surfaces</code> validates
     <code>docs/governance/governed_surfaces.toml</code> when present. Active
     and implemented surfaces must have structured verification refs or a typed
@@ -431,8 +444,10 @@ status = "pending"</code></pre>
     can start with <code>dev-std audit . --scope docs.adrs</code> or
     <code>dev-std audit . --scope docs.requirements</code> in its local signoff
     and then add <code>docs.traceability</code> and <code>docs.links</code> as
-    the repo is converted. Repos with declared API, transform, serialization,
-    porting, or workflow surfaces should add <code>docs.surfaces</code> once
+    the repo is converted. Repos with public CLIs should add
+    <code>docs.cli</code> once a command manifest and design-doc coverage are
+    available. Repos with declared API, transform, serialization, porting, or
+    workflow surfaces should add <code>docs.surfaces</code> once
     the first governed-surface manifest exists. Repos with committed artifacts,
     vendored source, or configured release channels should add
     <code>docs.artifacts</code>, <code>docs.vendors</code>, and
@@ -471,6 +486,7 @@ docs/domains/&lt;domain&gt;.html</code></pre>
   --scope docs.domains \
   --scope docs.build \
   --scope docs.test_strategy \
+  --scope docs.cli \
   --scope docs.surfaces \
   --scope docs.artifacts \
   --scope docs.vendors \
@@ -482,7 +498,7 @@ docs/domains/&lt;domain&gt;.html</code></pre>
     CI should run governance before expensive functional or platform matrices.
     Downstream CI should pin the released PyPI tool version that matches the
     repository's <code>standard_version</code>, for example
-    <code>uvx --from wn-dev-std==2026.7.15 dev-std audit .</code>. Optional
+    <code>uvx --from wn-dev-std==2026.7.16 dev-std audit .</code>. Optional
     upstream freshness checks may warn when a newer PyPI release exists, but
     normal audit must remain deterministic and offline unless that check is
     requested.

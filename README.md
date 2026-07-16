@@ -24,7 +24,9 @@ policy from source layout:
   `dev-std audit` is intended to fail.
 - [Documentation Standard](docs/design/documentation-standard.html): ADR,
   requirement, plan, log, domain, surface, fixture, and generated HTML rules.
-- [CLI Design](docs/design/cli.html): public command surface.
+- [CLI Standard](docs/design/cli-standard.html): command inventory,
+  parser/design parity, and CLI contract governance.
+- [CLI Design](docs/design/cli.html): this package's public command surface.
 - [CI Standard](docs/design/ci-standard.html): governance-first CI gating for
   GitHub Actions and GitLab CI.
 - [Artifact And Vendor Governance](docs/design/artifact-vendor-governance.html):
@@ -147,6 +149,7 @@ Run the repository audit checks against the current repo:
 dev-std audit .
 dev-std audit . --format json
 dev-std audit . --scope docs.plans
+dev-std audit . --scope docs.cli
 dev-std audit . --scope docs.test_strategy
 dev-std audit . --scope tests
 dev-std audit . --check-upstream-version
@@ -155,7 +158,7 @@ dev-std audit . --check-upstream-version
 Configured repositories must declare the standard version they target:
 
 ```toml
-standard_version = "2026.7.15"
+standard_version = "2026.7.16"
 profile = "python-package"
 
 [tests]
@@ -168,7 +171,7 @@ default and still runs the unfiltered config-version check. Passing a targeted
 scope set is partial governance adoption, not full profile conformance:
 
 ```toml
-standard_version = "2026.7.15"
+standard_version = "2026.7.16"
 profile = "zephyr-firmware"
 enabled_scopes = ["docs.plans"]
 ```
@@ -177,7 +180,7 @@ Workspace roots aggregate explicitly registered package/application policy
 boundaries. Members are policy boundaries, not every build target:
 
 ```toml
-standard_version = "2026.7.15"
+standard_version = "2026.7.16"
 kind = "workspace"
 
 [workspace]
@@ -191,7 +194,7 @@ should use the same shape with a first `governance` stage and later jobs using
 `standard_version`:
 
 ```bash
-uvx --from wn-dev-std==2026.7.15 dev-std audit .
+uvx --from wn-dev-std==2026.7.16 dev-std audit .
 ```
 
 The `check` command is a compatibility alias for `audit`:
@@ -493,7 +496,7 @@ helpers are intentionally left for a later tool pass.
 - [C++ Standard](docs/design/cpp-standard.html)
 - [Mixed Mode Standard](docs/design/mixed-mode.html)
 - [JavaScript Web App Standard](docs/design/javascript-standard.html)
-- [Release Notes](docs/releases/2026-07-15.md)
+- [Release Notes](docs/releases/2026-07-16.md)
 
 ## License
 

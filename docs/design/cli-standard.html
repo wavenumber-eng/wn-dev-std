@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>CLI Standard</title>
+</head>
+<body data-design="cli-standard" data-doc-status="accepted">
+  <h1>CLI Standard</h1>
+  <p>
+    Command-line interfaces are public contract surfaces. A README or
+    <code>--help</code> screen may help users discover commands, but release
+    signoff needs a stable command inventory, design intent, contract links,
+    and verification ownership that reviewers and agents can audit without
+    reverse-engineering the implementation.
+  </p>
+
+  <h2>Scope Boundary</h2>
+  <p>
+    The <code>docs.cli</code> audit scope owns CLI-specific governance:
+    command inventory, canonical command identity, aliases, deterministic
+    parser/help parity, design-document coverage, command-design structure,
+    config contract links, output contract links, compatibility notes, and
+    migration allowances.
+  </p>
+  <p>
+    <code>docs.cli</code> does not replace <code>docs.surfaces</code>.
+    <code>docs.surfaces</code> remains the generic evidence graph for public
+    behavior: typed verification refs, fixture refs, coverage modes, rationale,
+    exceptions, parity relationships, local path safety, and external repository
+    metadata. CLI manifests should either link to governed surfaces with
+    <code>surface_ref</code> or use the same typed-ref semantics as
+    <code>docs.surfaces</code>.
+  </p>
+
+  <h2>Command Manifest</h2>
+  <p>
+    Existing repositories may keep a current command manifest such as
+    <code>docs/contracts/command_manifest.v0.json</code>. The richer portable
+    CLI contract follows the project stepping convention and should use
+    <code>command_manifest.a0</code> semantics. Paths named with
+    <code>.a0.</code> require <code>schema</code> equal to
+    <code>"wn_dev_std.command_manifest.a0"</code>; explicitly versioned
+    <code>.v0.</code> paths remain the legacy migration lane. An a0 command
+    entry uses a canonical command path so nested subcommands do not collide:
+  </p>
+  <pre><code>{
+  "schema": "wn_dev_std.command_manifest.a0",
+  "commands": [
+    {
+      "path": ["plan", "step", "add"],
+      "name": "plan step add",
+      "status": "public",
+      "summary": "Add a structured plan step.",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "plan step add",
+      "surface_ref": "core.cli.plan.step.add"
+    }
+  ]
+}</code></pre>
+  <p>
+    Enforced commands must declare a canonical path or full command name,
+    status, summary or description, and a design reference. Public and
+    experimental commands should also declare a governed-surface link or shared
+    typed evidence refs. Config and output contract refs are required only when
+    the command owns config files, generates config templates, or emits stable
+    machine-readable artifacts.
+  </p>
+  <p>
+    The a0 manifest shape is validated by the committed JSON Schema contract
+    <code>docs/contracts/command_manifest.a0.schema.json</code>. The audit code
+    must not duplicate schema-owned structural checks except as compatibility
+    handling for declared legacy formats.
+  </p>
+
+  <h2>Status Vocabulary</h2>
+  <table>
+    <tr>
+      <th>Status</th>
+      <th>Meaning</th>
+      <th>Default enforcement</th>
+    </tr>
+    <tr>
+      <td><code>public</code></td>
+      <td>Documented, tested, release-facing command behavior.</td>
+      <td>Enforced.</td>
+    </tr>
+    <tr>
+      <td><code>experimental</code></td>
+      <td>Discoverable behavior whose compatibility may still change.</td>
+      <td>Enforced, with clear compatibility notes.</td>
+    </tr>
+    <tr>
+      <td><code>deprecated</code></td>
+      <td>Public behavior retained temporarily before removal or replacement.</td>
+      <td>Enforced, including replacement or removal notes.</td>
+    </tr>
+    <tr>
+      <td><code>hidden</code></td>
+      <td>Internal or support command outside the public CLI contract.</td>
+      <td>Not public unless explicitly configured.</td>
+    </tr>
+    <tr>
+      <td><code>deferred</code></td>
+      <td>Planned or known gap that is not release-ready behavior.</td>
+      <td>Requires issue, ADR, or exception tracking.</td>
+    </tr>
+  </table>
+
+  <h2>Design Documents</h2>
+  <p>
+    A command design reference may be a per-command HTML file or an aggregate
+    CLI design document. Per-command docs may carry command metadata on the
+    document body or another top-level container. Aggregate docs satisfy
+    command coverage with elements such as <code>section[data-command]</code>.
+    Both patterns are valid because mature projects may need a separate page
+    per large workflow while small tools may be clearer as one aggregate page.
+  </p>
+  <p>
+    Enforced command design docs should cover usage, arguments or options,
+    inputs, config behavior, output artifacts, errors and exit behavior, side
+    effects, compatibility or aliases, and tests. Simple commands may state
+    that a topic is not applicable. The audit checks structural coverage and
+    machine-readable links; reviewers remain responsible for judging whether
+    the prose accurately captures intent.
+  </p>
+
+  <h2>Parser And Help Parity</h2>
+  <p>
+    Parser/help parity should run only when a repository configures a
+    deterministic inventory provider. Providers may be a safe parser object, a
+    static generated inventory, or a controlled command invocation. The audit
+    must not arbitrarily execute project CLIs by default. When a provider is
+    configured, visible parser/help command paths should match the enforced
+    manifest command set and declared aliases.
+  </p>
+
+  <h2>Config And Output Contracts</h2>
+  <p>
+    Linked config and output schemas should live under <code>docs/contracts</code>
+    and be committed JSON Schema documents. Generated JSONC config templates are
+    valuable user-facing editing surfaces, but portable generated-template
+    validation is deferred to project-local signoff or a future generic
+    contract/template scope unless the project declares deterministic generator
+    evidence.
+  </p>
+
+  <h2>README Boundary</h2>
+  <p>
+    README command tables are useful for discoverability, but they are not the
+    authoritative signoff target. The reviewed source of truth is the command
+    manifest, command design docs, linked contracts, and evidence refs. A future
+    optional discoverability check may compare README summaries against the
+    manifest without making README prose the contract.
+  </p>
+</body>
+</html>

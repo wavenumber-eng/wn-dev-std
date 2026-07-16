@@ -3,7 +3,7 @@ type = "requirement"
 id = "core-req-0002"
 domain = "core"
 status = "implemented"
-title = "Test Suite Governance Audit Verifies Rack Manifests"
+title = "Test Suite Governance Audit Delegates To Rack"
 created = "2026-07-15"
 issue_refs = ["wavenumber-eng/wn-dev-std#19", "wavenumber-eng/wn-dev-std#22", "wavenumber-eng/wn-rack#4"]
 adr_refs = ["core-adr-0002"]
@@ -28,18 +28,27 @@ target = "tests/L0_foundation/test_L0_016_test_suite_governance.py::test_tests_s
 [[verification_refs]]
 kind = "local_pytest"
 target = "tests/L0_foundation/test_L0_016_test_suite_governance.py::test_tests_scope_requires_signoff_stratum"
+
+[[verification_refs]]
+kind = "local_pytest"
+target = "tests/L0_foundation/test_L0_016_test_suite_governance.py::test_tests_scope_requires_signoff_concern"
+
+[[verification_refs]]
+kind = "local_pytest"
+target = "tests/L0_foundation/test_L0_016_test_suite_governance.py::test_tests_scope_fails_closed_when_rack_audit_surface_is_missing"
 +++
 
-# Test Suite Governance Audit Verifies Rack Manifests
+# Test Suite Governance Audit Delegates To Rack
 
 When a repository opts into test-suite governance, `dev-std audit --scope tests`
-must validate the configured Rack test roots against the committed test layout.
-The audit must require a configured test root, require `rack.toml`, require each
-declared Rack stratum to have a matching directory and `STRATUM.toml`, fail
-discovered `test_*.py` files missing from `[[subtests]]`, fail declared subtest
-files missing from disk, and require each configured signoff stratum to exist
-with signoff coverage.
+must require explicit configured Rack test roots and signoff strata, then
+delegate Rack manifest/layout validation to Rack's native audit surface from
+`wn-rack>=2026.7.16`.
 
-The first implementation may perform this validation inside dev-std. Once Rack
-provides a native failing audit command, dev-std should replace the local
-manifest comparison with Rack-owned validation or a direct Rack audit adapter.
+Rack owns validation of `rack.toml`, declared strata, `STRATUM.toml`, discovered
+`test_*.py` files, declared subtest files, duplicate manifest entries, and
+signoff stratum existence. Dev-std owns the standards boundary around that
+surface: configured test roots must be explicit and root-relative, Rack audit
+failures must be mapped into normal dev-std audit output, missing Rack audit
+support must fail closed with upgrade guidance, and configured signoff strata
+must declare the `signoff` concern.

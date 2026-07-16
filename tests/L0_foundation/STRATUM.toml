@@ -164,3 +164,19 @@ name = "Test Strategy Doc Governance"
 description = "Validate canonical test strategy documentation checks"
 concerns = ["contracts", "docs", "signoff"]
 test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_018"
+file = "test_L0_018_cli_governance.py"
+name = "CLI Governance"
+description = "Validate command manifest, design doc, and deterministic inventory checks"
+concerns = ["cli", "contracts", "docs"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_019"
+file = "test_L0_019_json_contracts.py"
+name = "JSON Contract Validation"
+description = "Validate reusable JSON Schema contract diagnostics"
+concerns = ["contracts"]
+test_case_type = "contract"
