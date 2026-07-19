@@ -68,7 +68,7 @@
     target, runnable, board app, fixture, sample, or demo folder is a separate
     member.
   </p>
-  <pre><code>standard_version = "2026.7.16"
+  <pre><code>standard_version = "2026.7.18"
 kind = "workspace"
 
 [workspace]
@@ -97,7 +97,7 @@ members = ["bom_cruncher", "lib_cruncher", "panel-monkey"]</code></pre>
     <code>enabled_scopes</code>. Repositories with no dev-std config continue to
     use default audit behavior and are not part of the first migration ratchet.
   </p>
-  <pre><code>standard_version = "2026.7.16"
+  <pre><code>standard_version = "2026.7.18"
 kind = "package"
 profile = "zephyr-firmware"
 enabled_scopes = ["docs.plans"]</code></pre>
@@ -107,6 +107,57 @@ enabled_scopes = ["docs.plans"]</code></pre>
     command-line scopes override the config default. Passing audit with a
     targeted scope list is not full profile conformance, and audit output must
     report the configured scopes.
+  </p>
+
+  <h2>TypeScript Profile Audits</h2>
+  <p>
+    The greenfield <code>typescript-web-app</code> and
+    <code>python-ts-app</code> profiles run TypeScript guardrail checks under
+    the <code>language</code> scope. The audit validates owned TypeScript
+    source under <code>src/</code>, <code>tsconfig.json</code> or a configured
+    typecheck config, mandatory strict compiler options, package scripts,
+    committed package-manager lockfile, and CSS token hygiene when owned CSS is
+    present.
+  </p>
+  <p>
+    The TypeScript audit resolves local-file <code>extends</code> chains only.
+    Package-based <code>extends</code>, <code>skipLibCheck: true</code>,
+    <code>allowJs: true</code>, and owned JavaScript source in TypeScript
+    profiles require explicit <code>[typescript.exceptions]</code> or
+    <code>[typescript.migration]</code> metadata. The audit does not parse
+    TypeScript source in Python; explicit public boundary types are enforced by
+    the required project <code>lint</code> and <code>typecheck</code> scripts.
+  </p>
+
+  <h2>Rust Profile Audits</h2>
+  <p>
+    The <code>rust-app</code> and <code>rust-firmware</code> profiles run Rust
+    guardrail checks under the <code>language</code> scope. The audit validates
+    Rust-owned source under <code>src/</code> or a configured
+    <code>[rust].source_root</code> such as <code>src/rs</code>, Cargo package
+    or workspace metadata, <code>Cargo.lock</code>,
+    <code>rust-toolchain.toml</code>, unsafe lint posture, and Rack command
+    declarations for Cargo fmt, check, Clippy, tests, and rustdoc warnings.
+  </p>
+  <p>
+    The Rust audit parses <code>Cargo.toml</code>,
+    <code>rust-toolchain.toml</code>, and embedded
+    <code>.cargo/config.toml</code> with TOML parsing. It does not parse Rust
+    source in Python. Source semantics, unsafe-block enforcement, rustdoc
+    warnings, and lint failures belong to rustc, Clippy, rustfmt, rustdoc,
+    Cargo tests, and project signoff. <code>cargo doc</code> warning failures
+    are declared through <code>RUSTDOCFLAGS="-D warnings"</code>.
+  </p>
+  <p>
+    <code>rust-firmware</code> adds static checks for
+    <code>[rust.firmware]</code> target metadata,
+    <code>.cargo/config.toml</code>, memory/linker artifacts such as
+    <code>memory.x</code> or a documented <code>link.x</code> provider,
+    runner/flashing metadata such as <code>Embed.toml</code>,
+    <code>probe-rs</code>, or <code>cargo-embed</code>, plus local docs for
+    <code>no_std</code>, panic, allocator, hardware setup, and host-test split.
+    Tokio and Embassy are documented scenario defaults, not mandatory audit
+    dependencies.
   </p>
 
   <h2>Test Suite Governance</h2>
@@ -437,6 +488,25 @@ status = "pending"</code></pre>
     <code>build_doc</code> so setup, tool invocation, packaging, and publishing
     responsibilities are explicitly documented.
   </p>
+  <p>
+    <code>dev-std audit . --scope docs.release --mode release</code> adds
+    produced-payload inspection for configured
+    <code>[[channels.promoted_artifacts]]</code> entries in
+    <code>release.toml</code>. Default mode shape-validates promoted-artifact
+    declarations without reading local build output. Release mode checks that
+    required payloads exist, that artifact-like files under declared promoted
+    roots are cataloged, and that declared checksum, package version, and
+    source-commit metadata match the local file and source tree. Uncataloged
+    payload detection uses the catalog-wide promoted-artifact pattern set so
+    channels can share staging roots.
+  </p>
+  <p>
+    <code>--mode release</code> only changes <code>docs.release</code> in the
+    first implementation. Non-release scopes keep default behavior. Workspace
+    audits aggregate release-mode checks per registered member; each member
+    resolves its own release catalog and promoted artifact paths relative to
+    that member root.
+  </p>
 
   <h2>Signoff Adoption</h2>
   <p>
@@ -498,7 +568,7 @@ docs/domains/&lt;domain&gt;.html</code></pre>
     CI should run governance before expensive functional or platform matrices.
     Downstream CI should pin the released PyPI tool version that matches the
     repository's <code>standard_version</code>, for example
-    <code>uvx --from wn-dev-std==2026.7.16 dev-std audit .</code>. Optional
+    <code>uvx --from wn-dev-std==2026.7.18 dev-std audit .</code>. Optional
     upstream freshness checks may warn when a newer PyPI release exists, but
     normal audit must remain deterministic and offline unless that check is
     requested.

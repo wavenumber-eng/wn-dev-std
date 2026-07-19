@@ -180,3 +180,19 @@ name = "JSON Contract Validation"
 description = "Validate reusable JSON Schema contract diagnostics"
 concerns = ["contracts"]
 test_case_type = "contract"
+
+[[subtests]]
+id = "L0_020"
+file = "test_L0_020_typescript_policy.py"
+name = "TypeScript Policy"
+description = "Validate greenfield TypeScript profile guardrail checks"
+concerns = ["contracts", "signoff"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_021"
+file = "test_L0_021_rust_policy.py"
+name = "Rust Policy"
+description = "Validate Rust application and firmware profile guardrail checks"
+concerns = ["contracts", "signoff"]
+test_case_type = "audit_meta"

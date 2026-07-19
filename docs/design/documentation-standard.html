@@ -274,6 +274,17 @@ target = "tests/test_transform_docs.py::test_docs_exist"
     should use <code>owner/repo#number</code>.
   </p>
   <p>
+    Language standard docs may use the default root design-doc path or a
+    configured foldered path. JavaScript profiles accept
+    <code>documentation.standard_docs.javascript</code>; TypeScript profiles
+    accept <code>documentation.standard_docs.typescript</code>; Rust profiles
+    accept <code>documentation.standard_docs.rust</code>. The default
+    TypeScript paths are <code>docs/design/typescript-standard.html</code> and
+    <code>docs/design/standards/typescript.html</code>. The default Rust paths
+    are <code>docs/design/rust-standard.html</code> and
+    <code>docs/design/standards/rust.html</code>.
+  </p>
+  <p>
     Implementation and verification refs use arrays of tables so they can
     describe local files, local pytest selectors, or external test/source
     ownership in another repository or language.

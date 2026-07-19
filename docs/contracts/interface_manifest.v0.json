@@ -56,6 +56,30 @@
       "description": "Factory for the Python-served browser JavaScript and CSS app standard."
     },
     {
+      "name": "wn_dev_std.default_typescript_web_standard",
+      "design_doc": "docs/design/typescript-standard.html",
+      "data_interface": "wn_dev_std.default_typescript_web_standard",
+      "description": "Factory for the greenfield browser TypeScript and CSS standard."
+    },
+    {
+      "name": "wn_dev_std.default_python_ts_standard",
+      "design_doc": "docs/design/typescript-standard.html",
+      "data_interface": "wn_dev_std.default_python_ts_standard",
+      "description": "Factory for the Python-served browser TypeScript app standard."
+    },
+    {
+      "name": "wn_dev_std.default_rust_app_standard",
+      "design_doc": "docs/design/rust-standard.html",
+      "data_interface": "wn_dev_std.default_rust_app_standard",
+      "description": "Factory for the host-side Rust application and library standard."
+    },
+    {
+      "name": "wn_dev_std.default_rust_firmware_standard",
+      "design_doc": "docs/design/rust-standard.html",
+      "data_interface": "wn_dev_std.default_rust_firmware_standard",
+      "description": "Factory for the embedded Rust firmware standard."
+    },
+    {
       "name": "wn_dev_std.default_zephyr_standard",
       "design_doc": "docs/design/zephyr-standard.html",
       "data_interface": "wn_dev_std.default_zephyr_standard",
@@ -102,6 +126,30 @@
       "design_doc": "docs/design/javascript-standard.html",
       "data_interface": "wn_dev_std.render_python_js_standard",
       "description": "Render helper for the Python-served browser JavaScript and CSS app standard."
+    },
+    {
+      "name": "wn_dev_std.render_typescript_web_standard",
+      "design_doc": "docs/design/typescript-standard.html",
+      "data_interface": "wn_dev_std.render_typescript_web_standard",
+      "description": "Render helper for the greenfield browser TypeScript and CSS standard."
+    },
+    {
+      "name": "wn_dev_std.render_python_ts_standard",
+      "design_doc": "docs/design/typescript-standard.html",
+      "data_interface": "wn_dev_std.render_python_ts_standard",
+      "description": "Render helper for the Python-served browser TypeScript app standard."
+    },
+    {
+      "name": "wn_dev_std.render_rust_app_standard",
+      "design_doc": "docs/design/rust-standard.html",
+      "data_interface": "wn_dev_std.render_rust_app_standard",
+      "description": "Render helper for the host-side Rust standard."
+    },
+    {
+      "name": "wn_dev_std.render_rust_firmware_standard",
+      "design_doc": "docs/design/rust-standard.html",
+      "data_interface": "wn_dev_std.render_rust_firmware_standard",
+      "description": "Render helper for the embedded Rust firmware standard."
     },
     {
       "name": "wn_dev_std.render_zephyr_standard",

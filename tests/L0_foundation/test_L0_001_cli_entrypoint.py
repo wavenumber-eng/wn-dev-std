@@ -120,6 +120,14 @@ def test_cli_command_help_starts_for_public_commands() -> None:
         assert command in result.stdout
 
 
+def test_audit_help_documents_release_mode() -> None:
+    result = run_cli("audit", "--help")
+
+    assert result.returncode == 0
+    assert "--mode" in result.stdout
+    assert "release" in result.stdout
+
+
 def test_governance_subcommand_help_lists_html() -> None:
     result = run_cli("governance", "--help")
 
@@ -236,6 +244,34 @@ def test_standard_profile_can_render_python_js_json() -> None:
     assert result.returncode == 0
     assert '"name": "python-js-app"' in result.stdout
     assert "javascript-web-app" in result.stdout
+
+
+def test_standard_profile_can_render_typescript_web_json() -> None:
+    result = run_cli("standard", "--profile", "typescript-web-app", "--format", "json")
+    assert result.returncode == 0
+    assert '"name": "typescript-web-app"' in result.stdout
+    assert "strict tsconfig guardrails" in result.stdout
+
+
+def test_standard_profile_can_render_python_ts_json() -> None:
+    result = run_cli("standard", "--profile", "python-ts-app", "--format", "json")
+    assert result.returncode == 0
+    assert '"name": "python-ts-app"' in result.stdout
+    assert "typescript-web-app" in result.stdout
+
+
+def test_standard_profile_can_render_rust_app_json() -> None:
+    result = run_cli("standard", "--profile", "rust-app", "--format", "json")
+    assert result.returncode == 0
+    assert '"name": "rust-app"' in result.stdout
+    assert "Cargo with locked signoff" in result.stdout
+
+
+def test_standard_profile_can_render_rust_firmware_json() -> None:
+    result = run_cli("standard", "--profile", "rust-firmware", "--format", "json")
+    assert result.returncode == 0
+    assert '"name": "rust-firmware"' in result.stdout
+    assert "memory.x, link.x provider, or linker script" in result.stdout
 
 
 def test_standard_profile_can_render_zephyr_json() -> None:

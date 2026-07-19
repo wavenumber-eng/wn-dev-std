@@ -8,9 +8,14 @@
   <h1>JavaScript Web App Standard</h1>
   <p>
     The <code>javascript-web-app</code> profile covers browser applications
-    built from owned HTML, CSS, and JavaScript. The default posture is no-build:
-    source files are served directly by a host app or static file server until a
-    package manager, bundler, or transpiler is clearly justified.
+    built from owned HTML, CSS, and JavaScript. It is the compatibility profile
+    for no-build browser apps and existing checked-JavaScript ports. New
+    reusable browser runtimes and JavaScript-facing libraries should use the
+    greenfield TypeScript profiles defined in
+    <a href="typescript-standard.html">TypeScript Standard</a>.
+    The default JavaScript-profile posture is no-build: source files are served
+    directly by a host app or static file server until a package manager,
+    bundler, or transpiler is clearly justified.
   </p>
 
   <h2>Profiles</h2>
@@ -111,11 +116,23 @@ javascript = "docs/design/standards/javascript.html"</code></pre>
     <li>Keep event wiring, state mutation, rendering, and transport separate.</li>
     <li>Gate new complexity, large files, nesting, and trailing whitespace.</li>
     <li>
-      Move to TypeScript when reusable framework code, shared CAD state, or
-      cross-application libraries need exported types, refactoring safety, or
-      stronger module boundaries.
+      Move to TypeScript for greenfield reusable framework code, shared CAD
+      state, cross-application libraries, and typed app code that benefits from
+      exported types, refactoring safety, or stronger module boundaries.
     </li>
   </ul>
+
+  <h2>TypeScript Migration</h2>
+  <p>
+    Checked JavaScript is a migration bridge. Existing projects may use
+    <code>jsconfig.json</code>, <code>tsconfig.json</code> with
+    <code>allowJs</code>, JSDoc, and <code>// @ts-check</code> while porting,
+    but new owned modules should move toward <code>.ts</code> or
+    <code>.tsx</code>. Convert reusable module boundaries first, then shared
+    state and event contracts, then leaf DOM wiring. Projects that adopt a
+    TypeScript profile while still carrying owned JavaScript must document that
+    temporary state with <code>[typescript.migration]</code>.
+  </p>
 
   <h2>JavaScript Tests</h2>
   <ul>

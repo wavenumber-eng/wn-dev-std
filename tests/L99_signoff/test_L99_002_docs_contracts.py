@@ -116,12 +116,21 @@ def test_config_schema_matches_runtime_config_surface() -> None:
         "enabled_scopes",
         "workspace",
         "tests",
+        "typescript",
+        "rust",
         "documentation",
         "governance",
         "compatibility_pruning",
         "pr_hygiene",
     ):
         assert key in properties
+
+    profile_schema = object_mapping(properties["profile"])
+    profile_values = set(string_sequence(profile_schema["enum"]))
+    assert "typescript-web-app" in profile_values
+    assert "python-ts-app" in profile_values
+    assert "rust-app" in profile_values
+    assert "rust-firmware" in profile_values
 
     schema_defs = object_mapping(schema["$defs"])
     audit_scope_def = object_mapping(schema_defs["auditScope"])
@@ -143,6 +152,33 @@ def test_config_schema_matches_runtime_config_surface() -> None:
     plan_properties = properties_of(object_mapping(documentation_properties["plans"]))
     assert "roots" in plan_properties
     assert "ignore" in plan_properties
+
+    standard_docs_properties = properties_of(
+        object_mapping(documentation_properties["standard_docs"])
+    )
+    assert "javascript" in standard_docs_properties
+    assert "typescript" in standard_docs_properties
+    assert "rust" in standard_docs_properties
+
+    typescript_properties = properties_of(object_mapping(properties["typescript"]))
+    assert "config" in typescript_properties
+    migration_properties = properties_of(object_mapping(typescript_properties["migration"]))
+    assert "allow_js" in migration_properties
+    assert "tracking_ref" in migration_properties
+    assert "remove_when" in migration_properties
+    exception_properties = properties_of(object_mapping(typescript_properties["exceptions"]))
+    assert "package_extends" in exception_properties
+    assert "skip_lib_check" in exception_properties
+
+    rust_properties = properties_of(object_mapping(properties["rust"]))
+    assert "source_root" in rust_properties
+    rust_firmware_properties = properties_of(object_mapping(rust_properties["firmware"]))
+    assert "target" in rust_firmware_properties
+    assert "memory_layout" in rust_firmware_properties
+    assert "runner" in rust_firmware_properties
+    rust_exception_properties = properties_of(object_mapping(rust_properties["exceptions"]))
+    assert "ambient_toolchain" in rust_exception_properties
+    assert "unsafe" in rust_exception_properties
 
     compatibility_properties = properties_of(object_mapping(properties["compatibility_pruning"]))
     for key in (

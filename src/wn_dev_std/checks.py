@@ -9,6 +9,7 @@ from typing import cast
 from xml.etree import ElementTree
 
 from wn_dev_std.audit_config import (
+    AuditMode,
     config_kind,
     effective_scopes,
     rel,
@@ -44,16 +45,26 @@ from wn_dev_std.native_complexity import check_lizard_gate, check_native_signoff
 from wn_dev_std.plan_hygiene import check_plan_hygiene_policy
 from wn_dev_std.pr_hygiene import check_pr_hygiene_policy
 from wn_dev_std.root_discovery import load_pyproject, load_standard_config, standard_config_path
+from wn_dev_std.rust_policy import check_rust_policy
 from wn_dev_std.secret_hygiene import check_root_env_policy
 from wn_dev_std.test_governance import (
     check_test_suite_governance,
     has_test_governance_config,
 )
+from wn_dev_std.typescript_policy import check_typescript_policy
 from wn_dev_std.web_policy import check_web_policy
 
 JAVASCRIPT_STANDARD_DOC_PATHS = (
     "docs/design/javascript-standard.html",
     "docs/design/standards/javascript.html",
+)
+TYPESCRIPT_STANDARD_DOC_PATHS = (
+    "docs/design/typescript-standard.html",
+    "docs/design/standards/typescript.html",
+)
+RUST_STANDARD_DOC_PATHS = (
+    "docs/design/rust-standard.html",
+    "docs/design/standards/rust.html",
 )
 
 
@@ -65,6 +76,8 @@ def run_basic_checks(root: Path) -> tuple[CheckResult, ...]:
 def run_audit_checks(
     root: Path,
     scopes: Sequence[str] | None = None,
+    *,
+    mode: AuditMode = "default",
 ) -> tuple[CheckResult, ...]:
     """Run repository audit checks for the requested scopes."""
     resolved_root = root.resolve()
@@ -72,11 +85,17 @@ def run_audit_checks(
     config = load_standard_config(resolved_root, pyproject)
     config_checks = standard_config_checks(resolved_root, config)
     if config_kind(config) == "workspace":
-        workspace_checks = _workspace_audit_checks(resolved_root, config, scopes)
+        workspace_checks = _workspace_audit_checks(resolved_root, config, scopes, mode)
         return (*config_checks, *workspace_checks)
 
     requested_scopes = effective_scopes(scopes, config)
-    checks = _run_selected_audit_checks(resolved_root, requested_scopes, pyproject, config)
+    checks = _run_selected_audit_checks(
+        resolved_root,
+        requested_scopes,
+        pyproject,
+        config,
+        mode,
+    )
     return (*config_checks, *checks)
 
 
@@ -85,6 +104,7 @@ def _run_selected_audit_checks(
     requested_scopes: Sequence[str],
     pyproject: Mapping[str, object] | None = None,
     config: Mapping[str, object] | None = None,
+    mode: AuditMode = "default",
 ) -> tuple[CheckResult, ...]:
     """Run only the repository audit checks needed for the requested scopes."""
     resolved_root = root.resolve()
@@ -102,7 +122,7 @@ def _run_selected_audit_checks(
     checks.extend(_ci_checks(resolved_root, resolved_config, requested_scopes))
     checks.extend(_test_suite_checks(resolved_root, resolved_config, requested_scopes))
     checks.extend(_plan_checks(resolved_root, resolved_config, requested_scopes))
-    checks.extend(governance_doc_checks(resolved_root, requested_scopes))
+    checks.extend(governance_doc_checks(resolved_root, requested_scopes, mode))
     return tuple(checks)
 
 
@@ -229,7 +249,15 @@ def _common_checks(
 
 
 def _needs_python_package_checks(profile: ProfileName) -> bool:
-    native_or_non_python = {"cpp-library", "csharp-app", "javascript-web-app", "zephyr-firmware"}
+    native_or_non_python = {
+        "cpp-library",
+        "csharp-app",
+        "javascript-web-app",
+        "typescript-web-app",
+        "rust-app",
+        "rust-firmware",
+        "zephyr-firmware",
+    }
     return profile not in native_or_non_python
 
 
@@ -244,6 +272,10 @@ def _profile_specific_checks(root: Path, profile: ProfileName) -> list[CheckResu
         return _csharp_checks(root)
     if profile in {"javascript-web-app", "python-js-app"}:
         return _web_checks(root)
+    if profile in {"typescript-web-app", "python-ts-app"}:
+        return _typescript_checks(root)
+    if profile in {"rust-app", "rust-firmware"}:
+        return _rust_checks(root, profile)
     return []
 
 
@@ -291,10 +323,21 @@ def _web_checks(root: Path) -> list[CheckResult]:
     return check_web_policy(root)
 
 
+def _typescript_checks(root: Path) -> list[CheckResult]:
+    config = load_standard_config(root)
+    return check_typescript_policy(root, config)
+
+
+def _rust_checks(root: Path, profile: ProfileName) -> list[CheckResult]:
+    config = load_standard_config(root)
+    return check_rust_policy(root, config, profile)
+
+
 def _workspace_audit_checks(
     root: Path,
     config: Mapping[str, object] | None,
     scopes: Sequence[str] | None,
+    mode: AuditMode,
 ) -> tuple[CheckResult, ...]:
     marker_path = standard_config_path(root)
     members = workspace_members(config)
@@ -333,7 +376,7 @@ def _workspace_audit_checks(
             continue
         seen_member_paths[member_path] = member_key
 
-        member_result = _workspace_member_checks(member_path, member_key, scopes)
+        member_result = _workspace_member_checks(member_path, member_key, scopes, mode)
         checks.extend(member_result)
 
     return tuple(checks)
@@ -343,6 +386,7 @@ def _workspace_member_checks(
     member_path: Path,
     member_key: str,
     scopes: Sequence[str] | None,
+    mode: AuditMode,
 ) -> tuple[CheckResult, ...]:
     member_marker = standard_config_path(member_path)
     if member_marker is None:
@@ -362,7 +406,7 @@ def _workspace_member_checks(
             ),
         )
 
-    member_checks = run_audit_checks(member_path, scopes)
+    member_checks = run_audit_checks(member_path, scopes, mode=mode)
     return with_member(member_checks, member_key)
 
 
@@ -386,7 +430,7 @@ def format_results(results: tuple[CheckResult, ...], output_format: str) -> str:
 
 
 def _scoped_result(result: CheckResult, scope: str) -> CheckResult:
-    return CheckResult(result.name, result.passed, result.detail, scope)
+    return CheckResult(result.name, result.passed, result.detail, scope, warning=result.warning)
 
 
 def _scoped_results(results: Sequence[CheckResult], scope: str) -> list[CheckResult]:
@@ -410,6 +454,21 @@ def _check_required_documentation_paths(
     config: Mapping[str, object] | None,
 ) -> CheckResult:
     required_paths = required_doc_paths(profile)
+    if profile in {"typescript-web-app", "python-ts-app"}:
+        return _check_documentation_paths_with_standard_doc(
+            root,
+            required_paths,
+            TYPESCRIPT_STANDARD_DOC_PATHS,
+            _typescript_standard_doc_paths(config),
+        )
+    if profile in {"rust-app", "rust-firmware"}:
+        return _check_documentation_paths_with_standard_doc(
+            root,
+            required_paths,
+            RUST_STANDARD_DOC_PATHS,
+            _rust_standard_doc_paths(config),
+        )
+
     if profile not in {"javascript-web-app", "python-js-app"}:
         return _check_required_paths(root, "documentation", required_paths)
 
@@ -437,6 +496,42 @@ def _javascript_standard_doc_paths(config: Mapping[str, object] | None) -> tuple
     if configured_path:
         return (configured_path,)
     return JAVASCRIPT_STANDARD_DOC_PATHS
+
+
+def _check_documentation_paths_with_standard_doc(
+    root: Path,
+    required_paths: tuple[str, ...],
+    default_standard_paths: tuple[str, ...],
+    standard_doc_paths: tuple[str, ...],
+) -> CheckResult:
+    base_required = tuple(path for path in required_paths if path != default_standard_paths[0])
+    missing = [
+        relative_path for relative_path in base_required if not (root / relative_path).exists()
+    ]
+    if missing:
+        return CheckResult("documentation", False, "missing " + ", ".join(missing))
+
+    if any((root / path).exists() for path in standard_doc_paths):
+        return CheckResult("documentation", True, "all required paths are present")
+    return CheckResult(
+        "documentation",
+        False,
+        "missing " + " or ".join(standard_doc_paths),
+    )
+
+
+def _typescript_standard_doc_paths(config: Mapping[str, object] | None) -> tuple[str, ...]:
+    configured_path = _configured_standard_doc_path(config, "typescript")
+    if configured_path:
+        return (configured_path,)
+    return TYPESCRIPT_STANDARD_DOC_PATHS
+
+
+def _rust_standard_doc_paths(config: Mapping[str, object] | None) -> tuple[str, ...]:
+    configured_path = _configured_standard_doc_path(config, "rust")
+    if configured_path:
+        return (configured_path,)
+    return RUST_STANDARD_DOC_PATHS
 
 
 def _configured_standard_doc_path(

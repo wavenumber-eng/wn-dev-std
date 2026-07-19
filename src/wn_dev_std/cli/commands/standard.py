@@ -25,6 +25,10 @@ def register(subparsers: SubparserRegistry) -> None:
             "csharp-app",
             "javascript-web-app",
             "python-js-app",
+            "typescript-web-app",
+            "python-ts-app",
+            "rust-app",
+            "rust-firmware",
             "zephyr-firmware",
         ),
         default="python-package",
@@ -55,6 +59,10 @@ def _profile(args: argparse.Namespace) -> ProfileName:
         "csharp-app",
         "javascript-web-app",
         "python-js-app",
+        "typescript-web-app",
+        "python-ts-app",
+        "rust-app",
+        "rust-firmware",
         "zephyr-firmware",
     ):
         return value

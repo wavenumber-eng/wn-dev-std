@@ -15,6 +15,10 @@ ProfileName = Literal[
     "csharp-app",
     "javascript-web-app",
     "python-js-app",
+    "typescript-web-app",
+    "python-ts-app",
+    "rust-app",
+    "rust-firmware",
     "zephyr-firmware",
 ]
 SUPPORTED_PROFILES = (
@@ -24,6 +28,10 @@ SUPPORTED_PROFILES = (
     "csharp-app",
     "javascript-web-app",
     "python-js-app",
+    "typescript-web-app",
+    "python-ts-app",
+    "rust-app",
+    "rust-firmware",
     "zephyr-firmware",
 )
 
@@ -63,6 +71,7 @@ CPP_REQUIRED_PATHS = (
     "CMakePresets.json",
     "signoff.toml",
 )
+CPP_REQUIRED_ROOT_FILES = tuple(path for path in REQUIRED_ROOT_FILES if path != "pyproject.toml")
 
 ZEPHYR_REQUIRED_PATHS = (
     ".clang-format",
@@ -140,6 +149,100 @@ PYTHON_JS_REQUIRED_DOC_PATHS = (
     "docs/releases",
 )
 
+TYPESCRIPT_WEB_REQUIRED_ROOT_FILES = (
+    ".gitattributes",
+    ".gitignore",
+    "AGENTS.md",
+    "README.md",
+    "package.json",
+    "src",
+    "tests",
+    "tests/rack.toml",
+    "dev-std.toml",
+)
+
+PYTHON_TS_REQUIRED_ROOT_FILES = (
+    ".gitattributes",
+    ".gitignore",
+    "AGENTS.md",
+    "README.md",
+    "package.json",
+    "pyproject.toml",
+    "src",
+    "tests",
+    "tests/rack.toml",
+    "dev-std.toml",
+)
+
+TYPESCRIPT_REQUIRED_DOC_PATHS = (
+    "docs/setup.html",
+    "docs/architecture.html",
+    "docs/design",
+    "docs/design/typescript-standard.html",
+    "docs/contracts",
+    "docs/releases",
+)
+
+RUST_APP_REQUIRED_ROOT_FILES = (
+    ".gitattributes",
+    ".gitignore",
+    "AGENTS.md",
+    "README.md",
+    "Cargo.toml",
+    "Cargo.lock",
+    "rust-toolchain.toml",
+    "src",
+    "tests",
+    "tests/rack.toml",
+    "dev-std.toml",
+)
+
+RUST_FIRMWARE_REQUIRED_ROOT_FILES = (
+    ".gitattributes",
+    ".gitignore",
+    "AGENTS.md",
+    "README.md",
+    ".cargo/config.toml",
+    "Cargo.toml",
+    "Cargo.lock",
+    "rust-toolchain.toml",
+    "src",
+    "tests",
+    "tests/rack.toml",
+    "dev-std.toml",
+)
+
+RUST_REQUIRED_DOC_PATHS = (
+    "docs/setup.html",
+    "docs/architecture.html",
+    "docs/design",
+    "docs/design/rust-standard.html",
+    "docs/contracts",
+    "docs/releases",
+)
+
+ZEPHYR_REQUIRED_ROOT_FILES = (
+    ".clang-format",
+    ".clang-tidy",
+    ".gitattributes",
+    ".gitignore",
+    "AGENTS.md",
+    "README.md",
+    "signoff.toml",
+    "dev-std.toml",
+)
+PROFILE_REQUIRED_ROOT_FILES = {
+    "cpp-library": CPP_REQUIRED_ROOT_FILES,
+    "zephyr-firmware": ZEPHYR_REQUIRED_ROOT_FILES,
+    "csharp-app": CSHARP_REQUIRED_PATHS,
+    "javascript-web-app": JAVASCRIPT_WEB_REQUIRED_ROOT_FILES,
+    "python-js-app": PYTHON_JS_REQUIRED_ROOT_FILES,
+    "typescript-web-app": TYPESCRIPT_WEB_REQUIRED_ROOT_FILES,
+    "python-ts-app": PYTHON_TS_REQUIRED_ROOT_FILES,
+    "rust-app": RUST_APP_REQUIRED_ROOT_FILES,
+    "rust-firmware": RUST_FIRMWARE_REQUIRED_ROOT_FILES,
+}
+
 CLANG_FORMAT_REQUIRED_SETTINGS = {
     "BasedOnStyle": "LLVM",
     "BreakBeforeBraces": "Allman",
@@ -163,26 +266,7 @@ def project_profile(config: Mapping[str, object] | None) -> ProfileName:
 
 def required_root_files(profile: ProfileName) -> tuple[str, ...]:
     """Return root paths required for a profile."""
-    if profile == "cpp-library":
-        return tuple(path for path in REQUIRED_ROOT_FILES if path != "pyproject.toml")
-    if profile == "zephyr-firmware":
-        return (
-            ".clang-format",
-            ".clang-tidy",
-            ".gitattributes",
-            ".gitignore",
-            "AGENTS.md",
-            "README.md",
-            "signoff.toml",
-            "dev-std.toml",
-        )
-    if profile == "csharp-app":
-        return CSHARP_REQUIRED_PATHS
-    if profile == "javascript-web-app":
-        return JAVASCRIPT_WEB_REQUIRED_ROOT_FILES
-    if profile == "python-js-app":
-        return PYTHON_JS_REQUIRED_ROOT_FILES
-    return REQUIRED_ROOT_FILES
+    return PROFILE_REQUIRED_ROOT_FILES.get(profile, REQUIRED_ROOT_FILES)
 
 
 def required_doc_paths(profile: ProfileName) -> tuple[str, ...]:
@@ -191,6 +275,10 @@ def required_doc_paths(profile: ProfileName) -> tuple[str, ...]:
         return CSHARP_REQUIRED_DOC_PATHS
     if profile in {"javascript-web-app", "python-js-app"}:
         return PYTHON_JS_REQUIRED_DOC_PATHS
+    if profile in {"typescript-web-app", "python-ts-app"}:
+        return TYPESCRIPT_REQUIRED_DOC_PATHS
+    if profile in {"rust-app", "rust-firmware"}:
+        return RUST_REQUIRED_DOC_PATHS
     if profile == "zephyr-firmware":
         return (
             "docs/setup.html",

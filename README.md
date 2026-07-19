@@ -11,9 +11,9 @@ kept in sync by Rack signoff.
 ## Status
 
 This repository is a model/reference package and is published to PyPI as
-`wn-dev-std`. Python, C++, C#, JavaScript, mixed Python/native/WASM, and Zephyr
-profiles are present. C and Rust profiles will reuse the same base rules as
-they are added.
+`wn-dev-std`. Python, C++, C#, JavaScript, TypeScript, Rust, mixed
+Python/native/WASM, and Zephyr profiles are present. Future C profiles will
+reuse the same base rules when added.
 
 ## Start Here
 
@@ -140,6 +140,10 @@ dev-std standard --profile python-native-wasm
 dev-std standard --profile csharp-app
 dev-std standard --profile javascript-web-app
 dev-std standard --profile python-js-app
+dev-std standard --profile typescript-web-app
+dev-std standard --profile python-ts-app
+dev-std standard --profile rust-app
+dev-std standard --profile rust-firmware
 dev-std standard --profile zephyr-firmware
 ```
 
@@ -148,6 +152,7 @@ Run the repository audit checks against the current repo:
 ```bash
 dev-std audit .
 dev-std audit . --format json
+dev-std audit . --scope docs.release --mode release
 dev-std audit . --scope docs.plans
 dev-std audit . --scope docs.cli
 dev-std audit . --scope docs.test_strategy
@@ -158,7 +163,7 @@ dev-std audit . --check-upstream-version
 Configured repositories must declare the standard version they target:
 
 ```toml
-standard_version = "2026.7.16"
+standard_version = "2026.7.18"
 profile = "python-package"
 
 [tests]
@@ -171,7 +176,7 @@ default and still runs the unfiltered config-version check. Passing a targeted
 scope set is partial governance adoption, not full profile conformance:
 
 ```toml
-standard_version = "2026.7.16"
+standard_version = "2026.7.18"
 profile = "zephyr-firmware"
 enabled_scopes = ["docs.plans"]
 ```
@@ -180,7 +185,7 @@ Workspace roots aggregate explicitly registered package/application policy
 boundaries. Members are policy boundaries, not every build target:
 
 ```toml
-standard_version = "2026.7.16"
+standard_version = "2026.7.18"
 kind = "workspace"
 
 [workspace]
@@ -194,7 +199,7 @@ should use the same shape with a first `governance` stage and later jobs using
 `standard_version`:
 
 ```bash
-uvx --from wn-dev-std==2026.7.16 dev-std audit .
+uvx --from wn-dev-std==2026.7.18 dev-std audit .
 ```
 
 The `check` command is a compatibility alias for `audit`:
@@ -317,7 +322,10 @@ Mixed-mode packages add:
 ## JavaScript Web Baseline
 
 The first browser profile is `javascript-web-app`, with `python-js-app` for
-FastAPI-style packages that serve the browser runtime.
+FastAPI-style packages that serve the browser runtime. These are compatibility
+profiles for no-build browser apps and existing checked-JavaScript ports. New
+browser and JavaScript-facing library projects should start from the TypeScript
+profiles below.
 
 Web apps use:
 
@@ -340,6 +348,104 @@ Web apps use:
 - JS and CSS hygiene ratchets for file size, complexity, nesting, generated
   asset placement, and whitespace
 - Rack signoff for browser smoke tests and Python-to-browser API contracts
+
+## TypeScript Greenfield Baseline
+
+New browser, frontend, and JavaScript-facing library projects use
+`typescript-web-app` by default. Python packages or services that serve a
+TypeScript browser runtime use `python-ts-app`.
+
+TypeScript projects add:
+
+- owned `.ts` or `.tsx` implementation source under `src/`
+- `package.json` plus a committed package-manager lockfile
+- `tsconfig.json` or a configured typecheck config
+- strict compiler guardrails including `strict`,
+  `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`,
+  `noPropertyAccessFromIndexSignature`, `noImplicitOverride`,
+  `noImplicitReturns`, `isolatedModules`, `verbatimModuleSyntax`, and `noEmit`
+  for the typecheck lane
+- explicit public function, callback, event, async-result, config, service
+  payload, and package-export types
+- external JSON, browser, storage, and message payloads treated as `unknown`
+  until narrowed by a guard, parser, schema, or equivalent validator
+- discriminated unions, literal unions, `readonly`, `as const`, and
+  `satisfies` for state, action, event, protocol, and configuration shapes
+- package scripts for `build`, `typecheck`, `lint`, `test`, and `signoff`,
+  with package-manager install/update verbs handled outside npm lifecycle
+  scripts and signoff invoking typecheck, lint, and tests
+- local-file `tsconfig` inheritance for auditable guardrails; package-based
+  `extends` requires `[typescript.exceptions].package_extends`
+- `allowJs: true` and owned JavaScript only with `[typescript.migration]`
+- `skipLibCheck: true` only with `[typescript.exceptions].skip_lib_check`
+
+Example migration metadata:
+
+```toml
+[typescript.migration]
+allow_js = true
+tracking_ref = "docs/plans/typescript-port/plan.md"
+remove_when = "All owned src JavaScript has been converted to TypeScript."
+
+[typescript.exceptions]
+skip_lib_check = "docs/design/third-party-types.html"
+package_extends = "wavenumber-eng/example#42"
+```
+
+## Rust Baseline
+
+New host-side Rust applications, services, CLIs, and ordinary Rust libraries use
+`rust-app`. Embedded Rust firmware uses `rust-firmware` so cross-compilation,
+`no_std` intent, linker/memory layout, flashing, panic, allocator, and hardware
+signoff do not get hidden inside a host profile.
+
+Rust projects add:
+
+- `Cargo.toml` and `Cargo.lock` in the audited root
+- `rust-toolchain.toml` with stable channel, `rustfmt`, and `clippy`, unless
+  `[rust.exceptions].ambient_toolchain` documents an ambient stable policy
+- `edition` and `rust-version` metadata in package or workspace metadata
+- owned `.rs` source under `src/` or a configured polyglot root such as
+  `src/rs` or `src/rust`
+- `lints.rust.unsafe_code = "forbid"` for `rust-app`; embedded projects may
+  use reviewed unsafe boundaries with `[rust.exceptions].unsafe`
+- Rack or equivalent signoff commands for `cargo fmt --all -- --check`,
+  `cargo check --locked`, `cargo clippy --locked -- -D warnings`,
+  `cargo test --locked`, `cargo test --doc --locked`, and
+  `RUSTDOCFLAGS="-D warnings" cargo doc --locked`
+- workspace `resolver`, shared package metadata, workspace dependencies, and
+  workspace lints for multi-crate projects; member packages that inherit
+  `edition`, `rust-version`, or workspace lints must opt in with
+  `edition.workspace = true`, `rust-version.workspace = true`, and
+  `[lints] workspace = true`; local member lint overrides must still use the
+  profile's allowed unsafe lint level
+- `workspace.exclude` for intentionally excluded member-glob matches; member
+  globs are treated as package-directory globs, not arbitrary file globs
+
+Polyglot repositories can keep Rust beside other language implementations:
+
+```toml
+[rust]
+source_root = "src/rs"
+```
+
+Embedded Rust projects add:
+
+- `[rust.firmware] target = "..."`
+- `.cargo/config.toml`
+- memory/linker artifacts such as `memory.x` or a documented `link.x` provider
+- runner/flashing config such as `Embed.toml`, `probe-rs`, `cargo-embed`, or a
+  project wrapper
+- local docs for `no_std`, panic strategy, allocator policy, hardware setup,
+  flashing/debugging, and host-test split
+- a host-buildable crate, feature split, or wrapper surface for host
+  `cargo test`, doctest, and rustdoc lanes when the board binary is pure
+  `no_std`
+
+Tokio is the recommended default for host async/network/service Rust when a
+project needs async I/O, timers, scheduling, or a service runtime. Embassy is
+the recommended default for embedded async firmware when target and HAL support
+are mature enough. Both are scenario defaults, not mandatory dependencies.
 
 ## Compatibility Pruning
 
@@ -393,14 +499,16 @@ HTML design docs under `docs/design` must declare `data-doc-status` with one of
 `draft`, `proposal`, `accepted`, or `superseded`. The check fails unmarked or
 invalid design docs and reports draft/proposal pages for release review.
 
-JavaScript profiles accept either `docs/design/javascript-standard.html` or the
-foldered path `docs/design/standards/javascript.html` for the canonical
-JavaScript standard design doc. Projects with a different deliberate layout may
+JavaScript, TypeScript, and Rust profiles accept either the root standard
+design doc or the foldered `docs/design/standards/<language>.html` path for the
+canonical standard design doc. Projects with a different deliberate layout may
 configure it:
 
 ```toml
 [documentation.standard_docs]
 javascript = "docs/design/standards/javascript.html"
+typescript = "docs/design/standards/typescript.html"
+rust = "docs/design/standards/rust.html"
 ```
 
 ## Plan And Log Hygiene
@@ -496,7 +604,9 @@ helpers are intentionally left for a later tool pass.
 - [C++ Standard](docs/design/cpp-standard.html)
 - [Mixed Mode Standard](docs/design/mixed-mode.html)
 - [JavaScript Web App Standard](docs/design/javascript-standard.html)
-- [Release Notes](docs/releases/2026-07-16.md)
+- [TypeScript Standard](docs/design/typescript-standard.html)
+- [Rust Standard](docs/design/rust-standard.html)
+- [Release Notes](docs/releases/2026-07-18.md)
 
 ## License
 

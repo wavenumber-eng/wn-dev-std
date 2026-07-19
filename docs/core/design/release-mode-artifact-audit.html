@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Release-Mode Artifact Audit</title>
+</head>
+<body data-domain="core" data-design="release-mode-artifact-audit" data-doc-status="accepted">
+  <h1>Release-Mode Artifact Audit</h1>
+  <p>
+    Status: accepted. This document defines the implementation for
+    issue <a href="https://github.com/wavenumber-eng/wn-dev-std/issues/13">wavenumber-eng/wn-dev-std#13</a>.
+    The durable governance records are <code>core-adr-0006</code> and
+    <code>core-req-0006</code>.
+  </p>
+
+  <h2>Problem</h2>
+  <p>
+    The existing artifact, vendor, and release governance checks validate
+    committed catalogs and tracked source-controlled artifact candidates. That
+    default behavior is correct for normal development because local build
+    products are transient and often ignored by Git.
+  </p>
+  <p>
+    Release signoff needs a stricter path. When a release is being prepared,
+    maintainers need an audit that inspects the actual payload files selected
+    for promotion and proves they match the authored release-channel contract.
+  </p>
+
+  <h2>CLI Contract</h2>
+  <p>
+    The implemented CLI shape is an audit mode on the existing
+    <code>audit</code> command:
+  </p>
+  <pre><code>dev-std audit . --scope docs.release --mode release</code></pre>
+  <p>
+    The default audit mode remains the current source-governance behavior.
+    Release mode is opt-in and normally runs from an explicit release
+    signoff lane after artifacts have been built.
+  </p>
+  <p>
+    In this implementation, <code>--mode release</code> only changes the
+    behavior of the selected <code>docs.release</code> scope. Other scopes run
+    with their normal behavior. A call with no <code>--scope</code>, or with
+    <code>--scope all</code>, selects <code>docs.release</code> as part of the
+    full audit and therefore runs release payload inspection. A call that
+    selects only non-release scopes accepts the mode but performs no release
+    payload inspection.
+  </p>
+
+  <h2>Catalog Contract</h2>
+  <p>
+    Release artifact declarations live under the release channel that promotes
+    them. The contract uses nested
+    <code>[[channels.promoted_artifacts]]</code> tables in
+    <code>docs/governance/release.toml</code>.
+  </p>
+  <pre><code>[[channels]]
+id = "pypi"
+kind = "pypi"
+status = "active"
+owner = "release"
+process_doc = "docs/setup.html"
+build_doc = "docs/build.html"
+
+[[channels.promoted_artifacts]]
+id = "wheel"
+kind = "package_distribution"
+paths = ["dist/wn_dev_std-*.whl"]
+required = true
+build_profile = "release"
+license_refs = ["LICENSE"]</code></pre>
+  <p>
+    Entries may use an exact <code>path</code> or bounded <code>paths</code>
+    pattern set. Required entries must resolve to at least one produced file.
+    Optional entries may be absent but must pass all metadata checks when
+    present.
+  </p>
+  <p>
+    Date-versioned packages use bounded globs such as
+    <code>dist/wn_dev_std-*.whl</code> rather than committed literal wheel
+    filenames. Literal <code>version</code>, <code>source_commit</code>, and
+    <code>sha256</code> fields are reserved for pinned or already-promoted
+    payloads where that metadata is known before the catalog change is
+    committed. When declared, <code>version</code> is compared to the audited
+    package version from <code>pyproject.toml</code>,
+    <code>source_commit</code> is compared as a prefix of
+    <code>git rev-parse HEAD</code>, and <code>sha256</code> is computed from
+    the matched file. A single <code>sha256</code> requires an exact path or a
+    pattern that resolves to exactly one file.
+  </p>
+  <p>
+    <code>destination</code> is optional and channel-relative. It does not
+    duplicate the parent channel kind. It may identify a GitHub release asset
+    name, an object-store key prefix, an app/plugin bundle slot, or another
+    sub-destination inside the configured channel.
+  </p>
+
+  <h2>Validation</h2>
+  <p>
+    Default mode shape-validates any
+    <code>[[channels.promoted_artifacts]]</code> tables without touching local
+    payload files. That validation includes unique artifact ids per channel,
+    known artifact kinds, boolean <code>required</code> values when present,
+    bounded path or pattern declarations, valid license refs, and path
+    containment inside the audited package root.
+  </p>
+  <p>
+    Release mode validates path containment before reading local files. It
+    fails required missing artifacts, uncataloged files under
+    configured promoted roots, checksum mismatches when <code>sha256</code> is
+    declared, version mismatches when <code>version</code> is declared, and
+    source-commit mismatches when <code>source_commit</code> is declared.
+    Missing-required and metadata checks are channel-scoped. Uncataloged
+    payload detection is catalog-wide so channels sharing a staging root such
+    as <code>dist/</code> do not flag each other's declared files.
+  </p>
+  <p>
+    Native, WASM, app/plugin, and object-store payloads carry
+    target, build-profile, ABI/runtime, destination, and license notes so
+    reviewers can distinguish intentional optional targets from missing release
+    payloads.
+  </p>
+  <p>
+    Promoted roots are derived from each declared exact path or glob by taking
+    the static directory prefix before the first wildcard. Exact file entries
+    use their parent directory. The audit enumerates files below those roots
+    and matches repository-relative POSIX paths with <code>fnmatch</code>
+    semantics, matching the existing artifact catalog coverage behavior where
+    <code>*</code> can cross directory separators. Uncataloged-payload
+    detection is therefore based on the same catalog-wide pattern semantics
+    used to decide whether a declared artifact is covered.
+  </p>
+
+  <h2>Workspace Behavior</h2>
+  <p>
+    Workspace roots remain aggregators. A release-mode workspace audit runs the
+    selected release-mode checks inside each registered member package.
+    Each member resolves <code>docs/governance/release.toml</code> and
+    promoted artifact paths relative to its own package root. Workspace-level
+    catalogs are not part of the first implementation.
+  </p>
+
+  <h2>Non-Goals</h2>
+  <p>
+    The release-mode audit does not upload artifacts, publish releases, sign
+    files, generate checksums, or replace tools such as Twine, GitHub Release
+    upload actions, object-storage sync tools, or package-manager clients. It
+    checks that the produced local payload set is consistent with the authored
+    release catalog.
+  </p>
+
+  <h2>Implementation Shape</h2>
+  <p>
+    The implementation keeps the mode plumbing small: parse the mode in
+    <code>dev-std audit</code>, thread it through audit execution, and add
+    release-mode artifact inspection to <code>docs.release</code>. Shared
+    artifact kinds live in <code>src/wn_dev_std/artifact_policy.py</code>, and
+    promoted payload declaration and file inspection live in
+    <code>src/wn_dev_std/release_artifacts.py</code>. Tests prove
+    the default mode still ignores local build output while default release
+    governance catches invalid promoted-artifact table shape, and release mode
+    fails missing required artifacts, uncataloged promoted files, stale
+    checksums, version mismatches, source-commit mismatches, path escapes, and
+    shared-root channel regressions.
+  </p>
+  <p>
+    The implementation slice must update the audited public documentation
+    surfaces together with code: <code>docs/design/audit-standard.html</code>,
+    <code>docs/design/artifact-vendor-governance.html</code>,
+    <code>docs/design/cli.html</code>, CLI help tests, release catalog tests,
+    and version/release metadata when the change is prepared for release.
+  </p>
+</body>
+</html>

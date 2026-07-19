@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>TypeScript Standard</title>
+</head>
+<body data-design="typescript-standard" data-doc-status="accepted">
+  <h1>TypeScript Standard</h1>
+  <p>
+    The TypeScript standard is the greenfield default for Wavenumber browser,
+    frontend, and JavaScript-facing library projects. It uses TypeScript as a
+    defect-prevention layer at module, function, event, runtime-data, and
+    package boundaries.
+  </p>
+
+  <h2>Profiles</h2>
+  <dl>
+    <dt><code>typescript-web-app</code></dt>
+    <dd>
+      Browser application or browser-facing library built from owned
+      TypeScript, CSS, tests, docs, contracts, package scripts, and strict
+      typecheck signoff.
+    </dd>
+    <dt><code>python-ts-app</code></dt>
+    <dd>
+      Python package or service that serves a TypeScript browser runtime. It
+      inherits the TypeScript web rules and adds uv, Hatchling, Ruff, Pyright,
+      and Python-to-browser API contract expectations.
+    </dd>
+  </dl>
+
+  <section data-interface="wn_dev_std.default_typescript_web_standard">
+    <h2>default_typescript_web_standard</h2>
+    <p>
+      Returns the greenfield browser TypeScript and CSS profile.
+    </p>
+  </section>
+
+  <section data-interface="wn_dev_std.default_python_ts_standard">
+    <h2>default_python_ts_standard</h2>
+    <p>
+      Returns the Python-served TypeScript browser application profile.
+    </p>
+  </section>
+
+  <section data-interface="wn_dev_std.render_typescript_web_standard">
+    <h2>render_typescript_web_standard</h2>
+    <p>
+      Renders the greenfield TypeScript browser profile for human or machine
+      use.
+    </p>
+  </section>
+
+  <section data-interface="wn_dev_std.render_python_ts_standard">
+    <h2>render_python_ts_standard</h2>
+    <p>
+      Renders the Python-served TypeScript app profile for human or machine
+      use.
+    </p>
+  </section>
+
+  <h2>Greenfield Rule</h2>
+  <p>
+    New owned browser and JavaScript-facing source starts as
+    <code>.ts</code> or <code>.tsx</code>. Checked JavaScript remains a
+    compatibility and migration path under the JavaScript profiles, but it is
+    not the target state for new reusable browser runtimes, app code, or
+    libraries.
+  </p>
+  <p>
+    Local variables may rely on inference when the initializer is obvious.
+    Public and exported functions, callbacks, event handlers, async results,
+    config objects, service payloads, package exports, and browser message or
+    storage contracts need TypeScript-visible parameter and return shapes.
+  </p>
+  <p>
+    External data starts as <code>unknown</code> and must be narrowed by a
+    guard, parser, schema, or equivalent boundary validator before it reaches
+    domain logic. State, action, mode, event, and protocol shapes should use
+    discriminated unions, literal unions, <code>readonly</code>,
+    <code>as const</code>, and <code>satisfies</code> where those constructs
+    preserve intent.
+  </p>
+
+  <h2>Required Files</h2>
+  <ul>
+    <li><code>package.json</code></li>
+    <li>A committed lockfile such as <code>package-lock.json</code>, <code>pnpm-lock.yaml</code>, <code>yarn.lock</code>, <code>bun.lock</code>, or <code>bun.lockb</code></li>
+    <li><code>tsconfig.json</code> or a configured TypeScript typecheck config</li>
+    <li><code>src/</code> with owned TypeScript source</li>
+    <li><code>tests/</code> and <code>tests/rack.toml</code></li>
+    <li><code>dev-std.toml</code> or another supported dev-std config marker</li>
+    <li><code>docs/design/typescript-standard.html</code>, unless configured through <code>[documentation.standard_docs]</code></li>
+  </ul>
+
+  <h2>Required Commands</h2>
+  <p>
+    <code>package.json</code> must declare <code>build</code>,
+    <code>typecheck</code>, <code>lint</code>, <code>test</code>, and
+    <code>signoff</code> scripts. Package-manager installation and update
+    verbs come from the selected package manager, not npm lifecycle scripts.
+    The signoff script should invoke typecheck, lint, and test so a single
+    command proves the TypeScript guardrails are active. Rack signoff may wrap
+    the same package scripts when a project wants one cross-language signoff
+    entry point.
+  </p>
+
+  <h2>Compiler Guardrails</h2>
+  <p>
+    The typecheck lane must use <code>noEmit: true</code>. Build output may be
+    emitted by a separate compiler or bundler configuration, but the signoff
+    typecheck command must be able to fail without writing generated files.
+  </p>
+  <p>
+    The effective typecheck config must enable these guardrails:
+  </p>
+  <pre><code>{
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "useUnknownInCatchVariables": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true
+  }
+}</code></pre>
+  <p>
+    Projects must not disable strict sub-options such as
+    <code>noImplicitAny</code>, <code>strictNullChecks</code>,
+    <code>strictFunctionTypes</code>, <code>strictBindCallApply</code>,
+    <code>strictPropertyInitialization</code>, <code>noImplicitThis</code>, or
+    <code>alwaysStrict</code>.
+  </p>
+  <p>
+    <code>allowJs: true</code> is migration-only. <code>skipLibCheck: true</code>
+    is exception-only. Both settings need explicit TypeScript metadata in the
+    dev-std config before the audit will pass.
+  </p>
+
+  <h2>Runtime Posture</h2>
+  <p>
+    <code>target</code>, <code>module</code>, and
+    <code>moduleResolution</code> are profile posture, not universal guardrails.
+    Browser applications commonly use <code>target: "ES2022"</code>,
+    <code>module: "ESNext"</code>, and
+    <code>moduleResolution: "bundler"</code>. Node-targeting libraries commonly
+    need <code>module: "NodeNext"</code> and
+    <code>moduleResolution: "NodeNext"</code>. The audit enforces guardrails
+    and command shape; project build scripts own runtime-specific emit details.
+  </p>
+  <p>
+    Browser runtime and library code should use
+    <code>erasableSyntaxOnly: true</code> when the project wants source that
+    stays close to JavaScript semantics. Projects that need enums, namespaces,
+    decorator metadata, or another transform-only construct should document the
+    build dependency and review trigger.
+  </p>
+
+  <h2>TypeScript Config Inheritance</h2>
+  <p>
+    The audit accepts JSONC syntax for TypeScript config files, including
+    <code>$schema</code> URL strings, line comments, block comments, and
+    trailing commas. Comment and trailing-comma stripping is string-aware so
+    URL values and path strings are preserved before JSON parsing.
+  </p>
+  <p>
+    The audit resolves local-file <code>extends</code> chains in
+    <code>tsconfig.json</code> or the configured typecheck config and merges
+    inherited <code>compilerOptions</code> before checking guardrails. Resolved
+    config files must stay inside the project root and circular inheritance is
+    invalid.
+  </p>
+  <p>
+    Package-based <code>extends</code> values are unauditable without
+    installing dependencies. They may pass only when the project declares an
+    explicit exception:
+  </p>
+  <pre><code>[typescript.exceptions]
+package_extends = "docs/design/typescript-config-exception.html"</code></pre>
+  <p>
+    The referenced document or plan must explain the inherited package config,
+    why local-file inheritance is not used, and when the exception must be
+    reviewed.
+  </p>
+
+  <h2>Migration Lane</h2>
+  <p>
+    Existing checked-JavaScript projects may port gradually. The greenfield
+    TypeScript profiles allow temporary owned JavaScript and
+    <code>allowJs: true</code> only when migration metadata is present:
+  </p>
+  <pre><code>[typescript.migration]
+allow_js = true
+tracking_ref = "docs/plans/typescript-port/plan.md"
+remove_when = "All owned src JavaScript has been converted to TypeScript."</code></pre>
+  <p>
+    The tracking ref may be a local plan, local design note, or external issue.
+    The removal condition must be concrete enough for signoff reviewers to know
+    when the exception should disappear. Port reusable module boundaries first,
+    then shared state and event contracts, then leaf DOM wiring.
+  </p>
+
+  <h2>Exception Metadata</h2>
+  <p>
+    TypeScript exceptions use <code>[typescript.exceptions]</code>. The initial
+    supported keys are <code>package_extends</code> for package-based
+    <code>tsconfig</code> inheritance and <code>skip_lib_check</code> for
+    <code>skipLibCheck: true</code>. Values are local documentation paths,
+    plan refs, or external issue refs that explain scope, rationale, and review
+    trigger.
+  </p>
+  <pre><code>[typescript.exceptions]
+skip_lib_check = "docs/design/third-party-types.html"
+package_extends = "wavenumber-eng/example#42"</code></pre>
+
+  <h2>Source Boundaries</h2>
+  <ul>
+    <li>Owned TypeScript lives under <code>src/</code>.</li>
+    <li>Declaration files are contracts, not substitutes for implementation source.</li>
+    <li>Generated JavaScript lives under <code>generated/</code>, <code>_build/</code>, or another documented generated root.</li>
+    <li><code>src/lib/</code>, <code>vendor/</code>, <code>_build/</code>, and <code>node_modules/</code> are reserved for external, vendored, or generated material; do not place owned implementation source there.</li>
+    <li>Vendored and minified assets live under <code>vendor/</code>, <code>src/lib/</code>, <code>_build/</code>, or <code>node_modules/</code>.</li>
+    <li>Fixture JavaScript lives under fixture-specific paths such as <code>fixtures/</code> or <code>__fixtures__/</code>.</li>
+  </ul>
+
+  <h2>Review Follow-Ups</h2>
+  <p>
+    External review accepted the first TypeScript slice after the JSONC parser
+    and npm lifecycle-script blockers were fixed. Future revisions should
+    decide whether <code>src/lib/</code> remains reserved for vendored or
+    generated material, whether <code>.mts</code> and <code>.cts</code> count
+    as owned TypeScript implementation suffixes, and whether JSON parse-failure
+    details should always be repo-relative.
+  </p>
+
+  <h2>Signoff</h2>
+  <p>
+    TypeScript signoff includes dev-std audit, TypeScript compiler checking,
+    TypeScript-aware linting for explicit public boundary types, deterministic
+    tests for non-DOM logic, browser smoke tests where feasible, CSS token
+    hygiene for app projects, and Python API contract tests for
+    Python-served browser apps.
+  </p>
+  <p>
+    The TypeScript docs follow the current TypeScript config model: config
+    files inherit through <code>extends</code>, Node and bundler resolution are
+    distinct runtime postures, and stricter indexed-access and optional-property
+    checks are part of the modern TypeScript initialization guidance.
+  </p>
+</body>
+</html>

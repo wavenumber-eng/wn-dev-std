@@ -12,7 +12,7 @@ from wn_dev_std.artifact_governance import (
     check_release_governance_policy,
     check_vendor_governance_policy,
 )
-from wn_dev_std.audit_config import scope_is_selected
+from wn_dev_std.audit_config import AuditMode, scope_is_selected
 from wn_dev_std.build_doc_governance import check_build_doc_policy
 from wn_dev_std.checks_types import CheckResult
 from wn_dev_std.cli_governance import check_cli_governance_policy
@@ -64,12 +64,19 @@ GOVERNANCE_CHECKS = (
 )
 
 
-def governance_doc_checks(root: Path, scopes: Sequence[str] = ("all",)) -> list[CheckResult]:
+def governance_doc_checks(
+    root: Path,
+    scopes: Sequence[str] = ("all",),
+    mode: AuditMode = "default",
+) -> list[CheckResult]:
     """Run durable governance-document checks."""
     results: list[CheckResult] = []
     for check in GOVERNANCE_CHECKS:
         if not scope_is_selected(check.scope, scopes):
             continue
-        report = check.runner(root)
+        if check.scope == "docs.release":
+            report = check_release_governance_policy(root, mode)
+        else:
+            report = check.runner(root)
         results.append(CheckResult(check.name, report.passed, report.detail, check.scope))
     return results

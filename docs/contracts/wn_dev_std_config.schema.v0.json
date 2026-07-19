@@ -8,7 +8,7 @@
   "properties": {
     "standard_version": {
       "type": "string",
-      "description": "Installed standard version this configuration targets, for example 2026.7.16."
+      "description": "Installed standard version this configuration targets, for example 2026.7.18."
     },
     "kind": {
       "type": "string",
@@ -24,9 +24,13 @@
         "csharp-app",
         "javascript-web-app",
         "python-js-app",
+        "typescript-web-app",
+        "python-ts-app",
+        "rust-app",
+        "rust-firmware",
         "zephyr-firmware"
       ],
-      "description": "Primary project profile such as python-package, python-native-wasm, cpp-library, csharp-app, javascript-web-app, python-js-app, or zephyr-firmware."
+      "description": "Primary project profile such as python-package, python-native-wasm, cpp-library, csharp-app, javascript-web-app, python-js-app, typescript-web-app, python-ts-app, rust-app, rust-firmware, or zephyr-firmware."
     },
     "enabled_scopes": {
       "type": "array",
@@ -115,6 +119,121 @@
         }
       }
     },
+    "typescript": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "TypeScript profile audit configuration, migration metadata, and documented exceptions.",
+      "properties": {
+        "config": {
+          "type": "string",
+          "description": "Relative path to the audited TypeScript typecheck config. Defaults to tsconfig.json."
+        },
+        "migration": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Temporary migration metadata for TypeScript profiles that still carry owned JavaScript.",
+          "properties": {
+            "allow_js": {
+              "type": "boolean",
+              "description": "Whether allowJs and owned JavaScript source are temporarily accepted."
+            },
+            "tracking_ref": {
+              "type": "string",
+              "description": "Local plan/design path or external issue ref that tracks the JavaScript-to-TypeScript migration."
+            },
+            "remove_when": {
+              "type": "string",
+              "description": "Concrete condition that triggers removing the migration allowance."
+            }
+          }
+        },
+        "exceptions": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Documented exceptions for TypeScript guardrails that cannot be audited locally.",
+          "properties": {
+            "package_extends": {
+              "type": "string",
+              "description": "Local document, plan ref, or external issue that reviews a package-based tsconfig extends value."
+            },
+            "skip_lib_check": {
+              "type": "string",
+              "description": "Local document, plan ref, or external issue that reviews skipLibCheck=true."
+            }
+          }
+        }
+      }
+    },
+    "rust": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Rust profile audit configuration, embedded metadata, and documented exceptions.",
+      "properties": {
+        "source_root": {
+          "type": "string",
+          "description": "Relative Rust-owned source root. Defaults to src; polyglot repositories commonly use src/rs or src/rust."
+        },
+        "firmware": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Embedded Rust firmware metadata for rust-firmware audits.",
+          "required": [
+            "target",
+            "no_std_ref",
+            "panic_ref",
+            "allocator_ref",
+            "hardware_ref",
+            "memory_layout",
+            "runner"
+          ],
+          "properties": {
+            "target": {
+              "type": "string",
+              "description": "Rust target triple or project-relative custom target JSON path."
+            },
+            "no_std_ref": {
+              "type": "string",
+              "description": "Local documentation path for no_std firmware intent."
+            },
+            "panic_ref": {
+              "type": "string",
+              "description": "Local documentation path for panic behavior."
+            },
+            "allocator_ref": {
+              "type": "string",
+              "description": "Local documentation path for allocator or no-allocation policy."
+            },
+            "hardware_ref": {
+              "type": "string",
+              "description": "Local documentation path for hardware setup, flashing, debug, and release-test policy."
+            },
+            "memory_layout": {
+              "type": "string",
+              "description": "Project-relative memory or linker artifact such as memory.x or a link.x provider."
+            },
+            "runner": {
+              "type": "string",
+              "description": "Project-relative runner/flashing config such as Embed.toml, probe-rs metadata, cargo-embed setup, or a wrapper."
+            }
+          }
+        },
+        "exceptions": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Documented exceptions for Rust guardrails that require human review.",
+          "properties": {
+            "ambient_toolchain": {
+              "type": "string",
+              "description": "Local document, plan ref, or external issue that explains why rust-toolchain.toml is omitted."
+            },
+            "unsafe": {
+              "type": "string",
+              "description": "Local document, plan ref, or external issue that reviews an unsafe-code boundary."
+            }
+          }
+        }
+      }
+    },
     "documentation": {
       "type": "object",
       "additionalProperties": false,
@@ -128,6 +247,14 @@
             "javascript": {
               "type": "string",
               "description": "Canonical JavaScript standard design doc path. Defaults accept docs/design/javascript-standard.html or docs/design/standards/javascript.html."
+            },
+            "typescript": {
+              "type": "string",
+              "description": "Canonical TypeScript standard design doc path. Defaults accept docs/design/typescript-standard.html or docs/design/standards/typescript.html."
+            },
+            "rust": {
+              "type": "string",
+              "description": "Canonical Rust standard design doc path. Defaults accept docs/design/rust-standard.html or docs/design/standards/rust.html."
             }
           }
         },

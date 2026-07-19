@@ -3,61 +3,27 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from collections.abc import Callable
 from typing import Literal
 
-ProfileName = Literal[
-    "python-package",
-    "python-native-wasm",
-    "cpp-library",
-    "csharp-app",
-    "javascript-web-app",
-    "python-js-app",
-    "zephyr-firmware",
-]
-
-STANDARD_VERSION = "2026.7.16"
-
-
-@dataclass(frozen=True, slots=True)
-class StrictRule:
-    """A strict rule with a short rationale."""
-
-    key: str
-    value: str
-    rationale: str
-
-    def to_dict(self) -> dict[str, str]:
-        """Return a JSON-serializable rule dictionary."""
-        return {
-            "key": self.key,
-            "value": self.value,
-            "rationale": self.rationale,
-        }
-
-
-@dataclass(frozen=True, slots=True)
-class PythonStandard:
-    """Current strict project standard profile."""
-
-    name: str
-    version: str
-    status: str
-    rules: tuple[StrictRule, ...]
-    required_files: tuple[str, ...]
-    required_docs: tuple[str, ...]
-
-    def to_dict(self) -> dict[str, object]:
-        """Return a JSON-serializable standard dictionary."""
-        return {
-            "name": self.name,
-            "version": self.version,
-            "status": self.status,
-            "rules": [rule.to_dict() for rule in self.rules],
-            "required_files": list(self.required_files),
-            "required_docs": list(self.required_docs),
-        }
-
+from wn_dev_std.rust_standard_profiles import (
+    default_rust_app_standard,
+    default_rust_firmware_standard,
+)
+from wn_dev_std.rust_standard_profiles import (
+    render_rust_app_standard as render_rust_app_standard,
+)
+from wn_dev_std.rust_standard_profiles import (
+    render_rust_firmware_standard as render_rust_firmware_standard,
+)
+from wn_dev_std.standard_model import STANDARD_VERSION, ProfileName, PythonStandard, StrictRule
+from wn_dev_std.typescript_standard_data import (
+    PYTHON_TS_REQUIRED_FILES,
+    PYTHON_TS_RULE_ITEMS,
+    TYPESCRIPT_WEB_REQUIRED_DOCS,
+    TYPESCRIPT_WEB_REQUIRED_FILES,
+    TYPESCRIPT_WEB_RULE_ITEMS,
+)
 
 COMPATIBILITY_PRUNING_RULE = StrictRule(
     "compatibility-pruning",
@@ -564,6 +530,23 @@ PYTHON_JS_REQUIRED_DOCS = (
 )
 
 
+def _strict_rules(rule_items: tuple[tuple[str, str, str], ...]) -> tuple[StrictRule, ...]:
+    return tuple(StrictRule(key, value, rationale) for key, value, rationale in rule_items)
+
+
+TYPESCRIPT_WEB_RULES = (
+    *_strict_rules(TYPESCRIPT_WEB_RULE_ITEMS),
+    COMPATIBILITY_PRUNING_RULE,
+    PUBLIC_PR_HYGIENE_RULE,
+)
+PYTHON_TS_RULES = (
+    *_strict_rules(PYTHON_TS_RULE_ITEMS),
+    COMPATIBILITY_PRUNING_RULE,
+    PUBLIC_PR_HYGIENE_RULE,
+)
+PYTHON_TS_REQUIRED_DOCS = TYPESCRIPT_WEB_REQUIRED_DOCS
+
+
 def default_python_standard() -> PythonStandard:
     """Return the current strict Python package standard."""
     return PythonStandard(
@@ -677,23 +660,49 @@ def default_python_js_standard() -> PythonStandard:
     )
 
 
+def default_typescript_web_standard() -> PythonStandard:
+    """Return the current greenfield browser TypeScript and CSS standard."""
+    return PythonStandard(
+        name="typescript-web-app",
+        version=STANDARD_VERSION,
+        status="initial",
+        rules=TYPESCRIPT_WEB_RULES,
+        required_files=TYPESCRIPT_WEB_REQUIRED_FILES,
+        required_docs=TYPESCRIPT_WEB_REQUIRED_DOCS,
+    )
+
+
+def default_python_ts_standard() -> PythonStandard:
+    """Return the current Python plus browser TypeScript app standard."""
+    return PythonStandard(
+        name="python-ts-app",
+        version=STANDARD_VERSION,
+        status="initial",
+        rules=PYTHON_TS_RULES,
+        required_files=PYTHON_TS_REQUIRED_FILES,
+        required_docs=PYTHON_TS_REQUIRED_DOCS,
+    )
+
+
 def default_standard(profile: ProfileName = "python-package") -> PythonStandard:
     """Return the current standard for a named profile."""
-    if profile == "python-package":
-        return default_python_standard()
-    if profile == "python-native-wasm":
-        return default_mixed_mode_standard()
-    if profile == "cpp-library":
-        return default_cpp_standard()
-    if profile == "csharp-app":
-        return default_csharp_standard()
-    if profile == "javascript-web-app":
-        return default_javascript_web_standard()
-    if profile == "python-js-app":
-        return default_python_js_standard()
-    if profile == "zephyr-firmware":
-        return default_zephyr_standard()
-    raise ValueError(f"unsupported profile: {profile}")
+    factories: dict[str, Callable[[], PythonStandard]] = {
+        "python-package": default_python_standard,
+        "python-native-wasm": default_mixed_mode_standard,
+        "cpp-library": default_cpp_standard,
+        "csharp-app": default_csharp_standard,
+        "javascript-web-app": default_javascript_web_standard,
+        "python-js-app": default_python_js_standard,
+        "typescript-web-app": default_typescript_web_standard,
+        "python-ts-app": default_python_ts_standard,
+        "rust-app": default_rust_app_standard,
+        "rust-firmware": default_rust_firmware_standard,
+        "zephyr-firmware": default_zephyr_standard,
+    }
+    try:
+        return factories[profile]()
+    except KeyError as exc:
+        raise ValueError(f"unsupported profile: {profile}") from exc
 
 
 def render_python_standard(output_format: Literal["text", "json"] = "text") -> str:
@@ -724,6 +733,16 @@ def render_javascript_web_standard(output_format: Literal["text", "json"] = "tex
 def render_python_js_standard(output_format: Literal["text", "json"] = "text") -> str:
     """Render the current Python plus browser JavaScript standard as text or JSON."""
     return render_standard("python-js-app", output_format)
+
+
+def render_typescript_web_standard(output_format: Literal["text", "json"] = "text") -> str:
+    """Render the current greenfield TypeScript standard as text or JSON."""
+    return render_standard("typescript-web-app", output_format)
+
+
+def render_python_ts_standard(output_format: Literal["text", "json"] = "text") -> str:
+    """Render the current Python plus browser TypeScript standard as text or JSON."""
+    return render_standard("python-ts-app", output_format)
 
 
 def render_zephyr_standard(output_format: Literal["text", "json"] = "text") -> str:

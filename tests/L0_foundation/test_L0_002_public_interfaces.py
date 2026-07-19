@@ -16,14 +16,22 @@ from wn_dev_std import (
     default_javascript_web_standard,
     default_mixed_mode_standard,
     default_python_standard,
+    default_python_ts_standard,
+    default_rust_app_standard,
+    default_rust_firmware_standard,
     default_standard,
+    default_typescript_web_standard,
     default_zephyr_standard,
     render_cpp_standard,
     render_csharp_standard,
     render_javascript_web_standard,
     render_mixed_mode_standard,
     render_python_standard,
+    render_python_ts_standard,
+    render_rust_app_standard,
+    render_rust_firmware_standard,
     render_standard,
+    render_typescript_web_standard,
     render_zephyr_standard,
 )
 from wn_dev_std.checks import run_basic_checks
@@ -111,6 +119,55 @@ def test_default_python_js_standard_contains_web_and_python_rules() -> None:
     assert "pyproject.toml" in standard.required_files
 
 
+def test_default_typescript_web_standard_contains_guardrail_rules() -> None:
+    standard = default_typescript_web_standard()
+    assert isinstance(standard, PythonStandard)
+    assert any(
+        rule.key == "workflow" and "TypeScript-first" in rule.value for rule in standard.rules
+    )
+    assert any(rule.key == "typecheck.typescript" for rule in standard.rules)
+    assert any(rule.key == "boundaries" for rule in standard.rules)
+    assert any(rule.key == "runtime-inputs" for rule in standard.rules)
+    assert any(rule.key == "tsconfig.extends" for rule in standard.rules)
+    assert "package.json" in standard.required_files
+    assert "tsconfig.json" in standard.required_files
+    assert "docs/design/typescript-standard.html" in standard.required_docs
+
+
+def test_default_python_ts_standard_contains_python_and_typescript_rules() -> None:
+    standard = default_python_ts_standard()
+    assert isinstance(standard, PythonStandard)
+    assert any(
+        rule.key == "inherits" and rule.value == "typescript-web-app" for rule in standard.rules
+    )
+    assert any(rule.key == "server" for rule in standard.rules)
+    assert "package.json" in standard.required_files
+    assert "pyproject.toml" in standard.required_files
+
+
+def test_default_rust_app_standard_contains_cargo_guardrails() -> None:
+    standard = default_rust_app_standard()
+    assert isinstance(standard, PythonStandard)
+    assert any(rule.key == "workflow" and "Cargo" in rule.value for rule in standard.rules)
+    assert any(rule.key == "docs.rustdoc" for rule in standard.rules)
+    assert any(rule.key == "unsafe" and "forbid" in rule.value for rule in standard.rules)
+    assert "Cargo.toml" in standard.required_files
+    assert "Cargo.lock" in standard.required_files
+    assert "rust-toolchain.toml" in standard.required_files
+    assert "docs/design/rust-standard.html" in standard.required_docs
+
+
+def test_default_rust_firmware_standard_contains_embedded_guardrails() -> None:
+    standard = default_rust_firmware_standard()
+    assert isinstance(standard, PythonStandard)
+    assert any(rule.key == "inherits" and rule.value == "rust-app" for rule in standard.rules)
+    assert any(rule.key == "no_std" for rule in standard.rules)
+    assert any(rule.key == "memory-layout" for rule in standard.rules)
+    assert any(rule.key == "runner" for rule in standard.rules)
+    assert ".cargo/config.toml" in standard.required_files
+    assert "docs/design/rust-standard.html" in standard.required_docs
+
+
 def test_default_standard_selects_profiles() -> None:
     assert default_standard("python-package").name == "python-package"
     assert default_standard("python-native-wasm").name == "python-native-wasm"
@@ -118,6 +175,10 @@ def test_default_standard_selects_profiles() -> None:
     assert default_standard("csharp-app").name == "csharp-app"
     assert default_standard("javascript-web-app").name == "javascript-web-app"
     assert default_standard("python-js-app").name == "python-js-app"
+    assert default_standard("typescript-web-app").name == "typescript-web-app"
+    assert default_standard("python-ts-app").name == "python-ts-app"
+    assert default_standard("rust-app").name == "rust-app"
+    assert default_standard("rust-firmware").name == "rust-firmware"
     assert default_standard("zephyr-firmware").name == "zephyr-firmware"
 
 
@@ -178,6 +239,34 @@ def test_render_standard_json_round_trips_for_named_profile() -> None:
     rendered = render_standard("python-js-app", "json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "python-js-app"
+
+
+def test_render_typescript_web_standard_json_round_trips() -> None:
+    rendered = render_typescript_web_standard("json")
+    parsed = json.loads(rendered)
+    assert parsed["name"] == "typescript-web-app"
+    assert parsed["version"] == __version__
+
+
+def test_render_python_ts_standard_json_round_trips() -> None:
+    rendered = render_python_ts_standard("json")
+    parsed = json.loads(rendered)
+    assert parsed["name"] == "python-ts-app"
+    assert parsed["version"] == __version__
+
+
+def test_render_rust_app_standard_json_round_trips() -> None:
+    rendered = render_rust_app_standard("json")
+    parsed = json.loads(rendered)
+    assert parsed["name"] == "rust-app"
+    assert parsed["version"] == __version__
+
+
+def test_render_rust_firmware_standard_json_round_trips() -> None:
+    rendered = render_rust_firmware_standard("json")
+    parsed = json.loads(rendered)
+    assert parsed["name"] == "rust-firmware"
+    assert parsed["version"] == __version__
 
 
 def test_render_zephyr_standard_json_round_trips() -> None:

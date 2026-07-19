@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import cast
 
 from wn_dev_std import __version__
-from wn_dev_std.audit_config import AUDIT_SCOPES
+from wn_dev_std.audit_config import AUDIT_MODES, AUDIT_SCOPES, AuditMode
 from wn_dev_std.checks import format_results, run_audit_checks
 from wn_dev_std.checks_types import CheckResult
 from wn_dev_std.cli.types import SubparserRegistry
@@ -49,6 +49,12 @@ def add_audit_arguments(parser: argparse.ArgumentParser) -> None:
         help="Audit scope to run; may be passed more than once",
     )
     parser.add_argument(
+        "--mode",
+        choices=AUDIT_MODES,
+        default="default",
+        help="Audit mode; release inspects promoted docs.release payloads",
+    )
+    parser.add_argument(
         "--check-upstream-version",
         action="store_true",
         help="Warn when a newer wn-dev-std release is available on PyPI",
@@ -60,7 +66,7 @@ def run(args: argparse.Namespace) -> int:
     path = Path(_string_attr(args, "path"))
     output_format = _string_attr(args, "output_format")
     scopes = _scope_tuple(args)
-    results = run_audit_checks(path, scopes)
+    results = run_audit_checks(path, scopes, mode=_audit_mode(args))
     if bool(getattr(args, "check_upstream_version", False)):
         upstream = check_pypi_version(__version__)
         results = (*results, upstream_check_result(upstream))
@@ -85,6 +91,13 @@ def _string_attr(args: argparse.Namespace, name: str) -> str:
     if isinstance(value, str):
         return value
     raise TypeError(f"expected {name} to be a string")
+
+
+def _audit_mode(args: argparse.Namespace) -> AuditMode:
+    value = args.mode
+    if value in AUDIT_MODES:
+        return value
+    raise TypeError("expected mode to be a supported audit mode")
 
 
 def upstream_check_result(upstream: UpstreamVersionCheck) -> CheckResult:

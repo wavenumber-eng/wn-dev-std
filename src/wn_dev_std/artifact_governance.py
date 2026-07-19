@@ -10,6 +10,13 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
 
+from wn_dev_std.artifact_policy import ARTIFACT_EXTENSIONS, ARTIFACT_KINDS, RELEASE_KINDS
+from wn_dev_std.audit_config import AuditMode
+from wn_dev_std.release_artifacts import (
+    PromotedArtifact,
+    validate_promoted_artifacts,
+    validate_uncataloged_promoted_payloads,
+)
 from wn_dev_std.root_discovery import load_pyproject, load_standard_config
 
 
@@ -40,50 +47,7 @@ TRANSIENT_ROOTS = {
     "rack_results",
     "temp",
 }
-ARTIFACT_EXTENSIONS = {
-    ".7z",
-    ".a",
-    ".bin",
-    ".dll",
-    ".dylib",
-    ".elf",
-    ".exe",
-    ".hex",
-    ".lib",
-    ".msi",
-    ".msix",
-    ".nupkg",
-    ".so",
-    ".tar",
-    ".tgz",
-    ".wasm",
-    ".whl",
-    ".zip",
-}
-ARTIFACT_KINDS = {
-    "app_package",
-    "fixture_data",
-    "generated_source",
-    "oracle_artifact",
-    "package_distribution",
-    "public_reference_asset",
-    "release_evidence",
-    "runtime_binary",
-    "runtime_wasm",
-    "transient_output",
-    "vendored_runtime_artifact",
-}
 VENDOR_KINDS = {"source", "generated_source", "binary", "runtime_asset", "archive"}
-RELEASE_KINDS = {
-    "app_plugin",
-    "github_release",
-    "internal",
-    "native_bundle",
-    "object_store",
-    "package_manager",
-    "pypi",
-    "wasm_bundle",
-}
 
 
 def check_vendor_governance_policy(root: Path) -> GovernancePolicyReport:
@@ -183,7 +147,10 @@ def _validate_artifact_entries(
     return tuple(path_patterns)
 
 
-def check_release_governance_policy(root: Path) -> GovernancePolicyReport:
+def check_release_governance_policy(
+    root: Path,
+    mode: AuditMode = "default",
+) -> GovernancePolicyReport:
     """Check release-channel catalog coverage."""
     resolved_root = root.resolve()
     pyproject = load_pyproject(resolved_root)
@@ -192,7 +159,13 @@ def check_release_governance_policy(root: Path) -> GovernancePolicyReport:
     catalog_path = _configured_catalog_path(resolved_root, "release", DEFAULT_RELEASE_PATH)
     if not distribution or distribution == "none":
         if catalog_path.exists():
-            return _validate_release_catalog(resolved_root, catalog_path, distribution)
+            return _validate_release_catalog(
+                resolved_root,
+                catalog_path,
+                distribution,
+                mode,
+                pyproject,
+            )
         return GovernancePolicyReport(True, "release governance not required")
     if not catalog_path.exists():
         return _failure(
@@ -201,21 +174,33 @@ def check_release_governance_policy(root: Path) -> GovernancePolicyReport:
                 f"distribution {distribution!r} requires {_rel(resolved_root, catalog_path)}",
             ],
         )
-    return _validate_release_catalog(resolved_root, catalog_path, distribution)
+    return _validate_release_catalog(resolved_root, catalog_path, distribution, mode, pyproject)
 
 
 def _validate_release_catalog(
     root: Path,
     catalog_path: Path,
     distribution: str,
+    mode: AuditMode,
+    pyproject: Mapping[str, object] | None,
 ) -> GovernancePolicyReport:
     failures: list[str] = []
     payload = _load_toml(catalog_path, failures)
     channels = _table_array(payload.get("channels"))
     if not channels:
         failures.append(f"{_rel(root, catalog_path)}: missing [[channels]] entries")
+    promoted_artifacts: list[PromotedArtifact] = []
     for index, channel in enumerate(channels, start=1):
-        _validate_release_channel(root, catalog_path, index, channel, failures)
+        promoted_artifacts.extend(
+            _validate_release_channel(root, catalog_path, index, channel, failures, mode, pyproject)
+        )
+    if mode == "release":
+        validate_uncataloged_promoted_payloads(
+            root,
+            _rel(root, catalog_path),
+            promoted_artifacts,
+            failures,
+        )
     if _requires_matching_release_kind(distribution, channels):
         failures.append(
             f"{_rel(root, catalog_path)}: distribution {distribution!r} requires "
@@ -232,7 +217,9 @@ def _validate_release_channel(
     index: int,
     channel: Mapping[str, object],
     failures: list[str],
-) -> None:
+    mode: AuditMode,
+    pyproject: Mapping[str, object] | None,
+) -> tuple[PromotedArtifact, ...]:
     label = f"{_rel(root, catalog_path)}: channels[{index}]"
     kind = _required_string(channel, "kind", label, failures)
     if kind and kind not in RELEASE_KINDS:
@@ -245,6 +232,7 @@ def _validate_release_channel(
             _validate_local_path(root, label, doc_path, failures)
     _validate_ref_tables(root, label, channel, "verification_refs", failures)
     _validate_ref_tables(root, label, channel, "artifact_refs", failures, validate_target=False)
+    return validate_promoted_artifacts(root, label, channel, failures, mode, pyproject)
 
 
 def _requires_matching_release_kind(
@@ -397,7 +385,7 @@ def _validate_patterns_within_root(
     failures: list[str],
 ) -> None:
     for pattern in patterns:
-        static_prefix = pattern.split("*", 1)[0].rstrip("/")
+        static_prefix = _static_prefix(pattern).rstrip("/")
         if not static_prefix:
             continue
         candidate = (root / static_prefix).resolve()
@@ -495,6 +483,13 @@ def _table_array(value: object) -> tuple[Mapping[str, object], ...]:
 
 def _matches_any(path: str, patterns: Sequence[str]) -> bool:
     return any(fnmatch.fnmatchcase(path, pattern) for pattern in patterns)
+
+
+def _static_prefix(pattern: str) -> str:
+    positions = [position for marker in ("*", "?", "[") if (position := pattern.find(marker)) >= 0]
+    if not positions:
+        return pattern
+    return pattern[: min(positions)]
 
 
 def _is_vendor_path(path: str) -> bool:

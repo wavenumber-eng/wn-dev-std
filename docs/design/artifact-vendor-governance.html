@@ -100,12 +100,46 @@
     promotes those outputs. They are not mandatory for every mixed/native
     package.
   </p>
+  <p>
+    Release channels may declare promoted payloads with nested
+    <code>[[channels.promoted_artifacts]]</code> tables. Default audit
+    validates declaration shape, unique ids, known artifact kinds, boolean
+    required flags, contained bounded paths, and license refs without reading
+    payload files. Release mode is explicit:
+    <code>dev-std audit . --scope docs.release --mode release</code>.
+  </p>
+  <pre><code>[[channels.promoted_artifacts]]
+id = "wheel"
+kind = "package_distribution"
+paths = ["dist/wn_dev_std-*.whl"]
+required = true
+build_profile = "release"
+license_refs = ["LICENSE"]</code></pre>
+  <p>
+    Date-versioned packages should normally use bounded globs for build
+    outputs. Literal <code>version</code>, <code>source_commit</code>, and
+    <code>sha256</code> values are optional assertions for pinned or already
+    promoted payloads. When declared, the version is compared to
+    <code>pyproject.toml</code> project metadata, the source commit is
+    prefix-matched against <code>git rev-parse HEAD</code>, and the checksum is
+    computed from the matched file. A declared checksum requires exactly one
+    matched artifact.
+  </p>
+  <p>
+    Promoted roots are derived from the static directory prefix before the
+    first wildcard, or from the parent directory for exact paths. File matching
+    uses repository-relative POSIX paths and the same <code>fnmatch</code>
+    semantics as artifact catalog coverage, so declared files and uncataloged
+    promoted payload detection use one matching model. Uncataloged detection is
+    catalog-wide, allowing multiple release channels to share a staging root
+    such as <code>dist/</code> without flagging each other's declared payloads.
+  </p>
 
   <h2>Audit Scopes</h2>
   <ul>
     <li><code>docs.artifacts</code> validates artifact catalog coverage.</li>
     <li><code>docs.vendors</code> validates vendored-code catalog coverage.</li>
-    <li><code>docs.release</code> validates release-channel governance.</li>
+    <li><code>docs.release</code> validates release-channel governance and, in release mode, promoted payloads.</li>
   </ul>
 </body>
 </html>

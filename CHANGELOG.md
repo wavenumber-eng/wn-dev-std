@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026.7.18
+
+- Add release-mode artifact audit support for promoted release payload catalogs,
+  bounded distribution globs, declared metadata checks, and release-channel
+  signoff.
+- Add greenfield TypeScript profiles with strict compiler guardrails,
+  JSONC-aware local `tsconfig` inheritance, package-script checks, and
+  migration/exception metadata for JavaScript ports.
+- Add Rust application and firmware profiles with Cargo/rustup metadata checks,
+  per-package unsafe lint governance, workspace inheritance support, embedded
+  target/runner metadata, and explicit Cargo signoff lanes.
+- Document TypeScript and Rust standards, update public CLI/config/interface
+  contracts, and close the completed active Rust plan into durable governance
+  records.
+
 ## 2026.7.16
 
 - Delegate the `tests` audit scope to Rack native audit from

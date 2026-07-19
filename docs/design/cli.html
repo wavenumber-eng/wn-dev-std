@@ -34,6 +34,11 @@
       <code>tests</code>. Text and JSON
       output are supported. <code>--check-upstream-version</code> performs an
       optional PyPI freshness check and reports only a warning.
+      <code>--mode release</code> runs release-mode payload inspection when
+      <code>docs.release</code> is selected. Other scopes keep their normal
+      behavior in release mode. A full audit with <code>--mode release</code>
+      includes release payload inspection because <code>all</code> selects
+      <code>docs.release</code>.
     </p>
   </section>
 
@@ -157,8 +162,14 @@
       C# profile, <code>--profile javascript-web-app</code> renders the
       no-build browser JavaScript/CSS profile, and
       <code>--profile python-js-app</code> renders the Python-served browser app
-      profile. <code>--profile zephyr-firmware</code> renders the Zephyr
-      firmware profile.
+      profile. <code>--profile typescript-web-app</code> renders the
+      greenfield browser TypeScript profile, and
+      <code>--profile python-ts-app</code> renders the Python-served
+      TypeScript browser app profile. <code>--profile rust-app</code> renders
+      the host-side Rust profile, <code>--profile rust-firmware</code> renders
+      the embedded Rust firmware profile, and
+      <code>--profile zephyr-firmware</code> renders the Zephyr firmware
+      profile.
     </p>
   </section>
 

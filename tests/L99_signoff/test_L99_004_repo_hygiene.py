@@ -170,6 +170,100 @@ def test_javascript_web_policy_is_documented() -> None:
         assert expected in web_doc
 
 
+def test_typescript_policy_is_documented() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    ts_doc = (ROOT / "docs" / "design" / "typescript-standard.html").read_text(encoding="utf-8")
+    js_doc = (ROOT / "docs" / "design" / "javascript-standard.html").read_text(encoding="utf-8")
+    audit_doc = (ROOT / "docs" / "design" / "audit-standard.html").read_text(encoding="utf-8")
+    cli_doc = (ROOT / "docs" / "design" / "cli.html").read_text(encoding="utf-8")
+    requirement = (
+        ROOT
+        / "docs"
+        / "core"
+        / "requirements"
+        / "core-req-0007-greenfield-typescript-guardrails.md"
+    )
+    adr = ROOT / "docs" / "core" / "adr" / "core-adr-0007-typescript-first-browser-standard.md"
+
+    for path in (requirement, adr, ROOT / "docs" / "design" / "typescript-standard.html"):
+        assert path.exists(), path
+
+    for expected in (
+        "typescript-web-app",
+        "python-ts-app",
+        "noUncheckedIndexedAccess",
+        "exactOptionalPropertyTypes",
+        "noPropertyAccessFromIndexSignature",
+        "verbatimModuleSyntax",
+        "allowJs",
+        "skipLibCheck",
+        "[typescript.migration]",
+        "[typescript.exceptions]",
+        "package_extends",
+        "local-file",
+        "unknown",
+        "discriminated unions",
+    ):
+        assert expected in ts_doc
+        assert expected in readme or expected in audit_doc or expected in cli_doc
+
+    assert "TypeScript Standard" in js_doc
+    assert 'status = "implemented"' in requirement.read_text(encoding="utf-8")
+    assert 'status = "accepted"' in adr.read_text(encoding="utf-8")
+    assert 'data-doc-status="accepted"' in ts_doc
+
+
+def test_rust_policy_is_documented() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    rust_doc = (ROOT / "docs" / "design" / "rust-standard.html").read_text(encoding="utf-8")
+    audit_doc = (ROOT / "docs" / "design" / "audit-standard.html").read_text(encoding="utf-8")
+    cli_doc = (ROOT / "docs" / "design" / "cli.html").read_text(encoding="utf-8")
+    documentation_doc = (ROOT / "docs" / "design" / "documentation-standard.html").read_text(
+        encoding="utf-8"
+    )
+    requirement = (
+        ROOT / "docs" / "core" / "requirements" / "core-req-0008-rust-project-guardrails.md"
+    )
+    adr = ROOT / "docs" / "core" / "adr" / "core-adr-0008-rust-application-and-embedded-standard.md"
+
+    for path in (requirement, adr, ROOT / "docs" / "design" / "rust-standard.html"):
+        assert path.exists(), path
+
+    for expected in (
+        "rust-app",
+        "rust-firmware",
+        "Cargo.toml",
+        "Cargo.lock",
+        "rust-toolchain.toml",
+        "cargo fmt --all -- --check",
+        'RUSTDOCFLAGS="-D warnings"',
+        "source_root",
+        "src/rs",
+        "no_std",
+        "memory.x",
+        "link.x",
+        "Embed.toml",
+        "probe-rs",
+        "cargo-embed",
+        "Tokio",
+        "Embassy",
+        "[rust.firmware]",
+        "[rust.exceptions]",
+        "ambient_toolchain",
+    ):
+        assert expected in rust_doc
+        assert (
+            expected in readme
+            or expected in audit_doc
+            or expected in cli_doc
+            or expected in documentation_doc
+        )
+
+    assert 'status = "implemented"' in requirement.read_text(encoding="utf-8")
+    assert 'status = "accepted"' in adr.read_text(encoding="utf-8")
+    assert 'data-doc-status="accepted"' in rust_doc
+
+
 def test_compatibility_pruning_policy_is_documented() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     python_doc = (ROOT / "docs" / "design" / "python-standard.html").read_text(encoding="utf-8")
@@ -347,6 +441,43 @@ def test_vendor_manifest_policy_is_documented() -> None:
         "fonts",
     ):
         assert expected in vendor_doc
+
+
+def test_release_mode_artifact_policy_is_documented() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    audit_doc = (ROOT / "docs" / "design" / "audit-standard.html").read_text(encoding="utf-8")
+    artifact_doc = (ROOT / "docs" / "design" / "artifact-vendor-governance.html").read_text(
+        encoding="utf-8"
+    )
+    cli_doc = (ROOT / "docs" / "design" / "cli.html").read_text(encoding="utf-8")
+    adr = ROOT / "docs" / "core" / "adr" / "core-adr-0006-release-mode-artifact-audit.md"
+    requirement = (
+        ROOT / "docs" / "core" / "requirements" / "core-req-0006-release-mode-artifact-audit.md"
+    )
+    design = ROOT / "docs" / "core" / "design" / "release-mode-artifact-audit.html"
+
+    for path in (adr, requirement, design):
+        assert path.exists(), path
+
+    for text in (readme, audit_doc, artifact_doc, cli_doc):
+        normalized = " ".join(text.split())
+        assert "--mode release" in normalized
+        assert "docs.release" in normalized
+
+    for expected in (
+        "channels.promoted_artifacts",
+        "dist/wn_dev_std-*.whl",
+        "shape-validates",
+        "source-commit",
+        "fnmatch",
+        "catalog-wide",
+        "Workspace",
+    ):
+        assert expected in artifact_doc or expected in design.read_text(encoding="utf-8")
+
+    assert 'status = "accepted"' in adr.read_text(encoding="utf-8")
+    assert 'status = "implemented"' in requirement.read_text(encoding="utf-8")
+    assert 'data-doc-status="accepted"' in design.read_text(encoding="utf-8")
 
 
 def test_adr_requirement_traceability_policy_is_documented_and_clean() -> None:

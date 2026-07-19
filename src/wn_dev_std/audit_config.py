@@ -4,11 +4,14 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import cast
+from typing import Literal, cast
 
 from wn_dev_std.checks_types import CheckResult
 from wn_dev_std.root_discovery import standard_config_path
 from wn_dev_std.standards import STANDARD_VERSION
+
+AuditMode = Literal["default", "release"]
+AUDIT_MODES: tuple[AuditMode, ...] = ("default", "release")
 
 AUDIT_SCOPES = (
     "all",

@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Rust Standard</title>
+</head>
+<body data-design="rust-standard" data-doc-status="accepted">
+  <h1>Rust Standard</h1>
+  <p>
+    The Rust standard defines Wavenumber's first Rust profiles for host-side
+    applications and embedded firmware. It keeps the audit boundary static:
+    dev-std validates Cargo, rustup, repository shape, metadata, and signoff
+    wiring while Cargo, rustc, rustfmt, Clippy, rustdoc, tests, and hardware
+    signoff prove Rust source semantics.
+  </p>
+
+  <h2>Profiles</h2>
+  <dl>
+    <dt><code>rust-app</code></dt>
+    <dd>
+      Host-side Rust application, service, CLI, or ordinary <code>std</code>
+      library with application-owned signoff.
+    </dd>
+    <dt><code>rust-firmware</code></dt>
+    <dd>
+      Embedded Rust firmware with <code>no_std</code> intent,
+      cross-compilation, target, linker, runner, panic, allocator, and hardware
+      signoff policy.
+    </dd>
+  </dl>
+
+  <section data-interface="wn_dev_std.default_rust_app_standard">
+    <h2>default_rust_app_standard</h2>
+    <p>
+      Returns the host-side Rust application and library profile.
+    </p>
+  </section>
+
+  <section data-interface="wn_dev_std.default_rust_firmware_standard">
+    <h2>default_rust_firmware_standard</h2>
+    <p>
+      Returns the embedded Rust firmware profile.
+    </p>
+  </section>
+
+  <section data-interface="wn_dev_std.render_rust_app_standard">
+    <h2>render_rust_app_standard</h2>
+    <p>
+      Renders the host-side Rust profile for human or machine use.
+    </p>
+  </section>
+
+  <section data-interface="wn_dev_std.render_rust_firmware_standard">
+    <h2>render_rust_firmware_standard</h2>
+    <p>
+      Renders the embedded Rust firmware profile for human or machine use.
+    </p>
+  </section>
+
+  <h2>Required Files</h2>
+  <ul>
+    <li><code>Cargo.toml</code></li>
+    <li><code>Cargo.lock</code> in the audited root for applications, firmware, and workspaces</li>
+    <li><code>rust-toolchain.toml</code>, unless <code>[rust.exceptions].ambient_toolchain</code> documents an ambient stable policy</li>
+    <li><code>src/</code> for Rust-only projects or a configured Rust source root such as <code>src/rs/</code> or <code>src/rust/</code></li>
+    <li><code>tests/</code> and <code>tests/rack.toml</code></li>
+    <li><code>dev-std.toml</code> or another supported dev-std config marker</li>
+    <li><code>docs/design/rust-standard.html</code>, unless configured through <code>[documentation.standard_docs]</code></li>
+  </ul>
+
+  <h2>Configuration</h2>
+  <p>
+    Rust profile metadata lives under <code>[rust]</code>. The most common
+    polyglot setting is <code>source_root</code>:
+  </p>
+  <pre><code>[rust]
+source_root = "src/rs"</code></pre>
+  <p>
+    The configured path must be repository-relative, stay inside the project
+    root, and contain at least one owned <code>.rs</code> file. Generated,
+    vendored, binding, and <code>target/</code> output paths are excluded from
+    owned-source discovery.
+  </p>
+  <p>
+    Documented exceptions live under <code>[rust.exceptions]</code>. The first
+    supported keys are <code>ambient_toolchain</code> for projects that follow
+    the ambient stable Rust toolchain and <code>unsafe</code> for reviewed
+    unsafe-code boundaries.
+  </p>
+  <pre><code>[rust.exceptions]
+ambient_toolchain = "docs/design/rust-toolchain-exception.html"
+unsafe = "docs/design/unsafe-boundary.html"</code></pre>
+
+  <h2>Cargo Metadata</h2>
+  <p>
+    <code>Cargo.toml</code> must define either <code>[package]</code> or
+    <code>[workspace]</code>. Package metadata must declare
+    <code>edition</code> and <code>rust-version</code>. Workspace member
+    packages may inherit those fields with <code>edition.workspace = true</code>
+    and <code>rust-version.workspace = true</code> only when
+    <code>[workspace.package]</code> defines the inherited values. Workspace
+    roots should centralize shared metadata with <code>[workspace.package]</code>,
+    <code>[workspace.dependencies]</code>, <code>[workspace.lints]</code>, and
+    root profiles where appropriate.
+  </p>
+  <p>
+    Workspace member discovery follows <code>[workspace].members</code> and
+    honors bounded repository-relative <code>[workspace].exclude</code> entries.
+    Member globs are treated as package-directory globs; non-directory matches
+    such as notes files under <code>crates/</code> are ignored.
+  </p>
+  <p>
+    Workspaces must declare <code>resolver</code>. Edition 2024 workspaces use
+    <code>resolver = "3"</code>; Edition 2021 workspaces may use
+    <code>resolver = "2"</code> or <code>"3"</code> when the project documents
+    the pairing.
+  </p>
+
+  <h2>Toolchain</h2>
+  <p>
+    <code>rust-toolchain.toml</code> must contain a <code>[toolchain]</code>
+    table with a stable channel, <code>rustfmt</code>, and <code>clippy</code>
+    components. Nightly, beta, or custom channels require a documented
+    exception and review trigger. Firmware profiles must include the configured
+    cross-compilation target unless the target is a checked-in custom target
+    JSON file.
+  </p>
+
+  <h2>Unsafe Policy</h2>
+  <p>
+    Host Rust projects must set <code>unsafe_code = "forbid"</code> in
+    <code>[lints.rust]</code> or <code>[workspace.lints.rust]</code>.
+    Workspace lints are active only for packages that opt in with
+    <code>[lints] workspace = true</code>; a member may also satisfy the policy
+    with a local <code>[lints.rust]</code> entry, but local member overrides
+    must still use the profile's allowed unsafe lint level.
+    Firmware may use <code>"forbid"</code> or <code>"deny"</code> by default,
+    or declare a documented <code>[rust.exceptions].unsafe</code> boundary for
+    hardware registers, generated bindings, FFI, or reviewed low-level code.
+    The audit validates the lint metadata and exception document; it does not
+    scan Rust source for unsafe blocks.
+  </p>
+
+  <h2>Signoff Commands</h2>
+  <p>
+    Rack or an equivalent project signoff surface must expose these host Rust
+    lanes:
+  </p>
+  <ul>
+    <li><code>cargo fmt --all -- --check</code></li>
+    <li><code>cargo check --workspace --all-targets --locked</code></li>
+    <li><code>cargo clippy --workspace --all-targets --all-features --locked -- -D warnings</code></li>
+    <li><code>cargo test --workspace --locked</code></li>
+    <li><code>cargo test --doc --workspace --locked</code></li>
+    <li><code>RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --locked</code></li>
+  </ul>
+  <p>
+    Rustdoc warning failures are controlled with the
+    <code>RUSTDOCFLAGS</code> environment variable, not a Cargo flag. Cargo
+    commands should use <code>--locked</code> in CI and release-facing signoff
+    so dependency resolution remains deterministic. Audit checks command
+    markers per declared command entry; <code>--locked</code> on one command
+    does not satisfy another Cargo lane. The separate
+    <code>cargo test --doc</code> lane is required even when a plain
+    <code>cargo test</code> lane may also run doctests, because the standard
+    wants doctest coverage to remain visible and independently auditable when
+    projects later add target filters.
+  </p>
+
+  <h2>Embedded Rust</h2>
+  <p>
+    <code>rust-firmware</code> adds <code>[rust.firmware]</code> metadata:
+  </p>
+  <pre><code>[rust.firmware]
+target = "thumbv7em-none-eabihf"
+no_std_ref = "docs/design/rust-firmware-runtime.html"
+panic_ref = "docs/design/rust-firmware-runtime.html"
+allocator_ref = "docs/design/rust-firmware-runtime.html"
+hardware_ref = "docs/setup.html"
+memory_layout = "memory.x"
+runner = "Embed.toml"</code></pre>
+  <p>
+    The audit treats <code>no_std</code> as metadata and documentation. It
+    does not inspect Rust source for <code>#![no_std]</code>. Firmware
+    projects must declare the target triple or custom target spec,
+    <code>.cargo/config.toml</code>, target/rustflags/runner policy, memory or
+    linker artifacts such as <code>memory.x</code> or a documented
+    <code>link.x</code> provider, panic strategy, allocator policy, hardware
+    setup, flashing/debugging workflow, and host-test split.
+  </p>
+  <p>
+    Embedded signoff should include:
+  </p>
+  <ul>
+    <li><code>cargo fmt --all -- --check</code></li>
+    <li><code>cargo check --target &lt;target-triple-or-json&gt; --locked</code></li>
+    <li><code>cargo clippy --target &lt;target-triple-or-json&gt; --locked -- -D warnings</code></li>
+    <li><code>cargo build --release --target &lt;target-triple-or-json&gt; --locked</code></li>
+    <li>host-side <code>cargo test --workspace --locked</code> and <code>cargo test --doc --workspace --locked</code> for host-testable crates</li>
+    <li><code>RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --locked</code></li>
+    <li>a documented hardware runner such as <code>cargo embed</code>, <code>probe-rs run</code>, <code>cargo-embed</code>, or a project wrapper</li>
+  </ul>
+  <p>
+    Firmware repositories that are pure <code>no_std</code> binaries must
+    still provide a host-buildable crate, feature split, or wrapper surface for
+    the host <code>cargo test</code>, doctest, and rustdoc lanes. Board-only
+    code remains covered by the target build, Clippy target lane, and hardware
+    runner.
+  </p>
+
+  <h2>Runtime Frameworks</h2>
+  <p>
+    Tokio is the recommended default for host-side async applications that need
+    async I/O, networking, timers, scheduling, or service runtime facilities.
+    Embassy is the recommended default for embedded async firmware when target
+    and HAL support are acceptable. These are not hard dependencies in the
+    first slice. Projects that stay synchronous, use a framework-owned runtime,
+    use RTIC, or rely on a vendor or RTOS scheduler document the runtime choice
+    in setup or architecture docs.
+  </p>
+
+  <h2>Polyglot Layouts</h2>
+  <p>
+    Contract-first repositories may keep shared schemas, fixtures, docs, and
+    test cases at the umbrella root while language implementations live under
+    <code>src/&lt;language&gt;/</code>. Rust model code may live under
+    <code>src/rs/data_models/&lt;domain&gt;/</code> or
+    <code>src/rust/data_models/&lt;domain&gt;/</code>. Rust transforms may use
+    operation-first roots such as
+    <code>src/rs/transforms/importers/&lt;namespace&gt;/&lt;domain&gt;/</code>,
+    <code>src/rs/transforms/exporters/&lt;namespace&gt;/&lt;domain&gt;/</code>,
+    <code>src/rs/transforms/projections/&lt;source-domain&gt;_to_&lt;target-domain&gt;/</code>,
+    and <code>src/rs/transforms/migrations/&lt;domain&gt;/</code>.
+  </p>
+  <p>
+    Generated Rust bindings or schema copies must be isolated under generated
+    roots and governed by artifact/vendor policy instead of counted as owned
+    implementation source.
+  </p>
+</body>
+</html>
