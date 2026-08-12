@@ -75,11 +75,10 @@ uv run rack run --all
 The installed command is `dev-std`. The older `wn-dev-std` command remains as a
 compatibility alias for existing repositories and CI jobs.
 
-This package currently pins Python to `>=3.12,<3.13`. The pin is intentional for
-the standards reference package: it keeps Ruff, Pyright, Rack signoff, CLI
-behavior, and generated metadata on one interpreter baseline. Downstream
-projects can define their own runtime window when their compatibility contract
-requires it.
+This package supports normal GIL-enabled CPython 3.12 through 3.14. CI exercises
+the newest supported interpreter while release signoff also checks clean
+installation on the lower supported minors. Free-threaded Python builds are not
+currently part of the support contract.
 
 ## Rack Model
 
@@ -163,7 +162,7 @@ dev-std audit . --check-upstream-version
 Configured repositories must declare the standard version they target:
 
 ```toml
-standard_version = "2026.7.18"
+standard_version = "2026.8.11"
 profile = "python-package"
 
 [tests]
@@ -176,7 +175,7 @@ default and still runs the unfiltered config-version check. Passing a targeted
 scope set is partial governance adoption, not full profile conformance:
 
 ```toml
-standard_version = "2026.7.18"
+standard_version = "2026.8.11"
 profile = "zephyr-firmware"
 enabled_scopes = ["docs.plans"]
 ```
@@ -185,7 +184,7 @@ Workspace roots aggregate explicitly registered package/application policy
 boundaries. Members are policy boundaries, not every build target:
 
 ```toml
-standard_version = "2026.7.18"
+standard_version = "2026.8.11"
 kind = "workspace"
 
 [workspace]
@@ -199,7 +198,7 @@ should use the same shape with a first `governance` stage and later jobs using
 `standard_version`:
 
 ```bash
-uvx --from wn-dev-std==2026.7.18 dev-std audit .
+uvx --from wn-dev-std==2026.8.11 dev-std audit .
 ```
 
 The `check` command is a compatibility alias for `audit`:
@@ -606,7 +605,7 @@ helpers are intentionally left for a later tool pass.
 - [JavaScript Web App Standard](docs/design/javascript-standard.html)
 - [TypeScript Standard](docs/design/typescript-standard.html)
 - [Rust Standard](docs/design/rust-standard.html)
-- [Release Notes](docs/releases/2026-07-18.md)
+- [Release Notes](docs/releases/2026-08-11.md)
 
 ## License
 

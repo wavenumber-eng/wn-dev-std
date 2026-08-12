@@ -1,13 +1,13 @@
 [build-system]
-requires = ["hatchling>=1.27.0"]
+requires = ["hatchling>=1.27.0,<1.32"]
 build-backend = "hatchling.build"
 
 [project]
 name = "wn-dev-std"
-version = "2026.7.18"
+version = "2026.8.11"
 description = "Development standards reference package and conformance checks."
 readme = "README.md"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.12,<3.15"
 license = { file = "LICENSE" }
 authors = [
     { name = "Wavenumber LLC" },
@@ -25,6 +25,8 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Quality Assurance",
 ]
 dependencies = [
@@ -62,7 +64,7 @@ dev-std = "wn_dev_std.cli.main:main"
 wn-dev-std = "wn_dev_std.cli.main:main"
 
 [tool.wn_dev_std]
-standard_version = "2026.7.18"
+standard_version = "2026.8.11"
 profile = "python-package"
 distribution = "pypi"
 languages = ["python"]
