@@ -332,7 +332,7 @@ def test_ci_governance_first_policy_is_documented_and_installed() -> None:
 
     assert "governance:" in workflow
     assert "Run dev-std governance audit" in workflow
-    assert "uv run dev-std audit ." in workflow
+    assert "uv run --python 3.14 dev-std audit ." in workflow
     assert "needs: governance" in workflow
 
 

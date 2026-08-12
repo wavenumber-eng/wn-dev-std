@@ -22,6 +22,18 @@ def test_pyproject_version_matches_package_version() -> None:
     assert project["version"] == __version__
 
 
+def test_supported_python_range_matches_classifiers() -> None:
+    project = cast(Mapping[str, object], load_pyproject()["project"])
+    classifiers = cast(list[object], project["classifiers"])
+
+    assert project["requires-python"] == ">=3.12,<3.15"
+    assert {
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+    } <= {value for value in classifiers if isinstance(value, str)}
+
+
 def test_version_is_date_based_pep440_shape() -> None:
     assert re.fullmatch(r"20\d{2}\.\d{1,2}\.\d{1,2}(?:\.\d+)?", __version__)
     year_text, month_text, day_text, *_patch = __version__.split(".")
@@ -47,13 +59,14 @@ def test_release_workflow_uses_github_release_published() -> None:
     assert "release:" in workflow
     assert "types: [published]" in workflow
     assert "Run dev-std governance audit" in workflow
-    assert "uv run dev-std audit ." in workflow
+    assert "uv run --python 3.14 dev-std audit ." in workflow
     assert "python -m build" in workflow
     assert "twine check dist/*" in workflow
     assert "environment: pypi" in workflow
     assert "id-token: write" in workflow
     assert "uv publish --trusted-publishing always" in workflow
     assert "pypa/gh-action-pypi-publish" not in workflow
+    assert "--python 3.14" in workflow
 
 
 def test_this_reference_package_is_configured_for_pypi_publish() -> None:

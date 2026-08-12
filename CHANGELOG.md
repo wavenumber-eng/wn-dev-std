@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026.8.11
+
+- Support normal GIL-enabled CPython 3.12 through 3.14 and validate the latest
+  supported interpreter in CI and release workflows.
+- Keep generated package metadata on the Twine-compatible 2.4 contract while
+  the packaging toolchain adds Core Metadata 2.5 support.
+
 ## 2026.7.18
 
 - Add release-mode artifact audit support for promoted release payload catalogs,

@@ -14,12 +14,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
       - name: Sync
-        run: uv sync --all-extras
+        run: uv sync --all-extras --python 3.14
       - name: Run dev-std governance audit
-        run: uv run dev-std audit .
+        run: uv run --python 3.14 dev-std audit .
 
   test:
-    name: ${{ matrix.os }} / Python 3.12
+    name: ${{ matrix.os }} / Python 3.14
     needs: governance
     runs-on: ${{ matrix.os }}
     strategy:
@@ -31,17 +31,17 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
       - name: Sync
-        run: uv sync --all-extras
+        run: uv sync --all-extras --python 3.14
       - name: Run Rack signoff
-        run: uv run rack run --all
+        run: uv run --python 3.14 rack run --all
       - name: Build package
-        run: uv run python -m build
+        run: uv run --python 3.14 python -m build
       - name: Check package
-        run: uv run twine check dist/*
+        run: uv run --python 3.14 twine check dist/*
       - name: Installed wheel smoke test
         shell: pwsh
         run: |
           $wheel = Get-ChildItem dist -Filter "*.whl" | Select-Object -First 1
-          uv tool install --force $wheel.FullName
+          uv tool install --python 3.14 --force $wheel.FullName
           wn-dev-std --version
           wn-dev-std standard
