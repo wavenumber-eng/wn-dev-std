@@ -196,3 +196,11 @@ name = "Rust Policy"
 description = "Validate Rust application and firmware profile guardrail checks"
 concerns = ["contracts", "signoff"]
 test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_022"
+file = "test_L0_022_rust_hygiene.py"
+name = "Rust Structural Hygiene"
+description = "Validate syntax-aware Rust size, complexity, ratchet, and exception policy"
+concerns = ["contracts", "signoff"]
+test_case_type = "audit_meta"

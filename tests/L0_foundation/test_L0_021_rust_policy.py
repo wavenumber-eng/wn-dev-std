@@ -415,6 +415,8 @@ def write_minimal_rust_project(
         write_file(root / relative_path, "placeholder\n")
     write_file(root / "Cargo.toml", cargo_toml or cargo_manifest(firmware=firmware))
     write_file(root / "rust-toolchain.toml", toolchain or rust_toolchain(firmware=firmware))
+    write_file(root / "clippy.toml", clippy_config())
+    write_file(root / "rust-hygiene.toml", rust_hygiene_config(source_root))
     write_file(root / source_root / "main.rs", "fn main() {}\n")
     write_file(root / "tests" / "rack.toml", rack_manifest(firmware=firmware))
     write_file(
@@ -455,6 +457,12 @@ def cargo_manifest(*, firmware: bool = False) -> str:
         [lints.rust]
         unsafe_code = "forbid"
 
+        [lints.clippy]
+        too_many_arguments = "deny"
+        too_many_lines = "deny"
+        cognitive_complexity = "deny"
+        allow_attributes_without_reason = "deny"
+
         {dedent(release_profile).strip()}
         """
     ).lstrip()
@@ -480,6 +488,12 @@ def workspace_manifest(
 
         [workspace.lints.rust]
         unsafe_code = "forbid"
+
+        [workspace.lints.clippy]
+        too_many_arguments = "deny"
+        too_many_lines = "deny"
+        cognitive_complexity = "deny"
+        allow_attributes_without_reason = "deny"
         """
     ).lstrip()
 
@@ -496,6 +510,12 @@ def hybrid_workspace_manifest() -> str:
         [lints.rust]
         unsafe_code = "forbid"
 
+        [lints.clippy]
+        too_many_arguments = "deny"
+        too_many_lines = "deny"
+        cognitive_complexity = "deny"
+        allow_attributes_without_reason = "deny"
+
         [workspace]
         members = ["crates/app"]
         resolver = "3"
@@ -506,6 +526,12 @@ def hybrid_workspace_manifest() -> str:
 
         [workspace.lints.rust]
         unsafe_code = "forbid"
+
+        [workspace.lints.clippy]
+        too_many_arguments = "deny"
+        too_many_lines = "deny"
+        cognitive_complexity = "deny"
+        allow_attributes_without_reason = "deny"
         """
     ).lstrip()
 
@@ -523,11 +549,22 @@ def write_workspace_member_manifest(
         else 'edition = "2024"\nrust-version = "1.85"'
     )
     if unsafe_lint is not None:
-        lints = f'[lints.rust]\nunsafe_code = "{unsafe_lint}"'
+        lints = f'''[lints.rust]
+        unsafe_code = "{unsafe_lint}"
+
+        [lints.clippy]
+        too_many_arguments = "deny"
+        too_many_lines = "deny"
+        cognitive_complexity = "deny"
+        allow_attributes_without_reason = "deny"'''
     elif inherit_lints:
         lints = "[lints]\nworkspace = true"
     else:
-        lints = ""
+        lints = '''[lints.clippy]
+        too_many_arguments = "deny"
+        too_many_lines = "deny"
+        cognitive_complexity = "deny"
+        allow_attributes_without_reason = "deny"'''
     write_file(
         root / "crates" / "app" / "Cargo.toml",
         dedent(
@@ -596,6 +633,10 @@ def rack_manifest(*, firmware: bool = False) -> str:
         id = "doc"
         command = "RUSTDOCFLAGS=\\"-D warnings\\" cargo doc --workspace --no-deps --locked"
 
+        [[subtests]]
+        id = "rust-structural-hygiene"
+        command = "dev-std audit . --scope language"
+
         {dedent(firmware_commands).strip()}
         """
     ).lstrip()
@@ -614,6 +655,47 @@ def firmware_config() -> str:
         runner = "Embed.toml"
         """
     ).strip()
+
+
+def clippy_config() -> str:
+    return dedent(
+        """
+        too-many-arguments-threshold = 7
+        too-many-lines-threshold = 100
+        cognitive-complexity-threshold = 15
+        """
+    ).lstrip()
+
+
+def rust_hygiene_config(source_root: str = "src") -> str:
+    return dedent(
+        f"""
+        schema = 1
+        mode = "strict"
+
+        [limits]
+        max_parameters = 7
+        max_function_lines = 100
+        max_test_function_lines = 150
+        max_file_lines = 1000
+        max_cyclomatic_complexity = 10
+        max_nesting = 4
+
+        [paths]
+        source_roots = ["{source_root}", "tests"]
+        exclude_parts = [
+          ".git",
+          "_build",
+          "bindings",
+          "build",
+          "generated",
+          "node_modules",
+          "target",
+          "third_party",
+          "vendor",
+        ]
+        """
+    ).lstrip()
 
 
 def write_minimal_firmware_files(root: Path) -> None:

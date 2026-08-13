@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "violations": [
+    {
+      "path": "src/legacy.rs",
+      "item": "legacy_function",
+      "rule": "max_function_lines",
+      "value": 125
+    }
+  ]
+}

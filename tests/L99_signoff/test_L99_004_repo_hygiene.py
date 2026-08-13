@@ -120,6 +120,22 @@ def test_cpp_tooling_policy_is_documented_and_templated() -> None:
         assert expected in cpp_doc
         assert expected in clang_format
     assert "CMAKE_EXPORT_COMPILE_COMMANDS=ON" in cpp_doc
+    for expected in (
+        "Bazel",
+        "preferred",
+        "MODULE.bazel",
+        "MODULE.bazel.lock",
+        ".bazelversion",
+        ".bazelrc",
+        "bazel build",
+        "bazel test",
+        "compile_commands.json",
+        "CMake remains a permitted",
+    ):
+        assert expected in cpp_doc
+    bazel_template = ROOT / "docs" / "templates" / "cpp" / "bazel"
+    for name in ("MODULE.bazel", ".bazelversion", ".bazelrc", "BUILD.bazel"):
+        assert (bazel_template / name).exists()
     assert "max_cyclomatic_complexity = 10" in cpp_doc
     assert "max_cyclomatic_complexity = 10" in signoff
     assert 'lizard = "fail"' in signoff
@@ -250,6 +266,19 @@ def test_rust_policy_is_documented() -> None:
         "[rust.firmware]",
         "[rust.exceptions]",
         "ambient_toolchain",
+        "clippy.toml",
+        "rust-hygiene.toml",
+        "Tree-sitter",
+        "max_parameters = 7",
+        "max_function_lines = 100",
+        "max_test_function_lines = 150",
+        "max_file_lines = 1000",
+        "max_cyclomatic_complexity = 10",
+        "max_nesting = 4",
+        "max_value = 8",
+        'mode = "ratchet"',
+        "review_trigger",
+        "dev-std audit . --scope language",
     ):
         assert expected in rust_doc
         assert (

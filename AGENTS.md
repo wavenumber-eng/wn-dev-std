@@ -74,8 +74,10 @@ commit grouped runtime artifacts such as `dist/native/<platform>/` and
 release signoff. Root-level `dist/` files should remain limited to manifests or
 artifact documentation.
 
-C++ projects use Ninja as the default CMake generator, commit `.clang-format`
-and `.clang-tidy`, and enable `CMAKE_EXPORT_COMPILE_COMMANDS=ON` in presets.
+C++ projects prefer Bazel with Bzlmod, a module lock, and pinned Bazel version.
+CMake remains permitted and uses Ninja with `CMAKE_EXPORT_COMPILE_COMMANDS=ON`
+in presets. Both paths commit `.clang-format` and `.clang-tidy` and expose a
+compile database for analysis.
 
 ## Exceptions
 

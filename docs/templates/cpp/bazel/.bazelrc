@@ -1,0 +1,2 @@
+build --announce_rc
+test --test_output=errors

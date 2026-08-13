@@ -57,8 +57,6 @@ REQUIRED_DOC_PATHS = (
 MIXED_MODE_REQUIRED_PATHS = (
     ".clang-format",
     ".clang-tidy",
-    "CMakeLists.txt",
-    "CMakePresets.json",
     "dist/README.md",
     "scripts/validate_native.py",
     "scripts/validate_python_package.py",
@@ -67,8 +65,6 @@ MIXED_MODE_REQUIRED_PATHS = (
 CPP_REQUIRED_PATHS = (
     ".clang-format",
     ".clang-tidy",
-    "CMakeLists.txt",
-    "CMakePresets.json",
     "signoff.toml",
 )
 CPP_REQUIRED_ROOT_FILES = tuple(path for path in REQUIRED_ROOT_FILES if path != "pyproject.toml")
@@ -190,6 +186,8 @@ RUST_APP_REQUIRED_ROOT_FILES = (
     "README.md",
     "Cargo.toml",
     "Cargo.lock",
+    "clippy.toml",
+    "rust-hygiene.toml",
     "rust-toolchain.toml",
     "src",
     "tests",
@@ -205,6 +203,8 @@ RUST_FIRMWARE_REQUIRED_ROOT_FILES = (
     ".cargo/config.toml",
     "Cargo.toml",
     "Cargo.lock",
+    "clippy.toml",
+    "rust-hygiene.toml",
     "rust-toolchain.toml",
     "src",
     "tests",

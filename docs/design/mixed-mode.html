@@ -30,8 +30,8 @@
 
   <h2>Repository Shape</h2>
   <ul>
-    <li><code>CMakeLists.txt</code> owns the native build graph.</li>
-    <li><code>CMakePresets.json</code> defines portable native configure presets.</li>
+    <li>Bazel with Bzlmod is the preferred native build graph.</li>
+    <li>CMake with <code>CMakePresets.json</code> remains a permitted compatibility graph.</li>
     <li><code>python/&lt;package&gt;/</code> or <code>src/&lt;package&gt;/</code> owns Python APIs.</li>
     <li><code>tests/cpp/</code>, <code>tests/python/</code>, and <code>tests/wasm/</code> cover runtime surfaces.</li>
     <li><code>scripts/validate_native.py</code> builds and smokes the native artifacts.</li>
@@ -43,8 +43,9 @@
     Pure Python packages use Hatchling. Mixed-mode packages may use a custom
     <code>setuptools.build_meta</code> path when the wheel must bundle platform
     executables or libraries. The custom hook must be documented and covered by
-    installed-wheel validation. Native configure presets use Ninja by default
-    and enable <code>CMAKE_EXPORT_COMPILE_COMMANDS=ON</code>.
+    installed-wheel validation. Bazel lanes build, test, and generate compile
+    commands. CMake compatibility presets use Ninja and enable
+    <code>CMAKE_EXPORT_COMPILE_COMMANDS=ON</code>.
   </p>
 
   <h2>Artifact Policy</h2>
@@ -79,14 +80,14 @@
   <h2>Version Contract</h2>
   <p>
     Version identity must be synchronized across Python package metadata,
-    CMake project metadata, CLI <code>--version</code>, native runtime version
+    Bazel module or CMake project metadata, CLI <code>--version</code>, native runtime version
     APIs, and ABI generation fields. Date-based public versions remain the
     default; ABI dates change only when the native ABI generation changes.
   </p>
 
   <h2>CI Shape</h2>
   <p>
-    CI should keep separate lanes for Python signoff, native build and CTest,
+    CI should keep separate lanes for Python signoff, native build and Bazel test or CTest,
     platform wheel build and installed-wheel smoke tests, WASM build and smoke
     tests, and final release validation from a GitHub Release published event.
   </p>

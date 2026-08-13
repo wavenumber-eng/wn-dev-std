@@ -162,7 +162,7 @@ dev-std audit . --check-upstream-version
 Configured repositories must declare the standard version they target:
 
 ```toml
-standard_version = "2026.8.11"
+standard_version = "2026.8.12"
 profile = "python-package"
 
 [tests]
@@ -175,7 +175,7 @@ default and still runs the unfiltered config-version check. Passing a targeted
 scope set is partial governance adoption, not full profile conformance:
 
 ```toml
-standard_version = "2026.8.11"
+standard_version = "2026.8.12"
 profile = "zephyr-firmware"
 enabled_scopes = ["docs.plans"]
 ```
@@ -184,7 +184,7 @@ Workspace roots aggregate explicitly registered package/application policy
 boundaries. Members are policy boundaries, not every build target:
 
 ```toml
-standard_version = "2026.8.11"
+standard_version = "2026.8.12"
 kind = "workspace"
 
 [workspace]
@@ -198,7 +198,7 @@ should use the same shape with a first `governance` stage and later jobs using
 `standard_version`:
 
 ```bash
-uvx --from wn-dev-std==2026.8.11 dev-std audit .
+uvx --from wn-dev-std==2026.8.12 dev-std audit .
 ```
 
 The `check` command is a compatibility alias for `audit`:
@@ -271,9 +271,13 @@ The first native profile is `cpp-library`, modeled on the Geometer and
 
 C++ projects use:
 
-- CMake, CTest, and `CMakePresets.json`
-- Ninja as the default generator
-- `CMAKE_EXPORT_COMPILE_COMMANDS=ON`
+- Bazel as the preferred greenfield build option, using Bzlmod,
+  `MODULE.bazel.lock`, `.bazelversion`, `.bazelrc`, and owned `BUILD.bazel`
+  targets
+- Rack lanes for `bazel build //...`, `bazel test //...`, and
+  `compile_commands.json` generation
+- CMake, CTest, and `CMakePresets.json` as a permitted compatibility option;
+  CMake projects use Ninja and `CMAKE_EXPORT_COMPILE_COMMANDS=ON`
 - committed `.clang-format` and `.clang-tidy`
 - clang-format style based on LLVM, Allman braces, 4-space indentation, 100
   columns, left pointer alignment, sorted includes, and preserved include
@@ -304,12 +308,13 @@ rules and adds Zephyr-specific build-loop expectations:
 ## Mixed-Mode Baseline
 
 The first mixed-mode profile is `python-native-wasm`, modeled on Geometer-style
-packages that combine Python wrappers, CMake/C++ native builds, platform wheels,
+packages that combine Python wrappers, Bazel- or CMake-owned C++ native builds, platform wheels,
 and WASM runtime artifacts.
 
 Mixed-mode packages add:
 
-- CMake and CTest for native builds
+- Bazel as the preferred native graph, or CMake and CTest as the permitted
+  compatibility graph
 - grouped committed runtime artifacts under `dist/native/<platform>/` and
   `dist/wasm/<target>/`
 - documented custom wheel hooks when platform wheels bundle executables
@@ -404,6 +409,11 @@ Rust projects add:
 - `rust-toolchain.toml` with stable channel, `rustfmt`, and `clippy`, unless
   `[rust.exceptions].ambient_toolchain` documents an ambient stable policy
 - `edition` and `rust-version` metadata in package or workspace metadata
+- `clippy.toml` pinning argument, function-length, and cognitive-complexity
+  thresholds, plus inherited Cargo lint policy that denies structural lints
+- `rust-hygiene.toml` with Tree-sitter-based syntax-aware signoff for at most
+  7 parameters, 100 production-function lines, 150 test-function lines, 1000
+  owned-file lines, cyclomatic complexity 10, and nesting depth 4
 - owned `.rs` source under `src/` or a configured polyglot root such as
   `src/rs` or `src/rust`
 - `lints.rust.unsafe_code = "forbid"` for `rust-app`; embedded projects may
@@ -411,7 +421,8 @@ Rust projects add:
 - Rack or equivalent signoff commands for `cargo fmt --all -- --check`,
   `cargo check --locked`, `cargo clippy --locked -- -D warnings`,
   `cargo test --locked`, `cargo test --doc --locked`, and
-  `RUSTDOCFLAGS="-D warnings" cargo doc --locked`
+  `RUSTDOCFLAGS="-D warnings" cargo doc --locked`, plus the failing
+  `dev-std audit . --scope language` structural lane
 - workspace `resolver`, shared package metadata, workspace dependencies, and
   workspace lints for multi-crate projects; member packages that inherit
   `edition`, `rust-version`, or workspace lints must opt in with
@@ -420,12 +431,44 @@ Rust projects add:
   profile's allowed unsafe lint level
 - `workspace.exclude` for intentionally excluded member-glob matches; member
   globs are treated as package-directory globs, not arbitrary file globs
+- strict hard-fail policy for greenfield code; checked-in non-growing JSON
+  ratchets for existing debt; reviewed exceptions with exact item scope,
+  rationale, and review trigger; stale exceptions fail signoff
 
 Polyglot repositories can keep Rust beside other language implementations:
 
 ```toml
 [rust]
 source_root = "src/rs"
+
+[rust.hygiene]
+config = "rust-hygiene.toml"
+```
+
+Starter policy, Clippy, Cargo-lint, Rack, and baseline files live under
+`docs/templates/rust/`.
+
+```toml
+schema = 1
+mode = "ratchet"
+baseline = "rust-hygiene-baseline.json"
+
+[limits]
+max_parameters = 7
+max_function_lines = 100
+max_test_function_lines = 150
+max_file_lines = 1000
+max_cyclomatic_complexity = 10
+max_nesting = 4
+
+[[exceptions]]
+id = "reviewed-boundary"
+path = "src/ffi.rs"
+item = "invoke"
+rule = "max_parameters"
+max_value = 8
+reason = "The external ABI fixes this signature."
+review_trigger = "Remove when ABI v2 is required."
 ```
 
 Embedded Rust projects add:

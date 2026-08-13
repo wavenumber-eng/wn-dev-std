@@ -20,6 +20,18 @@ target = "src/wn_dev_std/rust_policy.py"
 
 [[implementation_refs]]
 kind = "local_file"
+target = "src/wn_dev_std/rust_hygiene.py"
+
+[[implementation_refs]]
+kind = "local_file"
+target = "src/wn_dev_std/rust_hygiene_exceptions.py"
+
+[[implementation_refs]]
+kind = "local_file"
+target = "src/wn_dev_std/rust_hygiene_syntax.py"
+
+[[implementation_refs]]
+kind = "local_file"
 target = "src/wn_dev_std/rust_standard_data.py"
 
 [[implementation_refs]]
@@ -64,6 +76,12 @@ variants of a host application profile; they are a different audit boundary.
 Cargo, rustfmt, Clippy, rustdoc, rustup, and Rack are the default tooling
 surface. Stable Rust is the default channel. Nightly is exception-only and must
 be pinned with rationale and a review trigger.
+
+Tree-sitter Rust is the approved structural parser. Dev-std pins the policy at
+seven parameters, 100 production-function lines, 150 test-function lines, 1000
+owned-file lines, cyclomatic complexity 10, and nesting depth 4. Clippy retains
+semantic ownership of its structural lints with explicit checked-in thresholds.
+Greenfield debt fails; existing debt may use a non-growing checked-in ratchet.
 
 Unsafe code is forbidden by default for `rust-app`. Firmware may use reviewed
 unsafe at hardware, register, generated-binding, or FFI boundaries, but the

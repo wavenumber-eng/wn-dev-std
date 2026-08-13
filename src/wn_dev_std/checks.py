@@ -41,6 +41,7 @@ from wn_dev_std.compatibility_pruning import check_compatibility_pruning_policy
 from wn_dev_std.cpp_policy import check_clang_tidy_policy
 from wn_dev_std.design_doc_status import check_design_doc_status_policy
 from wn_dev_std.governance_checks import governance_doc_checks
+from wn_dev_std.native_build import check_native_build_policy
 from wn_dev_std.native_complexity import check_lizard_gate, check_native_signoff_config
 from wn_dev_std.plan_hygiene import check_plan_hygiene_policy
 from wn_dev_std.pr_hygiene import check_pr_hygiene_policy
@@ -284,7 +285,7 @@ def _cpp_checks(root: Path) -> list[CheckResult]:
         _check_required_paths(root, "C++ files", CPP_REQUIRED_PATHS),
         _check_clang_format_policy(root),
         _check_clang_tidy_policy(root),
-        _check_cmake_presets_policy(root),
+        _check_native_build_system_policy(root),
         _check_native_signoff_config(root),
         _check_lizard_complexity_policy(root),
     ]
@@ -305,7 +306,7 @@ def _mixed_mode_checks(root: Path) -> list[CheckResult]:
         _check_required_paths(root, "mixed-mode files", MIXED_MODE_REQUIRED_PATHS),
         _check_clang_format_policy(root),
         _check_clang_tidy_policy(root),
-        _check_cmake_presets_policy(root),
+        _check_native_build_system_policy(root),
         _check_lizard_complexity_policy(root),
         _check_dist_root_policy(root),
     ]
@@ -666,36 +667,9 @@ def _check_clang_tidy_policy(root: Path) -> CheckResult:
     return CheckResult("clang-tidy policy", passed, detail)
 
 
-def _check_cmake_presets_policy(root: Path) -> CheckResult:
-    path = root / "CMakePresets.json"
-    if not path.exists():
-        return CheckResult("CMake presets", False, "CMakePresets.json is required")
-    raw_data: object = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(raw_data, dict):
-        return CheckResult("CMake presets", False, "CMakePresets.json must contain an object")
-    data = cast(Mapping[str, object], raw_data)
-    raw_presets = data.get("configurePresets")
-    if not isinstance(raw_presets, list):
-        return CheckResult("CMake presets", False, "configurePresets array is required")
-
-    raw_preset_items = cast(list[object], raw_presets)
-    presets = _mapping_list(raw_preset_items)
-    generator_values = _preset_generators(presets)
-    if not generator_values:
-        return CheckResult(
-            "CMake presets", False, "at least one configure preset must set generator"
-        )
-    non_ninja = [value for value in generator_values if value != "Ninja"]
-    if non_ninja:
-        return CheckResult("CMake presets", False, "Ninja is the default generator")
-
-    if not _has_compile_commands_enabled(presets):
-        return CheckResult(
-            "CMake presets",
-            False,
-            "at least one configure preset must set CMAKE_EXPORT_COMPILE_COMMANDS=ON",
-        )
-    return CheckResult("CMake presets", True, "Ninja and compile commands are configured")
+def _check_native_build_system_policy(root: Path) -> CheckResult:
+    passed, detail = check_native_build_policy(root)
+    return CheckResult("native build system", passed, detail)
 
 
 def _check_lizard_complexity_policy(root: Path) -> CheckResult:
@@ -763,32 +737,3 @@ def _read_simple_yaml_map(path: Path) -> dict[str, str]:
         key, value = stripped.split(":", 1)
         settings[key.strip()] = value.strip().strip('"').strip("'")
     return settings
-
-
-def _mapping_list(values: list[object]) -> list[Mapping[str, object]]:
-    items: list[Mapping[str, object]] = []
-    for value in values:
-        if isinstance(value, dict):
-            items.append(cast(Mapping[str, object], value))
-    return items
-
-
-def _preset_generators(presets: list[Mapping[str, object]]) -> list[str]:
-    generators: list[str] = []
-    for preset in presets:
-        generator = preset.get("generator")
-        if isinstance(generator, str):
-            generators.append(generator)
-    return generators
-
-
-def _has_compile_commands_enabled(presets: list[Mapping[str, object]]) -> bool:
-    for preset in presets:
-        cache_variables_raw = preset.get("cacheVariables")
-        if not isinstance(cache_variables_raw, dict):
-            continue
-        cache_variables = cast(Mapping[str, object], cache_variables_raw)
-        value = cache_variables.get("CMAKE_EXPORT_COMPILE_COMMANDS")
-        if value is True or value == "ON":
-            return True
-    return False

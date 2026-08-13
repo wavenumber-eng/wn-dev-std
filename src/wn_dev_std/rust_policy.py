@@ -19,6 +19,7 @@ from wn_dev_std.rust_cargo_workspace import (
     workspace_member_manifests,
 )
 from wn_dev_std.rust_command_surface import check_rust_command_surface
+from wn_dev_std.rust_hygiene import check_rust_hygiene_policy
 
 EXCLUDED_SOURCE_PARTS = {
     ".git",
@@ -54,6 +55,7 @@ def check_rust_policy(
         _check_cargo_metadata_policy(root, config, profile),
         _check_rust_toolchain_policy(root, config, profile),
         _check_rust_command_surface_policy(root, config, profile),
+        check_rust_hygiene_policy(root, config),
     ]
     if profile == "rust-firmware":
         checks.append(_check_rust_firmware_policy(root, config))

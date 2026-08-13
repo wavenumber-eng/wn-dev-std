@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/wavenumber-eng/wn-dev-std/docs/contracts/rust_hygiene_baseline.schema.v0.json",
+  "title": "Rust structural-hygiene ratchet baseline",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "violations"],
+  "properties": {
+    "schema": { "const": 1 },
+    "violations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "item", "rule", "value"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "item": { "type": "string", "minLength": 1 },
+          "rule": {
+            "enum": [
+              "max_parameters",
+              "max_function_lines",
+              "max_test_function_lines",
+              "max_file_lines",
+              "max_cyclomatic_complexity",
+              "max_nesting"
+            ]
+          },
+          "value": { "type": "integer", "minimum": 1 }
+        }
+      }
+    }
+  }
+}
