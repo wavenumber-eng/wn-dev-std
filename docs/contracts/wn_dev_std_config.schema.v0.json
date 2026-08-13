@@ -8,7 +8,7 @@
   "properties": {
     "standard_version": {
       "type": "string",
-      "description": "Installed standard version this configuration targets, for example 2026.8.11."
+      "description": "Installed standard version this configuration targets, for example 2026.8.12."
     },
     "kind": {
       "type": "string",
@@ -172,6 +172,17 @@
         "source_root": {
           "type": "string",
           "description": "Relative Rust-owned source root. Defaults to src; polyglot repositories commonly use src/rs or src/rust."
+        },
+        "hygiene": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Rust structural-hygiene policy location. The referenced TOML owns strict/ratchet mode, thresholds, source roots, exclusions, baselines, and reviewed exceptions.",
+          "properties": {
+            "config": {
+              "type": "string",
+              "description": "Repository-relative Rust hygiene TOML path. Defaults to rust-hygiene.toml."
+            }
+          }
         },
         "firmware": {
           "type": "object",

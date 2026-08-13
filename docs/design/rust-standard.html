@@ -10,8 +10,9 @@
     The Rust standard defines Wavenumber's first Rust profiles for host-side
     applications and embedded firmware. It keeps the audit boundary static:
     dev-std validates Cargo, rustup, repository shape, metadata, and signoff
-    wiring while Cargo, rustc, rustfmt, Clippy, rustdoc, tests, and hardware
-    signoff prove Rust source semantics.
+    wiring. Tree-sitter Rust validates owned-source structure while Cargo,
+    rustc, rustfmt, Clippy, rustdoc, tests, and hardware signoff prove Rust
+    semantics.
   </p>
 
   <h2>Profiles</h2>
@@ -62,6 +63,8 @@
     <li><code>Cargo.toml</code></li>
     <li><code>Cargo.lock</code> in the audited root for applications, firmware, and workspaces</li>
     <li><code>rust-toolchain.toml</code>, unless <code>[rust.exceptions].ambient_toolchain</code> documents an ambient stable policy</li>
+    <li><code>clippy.toml</code> with pinned structural-lint thresholds</li>
+    <li><code>rust-hygiene.toml</code> with strict or ratcheted source-shape policy</li>
     <li><code>src/</code> for Rust-only projects or a configured Rust source root such as <code>src/rs/</code> or <code>src/rust/</code></li>
     <li><code>tests/</code> and <code>tests/rack.toml</code></li>
     <li><code>dev-std.toml</code> or another supported dev-std config marker</li>
@@ -74,7 +77,10 @@
     polyglot setting is <code>source_root</code>:
   </p>
   <pre><code>[rust]
-source_root = "src/rs"</code></pre>
+source_root = "src/rs"
+
+[rust.hygiene]
+config = "rust-hygiene.toml"</code></pre>
   <p>
     The configured path must be repository-relative, stay inside the project
     root, and contain at least one owned <code>.rs</code> file. Generated,
@@ -90,6 +96,117 @@ source_root = "src/rs"</code></pre>
   <pre><code>[rust.exceptions]
 ambient_toolchain = "docs/design/rust-toolchain-exception.html"
 unsafe = "docs/design/unsafe-boundary.html"</code></pre>
+
+  <h2>Structural Hygiene</h2>
+  <p>
+    Greenfield <code>rust-app</code> and <code>rust-firmware</code> projects use
+    strict structural signoff. The canonical limits are seven parameters per
+    function or method, 100 physical lines per production function, 150 per
+    test function, 1000 per owned source file, cyclomatic complexity 10, and
+    control-flow nesting depth 4. These are Rust-specific review limits; they
+    are intentionally not copied from the larger C/C++ file and function
+    thresholds.
+  </p>
+  <pre><code>schema = 1
+mode = "strict"
+
+[limits]
+max_parameters = 7
+max_function_lines = 100
+max_test_function_lines = 150
+max_file_lines = 1000
+max_cyclomatic_complexity = 10
+max_nesting = 4
+
+[paths]
+source_roots = ["src", "tests"]</code></pre>
+  <p>
+    The dev-std scanner uses the maintained Tree-sitter Rust grammar rather
+    than regular expressions. It recognizes free functions, methods, trait
+    implementations, async functions, generics, attributes, nested modules,
+    and macro token boundaries. Declarative or procedural macro expansion
+    remains owned by rustc and Clippy because the unexpanded source tree does
+    not contain generated function bodies. Nested functions receive their own
+    identities and metrics; their branches and nesting do not inflate the
+    containing function's measurements.
+  </p>
+  <p>
+    Source roots must cover the configured <code>[rust].source_root</code> and
+    root integration tests, and every Cargo workspace member source and test
+    directory. The canonical exclusions
+    cover generated bindings, <code>generated/</code>, <code>vendor/</code>,
+    <code>third_party/</code>, <code>target/</code>, and build output without
+    excluding adjacent package-owned Rust. Polyglot siblings are not scanned
+    because only <code>.rs</code> files below the declared Rust roots are owned.
+  </p>
+  <p>
+    The relaxed test-function line limit applies to functions in a
+    <code>tests</code> module, exact <code>#[test]</code> or namespaced
+    <code>#[...::test]</code> attributes, and exact <code>#[cfg(test)]</code>
+    test helpers. Conditions such as <code>#[cfg(not(test))]</code> and
+    <code>#[cfg_attr(test, ...)]</code> remain production functions and use the
+    100-line limit.
+  </p>
+
+  <h2>Clippy Structural Lints</h2>
+  <p>
+    Clippy owns semantic lint interpretation; dev-std owns the reviewed policy
+    that pins thresholds and verifies failing signoff. Package lints, or root
+    <code>[workspace.lints.clippy]</code> inherited by every member, must deny
+    <code>too_many_arguments</code>, <code>too_many_lines</code>,
+    <code>cognitive_complexity</code>, and
+    <code>allow_attributes_without_reason</code>. The matching
+    <code>clippy.toml</code> values are:
+  </p>
+  <pre><code>too-many-arguments-threshold = 7
+too-many-lines-threshold = 100
+cognitive-complexity-threshold = 15</code></pre>
+  <p>
+    The Tree-sitter gate separately measures cyclomatic complexity and nesting,
+    properties that are not delegated to an implicit Clippy default.
+  </p>
+
+  <h2>Migration Ratchets And Exceptions</h2>
+  <p>
+    Existing debt uses <code>mode = "ratchet"</code> with a checked-in JSON
+    baseline. A baseline identifies path, qualified item, rule, and current
+    value. New violations and increases fail; resolved baseline entries remain
+    visible as warnings until pruned. Baselines do not weaken canonical limits.
+  </p>
+  <p>
+    A reviewed exception is narrower than a baseline entry and must declare a
+    stable id, exact path, qualified item, rule, accepted maximum value,
+    rationale, and concrete review trigger. An unmatched exception fails as
+    stale, and growth beyond the accepted maximum fails. Trait methods use the
+    containing trait in their qualified identity so equally named methods do
+    not share an exception or ratchet entry. Source-level
+    <code>#[allow]</code> attributes also need Clippy's reason syntax.
+  </p>
+  <pre><code>[[exceptions]]
+id = "ffi-callback-v1"
+path = "src/ffi/callback.rs"
+item = "Callback::invoke"
+rule = "max_parameters"
+max_value = 8
+reason = "The reviewed C ABI fixes the callback signature."
+review_trigger = "Remove when ABI v2 is the minimum supported version."</code></pre>
+  <p>
+    Starter files live in <code>docs/templates/rust/</code>. Local and CI/Rack
+    signoff use the same failing command:
+    <code>dev-std audit . --scope language</code>. Report-only structural lanes,
+    missing configs, weaker thresholds, missing workspace inheritance, and
+    incomplete baselines or exceptions fail the audit.
+  </p>
+  <p>
+    Tree-sitter and its Rust grammar install as locked runtime dependencies of
+    <code>wn-dev-std</code>; consumers do not install a separate parser binary.
+    The scanner supports the Rust grammar shipped with that reviewed package
+    version and reports deterministic path, qualified item, rule, measured
+    value, and limit details through normal text or JSON audit output. The TOML
+    policy and JSON baseline contracts are published as
+    <code>docs/contracts/rust_hygiene.schema.v0.json</code> and
+    <code>rust_hygiene_baseline.schema.v0.json</code>.
+  </p>
 
   <h2>Cargo Metadata</h2>
   <p>
@@ -153,6 +270,7 @@ unsafe = "docs/design/unsafe-boundary.html"</code></pre>
     <li><code>cargo test --workspace --locked</code></li>
     <li><code>cargo test --doc --workspace --locked</code></li>
     <li><code>RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --locked</code></li>
+    <li><code>dev-std audit . --scope language</code> for syntax-aware structural hygiene</li>
   </ul>
   <p>
     Rustdoc warning failures are controlled with the

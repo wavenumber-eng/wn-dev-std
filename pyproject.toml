@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "wn-dev-std"
-version = "2026.8.11"
+version = "2026.8.12"
 description = "Development standards reference package and conformance checks."
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
@@ -31,6 +31,8 @@ classifiers = [
 ]
 dependencies = [
     "jsonschema>=4.26.0",
+    "tree-sitter>=0.25.2,<0.26",
+    "tree-sitter-rust>=0.24.0,<0.25",
     "wn-rack>=2026.7.16",
 ]
 
@@ -64,7 +66,7 @@ dev-std = "wn_dev_std.cli.main:main"
 wn-dev-std = "wn_dev_std.cli.main:main"
 
 [tool.wn_dev_std]
-standard_version = "2026.8.11"
+standard_version = "2026.8.12"
 profile = "python-package"
 distribution = "pypi"
 languages = ["python"]

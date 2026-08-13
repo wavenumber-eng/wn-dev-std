@@ -100,7 +100,12 @@ def test_interface_manifest_matches_exports_and_design_doc() -> None:
 
 
 def test_config_and_exception_schemas_are_json_schema_documents() -> None:
-    for name in ("wn_dev_std_config.schema.v0.json", "exceptions.schema.v0.json"):
+    for name in (
+        "wn_dev_std_config.schema.v0.json",
+        "exceptions.schema.v0.json",
+        "rust_hygiene.schema.v0.json",
+        "rust_hygiene_baseline.schema.v0.json",
+    ):
         schema = load_json_mapping(ROOT / "docs" / "contracts" / name)
         assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
         assert isinstance(schema["title"], str)
@@ -172,6 +177,8 @@ def test_config_schema_matches_runtime_config_surface() -> None:
 
     rust_properties = properties_of(object_mapping(properties["rust"]))
     assert "source_root" in rust_properties
+    rust_hygiene_properties = properties_of(object_mapping(rust_properties["hygiene"]))
+    assert "config" in rust_hygiene_properties
     rust_firmware_properties = properties_of(object_mapping(rust_properties["firmware"]))
     assert "target" in rust_firmware_properties
     assert "memory_layout" in rust_firmware_properties

@@ -1,0 +1,4 @@
+# Merge this failing lane into tests/rack.toml.
+[[subtests]]
+id = "rust-structural-hygiene"
+command = "dev-std audit . --scope language"

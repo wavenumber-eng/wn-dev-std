@@ -25,8 +25,23 @@ RUST_APP_RULE_ITEMS = (
     ),
     (
         "static-analysis",
-        "cargo clippy -- -D warnings",
-        "Let Clippy and rustc own Rust semantic checks.",
+        "pinned structural Clippy lints with -D warnings",
+        "Clippy owns semantic linting while dev-std pins reviewed thresholds.",
+    ),
+    (
+        "hygiene",
+        "Tree-sitter Rust signoff with canonical source-shape limits",
+        "Syntax-aware scanning makes parameters, size, complexity, and nesting enforceable.",
+    ),
+    (
+        "hygiene.limits",
+        "args<=7, prod lines<=100, test lines<=150, file lines<=1000, cc<=10, nesting<=4",
+        "Greenfield limits are explicit; existing debt uses a checked-in non-growing ratchet.",
+    ),
+    (
+        "hygiene.exceptions",
+        "reviewed reason and review trigger",
+        "Every structural exception is attributable and stale exceptions fail signoff.",
     ),
     (
         "typecheck",
@@ -136,6 +151,8 @@ RUST_APP_REQUIRED_FILES = (
     "README.md",
     "Cargo.toml",
     "Cargo.lock",
+    "clippy.toml",
+    "rust-hygiene.toml",
     "rust-toolchain.toml",
     "src",
     "tests",
@@ -151,6 +168,8 @@ RUST_FIRMWARE_REQUIRED_FILES = (
     ".cargo/config.toml",
     "Cargo.toml",
     "Cargo.lock",
+    "clippy.toml",
+    "rust-hygiene.toml",
     "rust-toolchain.toml",
     "src",
     "tests",

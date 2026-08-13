@@ -50,7 +50,7 @@ SpaceBeforeParens: ControlStatements</code></pre>
   <h2>Static Analysis</h2>
   <p>
     New native projects commit <code>.clang-tidy</code> and run clang-tidy from
-    a CMake-generated <code>compile_commands.json</code>. Existing projects may
+    a build-graph-generated <code>compile_commands.json</code>. Existing projects may
     document temporary suppressions, but new warnings should not be added.
   </p>
   <p>
@@ -84,12 +84,23 @@ SpaceBeforeParens: ControlStatements</code></pre>
 WarningsAsErrors: &gt;
   google-runtime-int</code></pre>
 
-  <h2>CMake</h2>
+  <h2>Build Systems</h2>
   <p>
-    CMake and CTest are required. <code>CMakePresets.json</code> is required.
-    Ninja is the default generator. Presets must set
-    <code>CMAKE_EXPORT_COMPILE_COMMANDS=ON</code> so clang-tidy, editors, and
-    agent tooling use the same compiler arguments as the build.
+    Bazel is the preferred build option for greenfield C++ libraries and
+    executables. Preferred projects use Bzlmod with
+    <code>MODULE.bazel</code> and <code>MODULE.bazel.lock</code>, use Bazelisk
+    with a checked-in <code>.bazelversion</code>, commit
+    <code>.bazelrc</code>, register owned
+    targets in <code>BUILD.bazel</code>, and expose <code>bazel build</code>,
+    <code>bazel test</code>, and <code>compile_commands.json</code> generation
+    through Rack.
+  </p>
+  <p>
+    CMake remains a permitted and supported compatibility option. CMake
+    projects use CTest and <code>CMakePresets.json</code>, use Ninja as the
+    generator, and set <code>CMAKE_EXPORT_COMPILE_COMMANDS=ON</code>. A project
+    does not need to carry both graphs. The selected graph is authoritative and
+    must remain reproducible in local and CI signoff.
   </p>
 
   <h2>Warnings</h2>
@@ -102,7 +113,8 @@ WarningsAsErrors: &gt;
 
   <h2>Native Tests</h2>
   <p>
-    Register native tests with CTest and expose them through Rack strata. A
+    Register native tests with preferred <code>bazel test</code> or permitted
+    CTest and expose them through Rack strata. A
     typical native sequence is L0 compile/foundation, L1 algorithm tests, L2
     CLI or public API integration, optional slow corpus/performance lanes, and
     L99 release signoff.

@@ -1,0 +1,7 @@
+# Merge this table into a package Cargo.toml. Workspace roots use
+# [workspace.lints.clippy], and every member declares [lints] workspace = true.
+[lints.clippy]
+too_many_arguments = "deny"
+too_many_lines = "deny"
+cognitive_complexity = "deny"
+allow_attributes_without_reason = "deny"

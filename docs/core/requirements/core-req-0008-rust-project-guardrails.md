@@ -20,6 +20,18 @@ target = "src/wn_dev_std/rust_policy.py"
 
 [[implementation_refs]]
 kind = "local_file"
+target = "src/wn_dev_std/rust_hygiene.py"
+
+[[implementation_refs]]
+kind = "local_file"
+target = "src/wn_dev_std/rust_hygiene_exceptions.py"
+
+[[implementation_refs]]
+kind = "local_file"
+target = "src/wn_dev_std/rust_hygiene_syntax.py"
+
+[[implementation_refs]]
+kind = "local_file"
 target = "src/wn_dev_std/rust_standard_data.py"
 
 [[implementation_refs]]
@@ -49,6 +61,14 @@ target = "src/wn_dev_std/cli/commands/standard.py"
 [[implementation_refs]]
 kind = "local_file"
 target = "docs/contracts/wn_dev_std_config.schema.v0.json"
+
+[[implementation_refs]]
+kind = "local_file"
+target = "docs/contracts/rust_hygiene.schema.v0.json"
+
+[[implementation_refs]]
+kind = "local_file"
+target = "docs/contracts/rust_hygiene_baseline.schema.v0.json"
 
 [[implementation_refs]]
 kind = "local_file"
@@ -106,7 +126,17 @@ firmware, and workspaces; library-only relaxation is a future policy change.
 The audit must parse Cargo and rustup TOML with `tomllib`. It must validate
 package or workspace metadata, `edition`, `rust-version`, workspace resolver
 policy, lint posture for `unsafe_code`, toolchain channel/components/targets,
-and signoff command declarations. It must not parse Rust source syntax.
+and signoff command declarations. It must use Tree-sitter Rust, not regex-only
+function parsing, to enforce canonical parameter, production/test function
+length, owned-file length, cyclomatic-complexity, and nesting limits.
+
+Clippy structural thresholds must be pinned in `clippy.toml`, and package or
+inherited workspace lint metadata must deny `too_many_arguments`,
+`too_many_lines`, `cognitive_complexity`, and
+`allow_attributes_without_reason`. Greenfield projects hard fail. Existing
+projects may use a checked-in non-growing baseline; reviewed exceptions require
+an exact scope, accepted maximum value, rationale, and review trigger. Growth
+beyond that maximum and stale exceptions fail.
 
 Rust projects may configure a language-partitioned source root such as
 `src/rs` or `src/rust` for polyglot repositories where Python, C++, C#, Rust,
@@ -118,6 +148,8 @@ All Rust profiles must declare signoff coverage for `cargo fmt --all --
 --check`, `cargo check`, `cargo clippy`, `cargo test`, and
 `RUSTDOCFLAGS="-D warnings" cargo doc`. Cargo commands in CI must use
 deterministic locked dependency resolution, typically through `--locked`.
+Rack must also expose `dev-std audit . --scope language` as a failing Rust
+structural-hygiene lane.
 
 Embedded Rust projects must additionally declare target metadata,
 `.cargo/config.toml`, memory or linker artifacts such as `memory.x` or a

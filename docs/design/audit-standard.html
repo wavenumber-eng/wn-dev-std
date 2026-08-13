@@ -68,7 +68,7 @@
     target, runnable, board app, fixture, sample, or demo folder is a separate
     member.
   </p>
-  <pre><code>standard_version = "2026.8.11"
+  <pre><code>standard_version = "2026.8.12"
 kind = "workspace"
 
 [workspace]
@@ -97,7 +97,7 @@ members = ["bom_cruncher", "lib_cruncher", "panel-monkey"]</code></pre>
     <code>enabled_scopes</code>. Repositories with no dev-std config continue to
     use default audit behavior and are not part of the first migration ratchet.
   </p>
-  <pre><code>standard_version = "2026.8.11"
+  <pre><code>standard_version = "2026.8.12"
 kind = "package"
 profile = "zephyr-firmware"
 enabled_scopes = ["docs.plans"]</code></pre>
@@ -136,17 +136,29 @@ enabled_scopes = ["docs.plans"]</code></pre>
     Rust-owned source under <code>src/</code> or a configured
     <code>[rust].source_root</code> such as <code>src/rs</code>, Cargo package
     or workspace metadata, <code>Cargo.lock</code>,
-    <code>rust-toolchain.toml</code>, unsafe lint posture, and Rack command
-    declarations for Cargo fmt, check, Clippy, tests, and rustdoc warnings.
+    <code>rust-toolchain.toml</code>, <code>clippy.toml</code>,
+    <code>rust-hygiene.toml</code>, unsafe and structural lint posture, and Rack
+    command declarations for Cargo fmt, check, Clippy, tests, rustdoc warnings,
+    and the failing language audit.
   </p>
   <p>
     The Rust audit parses <code>Cargo.toml</code>,
     <code>rust-toolchain.toml</code>, and embedded
-    <code>.cargo/config.toml</code> with TOML parsing. It does not parse Rust
-    source in Python. Source semantics, unsafe-block enforcement, rustdoc
-    warnings, and lint failures belong to rustc, Clippy, rustfmt, rustdoc,
-    Cargo tests, and project signoff. <code>cargo doc</code> warning failures
-    are declared through <code>RUSTDOCFLAGS="-D warnings"</code>.
+    <code>.cargo/config.toml</code> with TOML parsing. It uses Tree-sitter Rust
+    for syntax-aware function, method, file-size, cyclomatic-complexity, and
+    nesting checks; it does not use regular expressions as a Rust parser.
+    Source semantics, macro expansion, unsafe-block enforcement, rustdoc
+    warnings, and semantic lint failures belong to rustc, Clippy, rustfmt,
+    rustdoc, Cargo tests, and project signoff. <code>cargo doc</code> warning
+    failures are declared through <code>RUSTDOCFLAGS="-D warnings"</code>.
+  </p>
+  <p>
+    Strict mode rejects every canonical violation. Ratchet mode accepts only
+    checked-in existing violations that do not grow; new or increased debt
+    fails. Reviewed exceptions require an exact path, qualified item, rule,
+    reason, and review trigger. Missing or weaker thresholds, incomplete
+    Clippy lint inheritance, report-only Rack wiring, and stale exceptions
+    fail the audit.
   </p>
   <p>
     <code>rust-firmware</code> adds static checks for
@@ -568,7 +580,7 @@ docs/domains/&lt;domain&gt;.html</code></pre>
     CI should run governance before expensive functional or platform matrices.
     Downstream CI should pin the released PyPI tool version that matches the
     repository's <code>standard_version</code>, for example
-    <code>uvx --from wn-dev-std==2026.8.11 dev-std audit .</code>. Optional
+    <code>uvx --from wn-dev-std==2026.8.12 dev-std audit .</code>. Optional
     upstream freshness checks may warn when a newer PyPI release exists, but
     normal audit must remain deterministic and offline unless that check is
     requested.

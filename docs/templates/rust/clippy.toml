@@ -1,0 +1,6 @@
+# Source of truth: docs/design/rust-standard.html.
+# Regeneration: copy this template, then keep values at or below the canonical maxima.
+# Release inclusion: committed project policy; never generated build output.
+too-many-arguments-threshold = 7
+too-many-lines-threshold = 100
+cognitive-complexity-threshold = 15

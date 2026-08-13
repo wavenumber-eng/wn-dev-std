@@ -55,22 +55,29 @@ def test_default_mixed_mode_standard_contains_native_and_wasm_rules() -> None:
     standard = default_mixed_mode_standard()
     assert isinstance(standard, PythonStandard)
     assert any(
-        rule.key == "workflow.native" and rule.value == "cmake + ctest" for rule in standard.rules
+        rule.key == "workflow.native" and "Bazel preferred" in rule.value for rule in standard.rules
     )
     assert any(rule.key == "complexity.native" and "<= 10" in rule.value for rule in standard.rules)
     assert any(rule.key == "wasm-artifacts" for rule in standard.rules)
-    assert "CMakeLists.txt" in standard.required_files
+    assert "CMakeLists.txt" not in standard.required_files
 
 
-def test_default_cpp_standard_contains_formatter_and_preset_rules() -> None:
+def test_default_cpp_standard_prefers_bazel_and_permits_cmake() -> None:
     standard = default_cpp_standard()
     assert isinstance(standard, PythonStandard)
-    assert any(rule.key == "generator" and rule.value == "ninja" for rule in standard.rules)
+    assert any(
+        rule.key == "build-system"
+        and "Bazel preferred" in rule.value
+        and "CMake permitted" in rule.value
+        for rule in standard.rules
+    )
+    assert any(rule.key == "bazel" and "Bzlmod" in rule.value for rule in standard.rules)
+    assert any(rule.key == "cmake.compatibility" for rule in standard.rules)
     assert any(rule.key == "format.style" for rule in standard.rules)
     assert any(rule.key == "integer-widths" for rule in standard.rules)
     assert any(rule.key == "complexity.native" and "<= 10" in rule.value for rule in standard.rules)
     assert ".clang-format" in standard.required_files
-    assert "CMakePresets.json" in standard.required_files
+    assert "CMakePresets.json" not in standard.required_files
     assert "signoff.toml" in standard.required_files
 
 
@@ -151,9 +158,13 @@ def test_default_rust_app_standard_contains_cargo_guardrails() -> None:
     assert any(rule.key == "workflow" and "Cargo" in rule.value for rule in standard.rules)
     assert any(rule.key == "docs.rustdoc" for rule in standard.rules)
     assert any(rule.key == "unsafe" and "forbid" in rule.value for rule in standard.rules)
+    assert any(rule.key == "hygiene" and "Tree-sitter" in rule.value for rule in standard.rules)
+    assert any(rule.key == "hygiene.limits" and "args<=7" in rule.value for rule in standard.rules)
     assert "Cargo.toml" in standard.required_files
     assert "Cargo.lock" in standard.required_files
     assert "rust-toolchain.toml" in standard.required_files
+    assert "clippy.toml" in standard.required_files
+    assert "rust-hygiene.toml" in standard.required_files
     assert "docs/design/rust-standard.html" in standard.required_docs
 
 
@@ -280,6 +291,28 @@ def test_cpp_profile_basic_checks_pass_for_minimal_repo(tmp_path: Path) -> None:
     write_minimal_cpp_repo(tmp_path)
     results = run_basic_checks(tmp_path)
     assert all(result.passed for result in results), [result.to_dict() for result in results]
+
+
+def test_cpp_profile_accepts_preferred_bazel_build(tmp_path: Path) -> None:
+    write_minimal_cpp_repo(tmp_path, build_system="bazel")
+
+    results = run_basic_checks(tmp_path)
+
+    assert all(result.passed for result in results), [result.to_dict() for result in results]
+    build = next(result for result in results if result.name == "native build system")
+    assert "preferred Bazel" in build.detail
+
+
+def test_cpp_bazel_profile_explains_how_to_generate_missing_module_lock(tmp_path: Path) -> None:
+    write_minimal_cpp_repo(tmp_path, build_system="bazel")
+    (tmp_path / "MODULE.bazel.lock").unlink()
+
+    results = run_basic_checks(tmp_path)
+    build = next(result for result in results if result.name == "native build system")
+
+    assert not build.passed
+    assert "MODULE.bazel.lock is required" in build.detail
+    assert "bazel mod deps --lockfile_mode=update" in build.detail
 
 
 def test_cpp_profile_requires_lizard_complexity_gate(tmp_path: Path) -> None:
@@ -537,6 +570,7 @@ def write_minimal_cpp_repo(
     *,
     include_lizard: bool = True,
     max_cyclomatic_complexity: int = 10,
+    build_system: str = "cmake",
 ) -> None:
     for relative_path in (
         ".gitattributes",
@@ -546,7 +580,6 @@ def write_minimal_cpp_repo(
         "CONTRIBUTING.md",
         "LICENSE",
         "README.md",
-        "CMakeLists.txt",
         "tests/rack.toml",
         "docs/setup.html",
         "docs/architecture.html",
@@ -626,12 +659,40 @@ def write_minimal_cpp_repo(
             """
         ).lstrip(),
     )
+    if build_system == "cmake":
+        write_file(root / "CMakeLists.txt", "cmake_minimum_required(VERSION 3.25)\n")
+    else:
+        write_minimal_bazel_build(root)
     if include_lizard:
         write_file(
             root / "tests" / "L99_signoff" / "test_lizard_complexity.py",
             "def test_lizard_complexity_gate_is_configured():\n    assert 'lizard'\n",
         )
     write_minimal_governance(root)
+
+
+def write_minimal_bazel_build(root: Path) -> None:
+    (root / "CMakePresets.json").unlink()
+    write_file(root / "MODULE.bazel", 'module(name = "example", version = "0.1.0")\n')
+    write_file(root / "MODULE.bazel.lock", "{}\n")
+    write_file(root / ".bazelversion", "9.2.0\n")
+    write_file(root / ".bazelrc", "build --announce_rc\n")
+    write_file(root / "BUILD.bazel", 'cc_library(name = "example")\n')
+    write_file(
+        root / "tests" / "rack.toml",
+        """[[subtests]]
+id = "build"
+command = "bazel build //..."
+
+[[subtests]]
+id = "test"
+command = "bazel test //..."
+
+[[subtests]]
+id = "compile-commands"
+command = "bazel run @hedron_compile_commands//:refresh_all"
+""",
+    )
 
 
 def write_minimal_zephyr_project(root: Path) -> None:

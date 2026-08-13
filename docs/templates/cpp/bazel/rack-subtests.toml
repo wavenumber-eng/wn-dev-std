@@ -1,0 +1,13 @@
+[[subtests]]
+id = "bazel-build"
+command = "bazel build //..."
+
+[[subtests]]
+id = "bazel-test"
+command = "bazel test //..."
+
+# Configure the project's reviewed compile-database rule or aspect, then keep
+# compile_commands in the command so dev-std can audit this lane.
+[[subtests]]
+id = "bazel-compile-commands"
+command = "bazel run @hedron_compile_commands//:refresh_all"

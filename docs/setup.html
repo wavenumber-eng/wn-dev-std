@@ -65,9 +65,14 @@ uv run twine check dist/*</code></pre>
 
   <h2>C++ Tooling</h2>
   <p>
-    C++ projects use CMake, CTest, Ninja, clang-format, and clang-tidy. The
+    C++ projects prefer Bazel with Bzlmod, Bazelisk, a pinned
+    <code>.bazelversion</code>, a checked-in module lock, and Rack
+    build/test/compile-database lanes. CMake
+    and CTest remain permitted; CMake projects use Ninja. All C++ projects use
+    clang-format and clang-tidy. The
     reference formatter and clang-tidy starter files live under
-    <code>docs/templates/cpp/</code>. CMake presets must enable
+    <code>docs/templates/cpp/</code>. Bazel projects expose
+    <code>compile_commands.json</code> generation; CMake presets enable
     <code>CMAKE_EXPORT_COMPILE_COMMANDS=ON</code>.
   </p>
 

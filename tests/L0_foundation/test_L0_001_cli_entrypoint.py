@@ -222,7 +222,7 @@ def test_standard_profile_can_render_cpp_json() -> None:
     result = run_cli("standard", "--profile", "cpp-library", "--format", "json")
     assert result.returncode == 0
     assert '"name": "cpp-library"' in result.stdout
-    assert '"value": "ninja"' in result.stdout
+    assert "Bazel preferred; CMake permitted" in result.stdout
 
 
 def test_standard_profile_can_render_csharp_json() -> None:

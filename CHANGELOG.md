@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026.8.12
+
+- Add issue #28's enforceable Rust source-shape policy with pinned Clippy
+  thresholds, Tree-sitter parsing, strict and ratcheted signoff, reviewed
+  value-bounded exceptions, trait-qualified identities, exact test
+  classification, workspace coverage, starter templates, and boundary fixtures.
+- Prefer Bazel/Bzlmod for greenfield C++ builds while keeping CMake/Ninja as a
+  permitted, audited compatibility option for C++ and mixed-mode projects.
+
 ## 2026.8.11
 
 - Support normal GIL-enabled CPython 3.12 through 3.14 and validate the latest
