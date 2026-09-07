@@ -85,7 +85,6 @@ CSHARP_REQUIRED_PATHS = (
     "AGENTS.md",
     "Directory.Build.props",
     "README.md",
-    "build.ps1",
     "src",
     "tests",
     "dev-std.toml",

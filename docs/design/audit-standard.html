@@ -23,12 +23,15 @@
     <code>dev-std plan</code> and <code>dev-std log</code> are workflow
     helpers over the same catalog. Read and mutation commands operate only on
     compliant plan catalogs and fail when the same metadata problems reported
-    by <code>docs.plans</code> are present. The initial mutation surface is
+    by <code>docs.plans</code> are present. Routine mutations are
     non-destructive: <code>plan create</code>, <code>plan status</code>,
     <code>plan step add</code>, <code>plan step status</code>,
     <code>log show</code>, <code>log create</code>, <code>adr create</code>,
-    and <code>requirement create</code>. Delete, retire, and migration commands
-    are future slices.
+    and <code>requirement create</code>. <code>plan close</code> is read-only by
+    default and turns the closeout policy into a concrete checklist. Its
+    explicit <code>--delete</code> mode removes only a ready plan and its attached
+    logs after all steps and exit criteria are complete and no plan depends on
+    it. Broader retire and migration commands are future slices.
   </p>
   <p>
     Durable governance docs use adjacent scopes. <code>docs.adrs</code>
@@ -68,7 +71,7 @@
     target, runnable, board app, fixture, sample, or demo folder is a separate
     member.
   </p>
-  <pre><code>standard_version = "2026.8.12"
+  <pre><code>standard_version = "2026.9.6"
 kind = "workspace"
 
 [workspace]
@@ -97,7 +100,7 @@ members = ["bom_cruncher", "lib_cruncher", "panel-monkey"]</code></pre>
     <code>enabled_scopes</code>. Repositories with no dev-std config continue to
     use default audit behavior and are not part of the first migration ratchet.
   </p>
-  <pre><code>standard_version = "2026.8.12"
+  <pre><code>standard_version = "2026.9.6"
 kind = "package"
 profile = "zephyr-firmware"
 enabled_scopes = ["docs.plans"]</code></pre>
@@ -388,7 +391,9 @@ status = "pending"</code></pre>
     impact audit, update durable artifacts, complete external review, remove
     the temporary plan and logs from the active plan root, and rerun
     <code>dev-std audit . --scope docs.plans</code> to prove no active-work
-    residue remains.
+    residue remains. <code>dev-std plan close &lt;plan-id&gt;</code> reports the
+    remaining work and exact finish command; add <code>--delete</code> only after
+    confirming the durable records contain the lasting outcomes.
   </p>
 
   <h2>ADR And Requirement Audits</h2>
@@ -580,7 +585,7 @@ docs/domains/&lt;domain&gt;.html</code></pre>
     CI should run governance before expensive functional or platform matrices.
     Downstream CI should pin the released PyPI tool version that matches the
     repository's <code>standard_version</code>, for example
-    <code>uvx --from wn-dev-std==2026.8.12 dev-std audit .</code>. Optional
+    <code>uvx --from wn-dev-std==2026.9.6 dev-std audit .</code>. Optional
     upstream freshness checks may warn when a newer PyPI release exists, but
     normal audit must remain deterministic and offline unless that check is
     requested.

@@ -162,7 +162,7 @@ dev-std audit . --check-upstream-version
 Configured repositories must declare the standard version they target:
 
 ```toml
-standard_version = "2026.8.12"
+standard_version = "2026.9.6"
 profile = "python-package"
 
 [tests]
@@ -175,7 +175,7 @@ default and still runs the unfiltered config-version check. Passing a targeted
 scope set is partial governance adoption, not full profile conformance:
 
 ```toml
-standard_version = "2026.8.12"
+standard_version = "2026.9.6"
 profile = "zephyr-firmware"
 enabled_scopes = ["docs.plans"]
 ```
@@ -184,12 +184,27 @@ Workspace roots aggregate explicitly registered package/application policy
 boundaries. Members are policy boundaries, not every build target:
 
 ```toml
-standard_version = "2026.8.12"
+standard_version = "2026.9.6"
 kind = "workspace"
 
 [workspace]
 members = ["bom_cruncher", "lib_cruncher", "panel-monkey"]
 ```
+
+Profiles may keep governed command entrypoints below the repository root:
+
+```toml
+[commands]
+build = "scripts/build/build.ps1"
+test = "scripts/test/test.ps1"
+signoff = "scripts/signoff.ps1"
+```
+
+Each configured command must be a normalized relative path to a file inside
+the audited repository. Absolute paths, parent traversal, directories, missing
+files, backslash separators, and non-normalized paths fail with a single
+`command entrypoints` diagnostic. Omitted roles retain profile defaults; for
+example, `csharp-app` continues to use root `build.ps1` unless `build` is set.
 
 GitHub Actions should run this governance gate before expensive platform jobs,
 and every expensive job should be gated on that first result. GitLab pipelines
@@ -198,7 +213,7 @@ should use the same shape with a first `governance` stage and later jobs using
 `standard_version`:
 
 ```bash
-uvx --from wn-dev-std==2026.8.12 dev-std audit .
+uvx --from wn-dev-std==2026.9.6 dev-std audit .
 ```
 
 The `check` command is a compatibility alias for `audit`:
@@ -215,6 +230,8 @@ dev-std plan list
 dev-std plan show pcb-a0
 dev-std plan create pcb-a0 --title "PCB A0"
 dev-std plan status pcb-a0 blocked
+dev-std plan close pcb-a0
+dev-std plan close pcb-a0 --delete
 dev-std plan step add pcb-a0 audit --title "Audit old plans"
 dev-std plan step list pcb-a0
 dev-std log list
@@ -601,6 +618,13 @@ lines, nested step-dependency bullets, and explicit exit-criteria status counts.
 machine-readable form. `dev-std plan list` and `dev-std plan show` report
 exit-criterion status, and `docs.plans` fails active plans with no exit criteria
 or plans whose criteria are all met while the plan still remains active.
+`dev-std plan close <plan-id>` turns the documented closeout workflow into an
+actionable checklist: it lists unfinished steps, unmet exit criteria, and
+dependent plans while reminding the caller to preserve durable outcomes in
+design docs, ADRs, requirements, tests, contracts, or release notes. It does
+not change files by default. Once the plan is ready,
+`dev-std plan close <plan-id> --delete` removes only that temporary plan and
+its attached plan-log files, then directs the caller to rerun the plans audit.
 
 ```toml
 [documentation.plans]

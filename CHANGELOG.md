@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026.9.6
+
+- Add `dev-std plan close` as the canonical guided closeout workflow, with
+  concrete readiness blockers and explicit `--delete` removal of only the
+  completed plan and its attached temporary logs.
+- Allow profiles to resolve governed build, test, and signoff command roles
+  through validated repository-relative paths while preserving existing
+  defaults and reporting command-path failures once.
+
 ## 2026.8.12
 
 - Add issue #28's enforceable Rust source-shape policy with pinned Clippy

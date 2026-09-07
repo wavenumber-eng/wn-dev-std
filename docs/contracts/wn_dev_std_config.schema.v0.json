@@ -8,7 +8,7 @@
   "properties": {
     "standard_version": {
       "type": "string",
-      "description": "Installed standard version this configuration targets, for example 2026.8.12."
+      "description": "Installed standard version this configuration targets, for example 2026.9.6."
     },
     "kind": {
       "type": "string",
@@ -68,6 +68,25 @@
       "type": "string",
       "enum": ["transient-dist", "committed-grouped-dist", "committed-extension-dist", "committed-app-package", "custom"],
       "description": "Whether dist/ is transient packaging output or committed grouped runtime artifacts."
+    },
+    "commands": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Governed repository-relative command entrypoints. Profile defaults apply when a role is omitted.",
+      "properties": {
+        "build": {
+          "$ref": "#/$defs/commandPath",
+          "description": "Build entrypoint path. The csharp-app profile defaults to build.ps1."
+        },
+        "test": {
+          "$ref": "#/$defs/commandPath",
+          "description": "Test entrypoint path when the repository governs a dedicated test command."
+        },
+        "signoff": {
+          "$ref": "#/$defs/commandPath",
+          "description": "Signoff entrypoint path when the repository governs a dedicated signoff command."
+        }
+      }
     },
     "governance": {
       "type": "object",
@@ -440,6 +459,11 @@
     "commandStatus": {
       "type": "string",
       "enum": ["public", "experimental", "deprecated", "hidden", "deferred"]
+    },
+    "commandPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\)(?!.*//)(?!.*(?:^|/)\\.(?:/|$))(?!.*/$).+$"
     }
   }
 }

@@ -321,6 +321,11 @@ ZEPHYR_REQUIRED_DOCS = (
 
 CSHARP_RULES = (
     StrictRule("build-system", "dotnet sdk-style projects", "Keep C# builds scriptable."),
+    StrictRule(
+        "command.build",
+        "build.ps1 by default; configurable with commands.build",
+        "Keep the governed build entrypoint explicit without requiring it at the repository root.",
+    ),
     StrictRule("props", "Directory.Build.props", "Centralize analyzer and language policy."),
     StrictRule("format", ".editorconfig", "Keep C# style and analyzer severities explicit."),
     StrictRule(
@@ -363,7 +368,6 @@ CSHARP_REQUIRED_FILES = (
     "AGENTS.md",
     "Directory.Build.props",
     "README.md",
-    "build.ps1",
     "src",
     "tests",
     "dev-std.toml",

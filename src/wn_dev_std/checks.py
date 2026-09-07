@@ -37,6 +37,7 @@ from wn_dev_std.check_profiles import (
     REQUIRED_ROOT_FILES as REQUIRED_ROOT_FILES,
 )
 from wn_dev_std.checks_types import CheckResult
+from wn_dev_std.command_entrypoints import check_command_entrypoints
 from wn_dev_std.compatibility_pruning import check_compatibility_pruning_policy
 from wn_dev_std.cpp_policy import check_clang_tidy_policy
 from wn_dev_std.design_doc_status import check_design_doc_status_policy
@@ -236,6 +237,7 @@ def _common_checks(
     checks: list[CheckResult] = []
     if scope_is_selected("repo", requested_scopes):
         checks.append(_check_required_paths(root, "root files", required_root_files(profile)))
+    checks.extend(_command_entrypoint_checks(root, profile, config, requested_scopes))
     if scope_is_selected("docs", requested_scopes):
         checks.append(
             _scoped_result(_check_required_documentation_paths(root, profile, config), "docs")
@@ -247,6 +249,23 @@ def _common_checks(
     if profile != "csharp-app" and scope_is_selected("repo", requested_scopes):
         checks.append(_check_required_paths(root, "rack suite", ("tests/rack.toml",)))
     return checks
+
+
+def _command_entrypoint_checks(
+    root: Path,
+    profile: ProfileName,
+    config: Mapping[str, object] | None,
+    requested_scopes: Sequence[str],
+) -> list[CheckResult]:
+    repo_selected = scope_is_selected("repo", requested_scopes)
+    language_selected = scope_is_selected("language", requested_scopes)
+    if not repo_selected and not language_selected:
+        return []
+    command_result = check_command_entrypoints(root, profile, config)
+    if command_result is None:
+        return []
+    command_scope = "repo" if repo_selected else "language"
+    return [_scoped_result(command_result, command_scope)]
 
 
 def _needs_python_package_checks(profile: ProfileName) -> bool:

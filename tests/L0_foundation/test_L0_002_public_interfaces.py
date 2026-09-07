@@ -95,9 +95,11 @@ def test_default_csharp_standard_contains_dotnet_analyzer_rules() -> None:
     standard = default_csharp_standard()
     assert isinstance(standard, PythonStandard)
     assert any(rule.key == "build-system" and "dotnet" in rule.value for rule in standard.rules)
+    assert any(rule.key == "command.build" and "build.ps1" in rule.value for rule in standard.rules)
     assert any(rule.key == "complexity" and "CA1502" in rule.value for rule in standard.rules)
     assert ".editorconfig" in standard.required_files
     assert "Directory.Build.props" in standard.required_files
+    assert "build.ps1" not in standard.required_files
 
 
 def test_default_javascript_web_standard_contains_no_build_rules() -> None:
