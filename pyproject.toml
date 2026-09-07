@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "wn-dev-std"
-version = "2026.8.12"
+version = "2026.9.6"
 description = "Development standards reference package and conformance checks."
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
@@ -66,7 +66,7 @@ dev-std = "wn_dev_std.cli.main:main"
 wn-dev-std = "wn_dev_std.cli.main:main"
 
 [tool.wn_dev_std]
-standard_version = "2026.8.12"
+standard_version = "2026.9.6"
 profile = "python-package"
 distribution = "pypi"
 languages = ["python"]

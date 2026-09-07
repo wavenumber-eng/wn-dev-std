@@ -204,3 +204,19 @@ name = "Rust Structural Hygiene"
 description = "Validate syntax-aware Rust size, complexity, ratchet, and exception policy"
 concerns = ["contracts", "signoff"]
 test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_023"
+file = "test_L0_023_command_entrypoints.py"
+name = "Command Entrypoints"
+description = "Validate governed command-role path defaults, overrides, and containment"
+concerns = ["contracts", "signoff"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_024"
+file = "test_L0_024_plan_close.py"
+name = "Plan Close"
+description = "Validate guided plan closeout assessment and explicit temporary-file deletion"
+concerns = ["cli", "contracts", "signoff"]
+test_case_type = "audit_meta"

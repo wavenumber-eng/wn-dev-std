@@ -7,6 +7,8 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, cast
 
+from jsonschema import Draft202012Validator
+
 from wn_dev_std.audit_config import AUDIT_SCOPES
 from wn_dev_std.cli.main import build_parser
 
@@ -109,6 +111,7 @@ def test_config_and_exception_schemas_are_json_schema_documents() -> None:
         schema = load_json_mapping(ROOT / "docs" / "contracts" / name)
         assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
         assert isinstance(schema["title"], str)
+        Draft202012Validator.check_schema(schema)
 
 
 def test_config_schema_matches_runtime_config_surface() -> None:
@@ -120,6 +123,7 @@ def test_config_schema_matches_runtime_config_surface() -> None:
         "kind",
         "enabled_scopes",
         "workspace",
+        "commands",
         "tests",
         "typescript",
         "rust",
@@ -143,6 +147,9 @@ def test_config_schema_matches_runtime_config_surface() -> None:
 
     workspace_properties = properties_of(object_mapping(properties["workspace"]))
     assert "members" in workspace_properties
+
+    command_properties = properties_of(object_mapping(properties["commands"]))
+    assert set(command_properties) == {"build", "test", "signoff"}
 
     governance_properties = properties_of(object_mapping(properties["governance"]))
     governance_html_properties = properties_of(object_mapping(governance_properties["html"]))

@@ -19,7 +19,7 @@ ProfileName = Literal[
     "zephyr-firmware",
 ]
 
-STANDARD_VERSION = "2026.8.12"
+STANDARD_VERSION = "2026.9.6"
 
 
 @dataclass(frozen=True, slots=True)

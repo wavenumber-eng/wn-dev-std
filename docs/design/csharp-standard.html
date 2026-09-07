@@ -30,6 +30,14 @@
     <code>Directory.Build.props</code> must enable .NET analyzers and
     code-style enforcement in build.
   </p>
+  <p>
+    The governed build command defaults to <code>build.ps1</code> at the
+    repository root. Projects may preserve a smaller public root command
+    surface by setting <code>commands.build</code> to a normalized,
+    repository-relative file path such as
+    <code>scripts/build/build.ps1</code>. Command entrypoints are validated
+    separately from required structural files.
+  </p>
 
   <h2>Analyzer Baseline</h2>
   <p>

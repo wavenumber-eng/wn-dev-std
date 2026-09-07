@@ -101,6 +101,12 @@
       JSON output remains the stable machine-readable form. <code>plan show</code>
       renders one plan by id, <code>plan create</code> writes a new canonical plan,
       <code>plan status</code> updates the plan status, and
+      <code>plan close</code> reports concrete closeout blockers and durable-record
+      guidance. When all steps are done, all exit criteria are met, and no other
+      plan depends on it, <code>plan close --delete</code> removes the exact
+      temporary plan and attached log files. Without <code>--delete</code>, the
+      command is read-only and prints the finish command. The command then asks
+      callers to rerun <code>dev-std audit . --scope docs.plans</code>.
       <code>plan step</code> lists, adds, or updates structured step state. The
       command also reports structured exit criteria from
       <code>[[exit_criteria]]</code> metadata so users and agents can determine

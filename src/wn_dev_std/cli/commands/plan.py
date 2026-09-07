@@ -5,7 +5,14 @@ from __future__ import annotations
 import argparse
 from typing import cast
 
-from wn_dev_std.cli.commands import plan_create, plan_list, plan_show, plan_status, plan_step
+from wn_dev_std.cli.commands import (
+    plan_close,
+    plan_create,
+    plan_list,
+    plan_show,
+    plan_status,
+    plan_step,
+)
 from wn_dev_std.cli.types import SubparserRegistry
 
 
@@ -17,6 +24,7 @@ def register(subparsers: SubparserRegistry) -> None:
         description="Read and update compliant plan documents.",
     )
     command_parsers = parser.add_subparsers(dest="plan_command", metavar="<plan-command>")
+    plan_close.register(command_parsers)
     plan_create.register(command_parsers)
     plan_list.register(command_parsers)
     plan_show.register(command_parsers)
