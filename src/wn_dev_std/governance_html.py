@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import cast
 
 from wn_dev_std.doc_governance import GovernanceCatalog, load_governance_catalog
-from wn_dev_std.governance_markdown import render_governance_markdown
+from wn_dev_std.governance_html_links import render_document_markdown
 from wn_dev_std.plan_hygiene import PlanCatalog, load_plan_catalog
 from wn_dev_std.root_discovery import load_pyproject, load_standard_config
 
@@ -75,6 +75,7 @@ def generate_governance_html(
     docs = _documents_from_catalogs(plan_catalog, governance_catalog)
     docs = (*docs, *_catalog_documents(resolved_root))
     link_index = _link_index(docs)
+    source_output_index = _source_output_index(resolved_root, resolved_output, docs)
     default_css = _copy_default_css(resolved_output)
     all_css_hrefs = (default_css, *css_hrefs)
     pages = tuple(
@@ -84,6 +85,7 @@ def generate_governance_html(
             doc,
             docs,
             link_index,
+            source_output_index,
             all_css_hrefs,
         )
         for doc in docs
@@ -274,18 +276,41 @@ def _parse_front_matter(path: Path) -> tuple[Mapping[str, object], str]:
     return {}, ""
 
 
+def _source_output_index(
+    root: Path,
+    output_root: Path,
+    docs: Sequence[GovernanceHtmlDocument],
+) -> Mapping[Path, Path]:
+    return {
+        (root / doc.source_path).resolve(): (
+            output_root / doc.kind / f"{_safe_filename(doc.record_id)}.html"
+        )
+        for doc in docs
+    }
+
+
 def _write_document_page(
     root: Path,
     output_root: Path,
     doc: GovernanceHtmlDocument,
     docs: Sequence[GovernanceHtmlDocument],
     link_index: Mapping[str, str],
+    source_output_index: Mapping[Path, Path],
     css_hrefs: Sequence[str],
 ) -> GovernanceHtmlPage:
     output_path = output_root / doc.kind / f"{_safe_filename(doc.record_id)}.html"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(
-        _document_html(root, output_root, output_path, doc, docs, link_index, css_hrefs),
+        _document_html(
+            root,
+            output_root,
+            output_path,
+            doc,
+            docs,
+            link_index,
+            source_output_index,
+            css_hrefs,
+        ),
         encoding="utf-8",
     )
     return GovernanceHtmlPage(doc.kind, doc.record_id, doc.source_path, output_path)
@@ -333,11 +358,15 @@ def _document_html(
     doc: GovernanceHtmlDocument,
     docs: Sequence[GovernanceHtmlDocument],
     link_index: Mapping[str, str],
+    source_output_index: Mapping[Path, Path],
     css_hrefs: Sequence[str],
 ) -> str:
     data_attrs = _data_attrs(doc)
     metadata_rows = _metadata_rows(root, output_path, doc, link_index)
-    plan_steps = _plan_steps_html(output_path, doc, docs)
+    plan_steps = _plan_steps_html(root, output_path, doc, docs, source_output_index)
+    body = render_document_markdown(
+        root, output_path, doc.source_path, doc.body, source_output_index
+    )
     css = _css_links(output_root, output_path, css_hrefs)
     return (
         '<!doctype html>\n<html lang="en">\n<head>\n'
@@ -359,7 +388,8 @@ def _document_html(
         '    <section id="dev-std-gov-body" class="dev-std-gov-section dev-std-gov-doc-body" '
         'data-dev-std-gov-section="body">\n'
         '      <h2 class="dev-std-gov-section-title">Body</h2>\n'
-        f"      {render_governance_markdown(doc.body)}\n"
+        "      "
+        f"{body}\n"
         "    </section>\n"
         f"{plan_steps}"
         "  </main>\n"
@@ -368,9 +398,11 @@ def _document_html(
 
 
 def _plan_steps_html(
+    root: Path,
     output_path: Path,
     doc: GovernanceHtmlDocument,
     docs: Sequence[GovernanceHtmlDocument],
+    source_output_index: Mapping[Path, Path],
 ) -> str:
     if doc.kind != "plan":
         return ""
@@ -382,10 +414,12 @@ def _plan_steps_html(
         for item in docs
         if item.kind == "plan_log" and _string_value(item.metadata.get("plan_id")) == doc.record_id
     ]
-    rows = "".join(_plan_step_html(output_path, step, logs) for step in steps)
+    rows = "".join(
+        _plan_step_html(root, output_path, step, logs, source_output_index) for step in steps
+    )
     unlinked_logs = [log for log in logs if not _string_value(log.metadata.get("step_id"))]
     if unlinked_logs:
-        rows += _plan_unlinked_logs_html(output_path, unlinked_logs)
+        rows += _plan_unlinked_logs_html(root, output_path, unlinked_logs, source_output_index)
     return (
         '    <section id="dev-std-gov-plan-steps" '
         'class="dev-std-gov-section dev-std-gov-plan-steps" '
@@ -397,9 +431,11 @@ def _plan_steps_html(
 
 
 def _plan_step_html(
+    root: Path,
     output_path: Path,
     step: Mapping[str, object],
     logs: Sequence[GovernanceHtmlDocument],
+    source_output_index: Mapping[Path, Path],
 ) -> str:
     step_id = _string_value(step.get("id"))
     title = _string_value(step.get("title")) or step_id
@@ -414,15 +450,17 @@ def _plan_step_html(
         f'        <p class="dev-std-gov-step-status"><code>{html.escape(status)}</code></p>\n'
         '        <details class="dev-std-gov-step-logs" open>\n'
         f"          <summary>{log_count} {log_word}</summary>\n"
-        f"{_plan_log_items_html(output_path, step_logs)}"
+        f"{_plan_log_items_html(root, output_path, step_logs, source_output_index)}"
         "        </details>\n"
         "      </article>\n"
     )
 
 
 def _plan_unlinked_logs_html(
+    root: Path,
     output_path: Path,
     logs: Sequence[GovernanceHtmlDocument],
+    source_output_index: Mapping[Path, Path],
 ) -> str:
     return (
         '      <article class="dev-std-gov-step dev-std-gov-step-unlinked" '
@@ -430,28 +468,40 @@ def _plan_unlinked_logs_html(
         '        <h3 class="dev-std-gov-step-title">Unlinked Logs</h3>\n'
         '        <details class="dev-std-gov-step-logs" open>\n'
         f"          <summary>{len(logs)} log(s)</summary>\n"
-        f"{_plan_log_items_html(output_path, logs)}"
+        f"{_plan_log_items_html(root, output_path, logs, source_output_index)}"
         "        </details>\n"
         "      </article>\n"
     )
 
 
 def _plan_log_items_html(
+    root: Path,
     output_path: Path,
     logs: Sequence[GovernanceHtmlDocument],
+    source_output_index: Mapping[Path, Path],
 ) -> str:
     if not logs:
         return '          <p class="dev-std-gov-step-log-empty">No logs.</p>\n'
-    items = "".join(_plan_log_item_html(output_path, log) for log in logs)
+    items = "".join(
+        _plan_log_item_html(root, output_path, log, source_output_index) for log in logs
+    )
     return f'          <div class="dev-std-gov-step-log-items">\n{items}          </div>\n'
 
 
-def _plan_log_item_html(output_path: Path, log: GovernanceHtmlDocument) -> str:
+def _plan_log_item_html(
+    root: Path,
+    output_path: Path,
+    log: GovernanceHtmlDocument,
+    source_output_index: Mapping[Path, Path],
+) -> str:
     href = _relative_href(
         output_path,
         output_path.parent.parent / "plan_log" / f"{_safe_filename(log.record_id)}.html",
     )
     created = _string_value(log.metadata.get("created"))
+    body = render_document_markdown(
+        root, output_path, log.source_path, log.body, source_output_index
+    )
     return (
         '            <section class="dev-std-gov-step-log" '
         f'data-dev-std-gov-log-id="{html.escape(log.record_id)}">\n'
@@ -459,7 +509,8 @@ def _plan_log_item_html(output_path: Path, log: GovernanceHtmlDocument) -> str:
         '              <p class="dev-std-gov-step-log-created">'
         f"<code>{html.escape(created)}</code></p>\n"
         '              <div class="dev-std-gov-log-body">'
-        f"{render_governance_markdown(log.body)}</div>\n"
+        f"{body}"
+        "</div>\n"
         "            </section>\n"
     )
 
@@ -600,12 +651,25 @@ def _ref_html(
     if value.startswith("docs/") or value.startswith("tests/") or value.startswith("src/"):
         file_part = _file_ref_target(value)
         target = root / file_part
-        href = _relative_href(output_path, target) if target.exists() else value
+        governance_target = _governance_output_target(output_path, target)
+        href_target = governance_target or target
+        href = _relative_href(output_path, href_target) if target.exists() else value
         return (
             f'<a class="dev-std-gov-ref dev-std-gov-ref-file" '
             f'href="{html.escape(href)}">{html.escape(value)}</a>'
         )
     return html.escape(value)
+
+
+def _governance_output_target(output_path: Path, source_target: Path) -> Path | None:
+    if source_target.suffix.lower() != ".md" or not source_target.exists():
+        return None
+    metadata, _ = _parse_front_matter(source_target)
+    kind = _string_value(metadata.get("type"))
+    record_id = _string_value(metadata.get("id"))
+    if kind not in {"adr", "plan", "plan_log", "requirement"} or not record_id:
+        return None
+    return output_path.parent.parent / kind / f"{_safe_filename(record_id)}.html"
 
 
 def _file_ref_target(value: str) -> str:
