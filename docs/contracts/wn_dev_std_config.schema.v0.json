@@ -8,7 +8,7 @@
   "properties": {
     "standard_version": {
       "type": "string",
-      "description": "Installed standard version this configuration targets, for example 2026.9.6."
+      "description": "Installed standard version this configuration targets, for example 2026.9.8."
     },
     "kind": {
       "type": "string",

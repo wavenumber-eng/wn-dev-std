@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026.9.8
+
+- Rewrite local links in generated governance HTML relative to their generated
+  pages, including links to other generated governance records, ordinary
+  repository files, and embedded plan-log content.
+- Resolve typed metadata references to governance source documents through
+  their generated HTML pages and allow ordinary ADR/requirement index README
+  links without weakening the raw-governance-source policy.
+
 ## 2026.9.6
 
 - Add `dev-std plan close` as the canonical guided closeout workflow, with

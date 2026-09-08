@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import html
 import os
-import re
 import shutil
 import tomllib
 from collections.abc import Mapping, Sequence
@@ -13,7 +12,7 @@ from pathlib import Path
 from typing import cast
 
 from wn_dev_std.doc_governance import GovernanceCatalog, load_governance_catalog
-from wn_dev_std.governance_markdown import render_governance_markdown
+from wn_dev_std.governance_html_links import render_document_markdown
 from wn_dev_std.plan_hygiene import PlanCatalog, load_plan_catalog
 from wn_dev_std.root_discovery import load_pyproject, load_standard_config
 
@@ -59,9 +58,6 @@ REF_KEYS = (
     "schema_refs",
 )
 METADATA_FIELD_PRIORITY = ("id", "status")
-RENDERED_MARKDOWN_HREF_RE = re.compile(
-    r'(?P<prefix><a class="dev-std-gov-link" href=")(?P<href>[^"]+)(?P<suffix>")'
-)
 
 
 def generate_governance_html(
@@ -293,38 +289,6 @@ def _source_output_index(
     }
 
 
-def _render_document_markdown(
-    root: Path,
-    output_path: Path,
-    doc: GovernanceHtmlDocument,
-    source_output_index: Mapping[Path, Path],
-) -> str:
-    rendered = render_governance_markdown(doc.body)
-    source_path = (root / doc.source_path).resolve()
-
-    def replace_href(match: re.Match[str]) -> str:
-        href = html.unescape(match.group("href"))
-        if _is_external_href(href):
-            return match.group(0)
-        href_path, suffix = _split_href_suffix(href)
-        if not href_path:
-            return match.group(0)
-        source_target = (source_path.parent / href_path).resolve()
-        output_target = source_output_index.get(source_target, source_target)
-        rewritten = _relative_href(output_path, output_target) + suffix
-        return match.group("prefix") + html.escape(rewritten, quote=True) + match.group("suffix")
-
-    return RENDERED_MARKDOWN_HREF_RE.sub(replace_href, rendered)
-
-
-def _split_href_suffix(href: str) -> tuple[str, str]:
-    positions = [index for marker in ("?", "#") if (index := href.find(marker)) >= 0]
-    if not positions:
-        return href, ""
-    split_at = min(positions)
-    return href[:split_at], href[split_at:]
-
-
 def _write_document_page(
     root: Path,
     output_root: Path,
@@ -400,6 +364,9 @@ def _document_html(
     data_attrs = _data_attrs(doc)
     metadata_rows = _metadata_rows(root, output_path, doc, link_index)
     plan_steps = _plan_steps_html(root, output_path, doc, docs, source_output_index)
+    body = render_document_markdown(
+        root, output_path, doc.source_path, doc.body, source_output_index
+    )
     css = _css_links(output_root, output_path, css_hrefs)
     return (
         '<!doctype html>\n<html lang="en">\n<head>\n'
@@ -421,7 +388,8 @@ def _document_html(
         '    <section id="dev-std-gov-body" class="dev-std-gov-section dev-std-gov-doc-body" '
         'data-dev-std-gov-section="body">\n'
         '      <h2 class="dev-std-gov-section-title">Body</h2>\n'
-        f"      {_render_document_markdown(root, output_path, doc, source_output_index)}\n"
+        "      "
+        f"{body}\n"
         "    </section>\n"
         f"{plan_steps}"
         "  </main>\n"
@@ -531,6 +499,9 @@ def _plan_log_item_html(
         output_path.parent.parent / "plan_log" / f"{_safe_filename(log.record_id)}.html",
     )
     created = _string_value(log.metadata.get("created"))
+    body = render_document_markdown(
+        root, output_path, log.source_path, log.body, source_output_index
+    )
     return (
         '            <section class="dev-std-gov-step-log" '
         f'data-dev-std-gov-log-id="{html.escape(log.record_id)}">\n'
@@ -538,7 +509,8 @@ def _plan_log_item_html(
         '              <p class="dev-std-gov-step-log-created">'
         f"<code>{html.escape(created)}</code></p>\n"
         '              <div class="dev-std-gov-log-body">'
-        f"{_render_document_markdown(root, output_path, log, source_output_index)}</div>\n"
+        f"{body}"
+        "</div>\n"
         "            </section>\n"
     )
 

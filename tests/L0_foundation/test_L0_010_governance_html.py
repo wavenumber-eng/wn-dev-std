@@ -168,10 +168,16 @@ def write_governance_repo(root: Path) -> None:
             """
         ).lstrip(),
     )
+    write_file(root / "docs" / "core" / "adr" / "core-adr-0001-demo.md", demo_adr())
     write_file(
-        root / "docs" / "core" / "adr" / "core-adr-0001-demo.md",
-        dedent(
-            """
+        root / "docs" / "core" / "requirements" / "core-req-0001-demo.md",
+        demo_requirement(),
+    )
+
+
+def demo_adr() -> str:
+    return dedent(
+        """
             +++
             type = "adr"
             id = "core-adr-0001"
@@ -183,12 +189,12 @@ def write_governance_repo(root: Path) -> None:
 
             # Demo Decision
             """
-        ).lstrip(),
-    )
-    write_file(
-        root / "docs" / "core" / "requirements" / "core-req-0001-demo.md",
-        dedent(
-            """
+    ).lstrip()
+
+
+def demo_requirement() -> str:
+    return dedent(
+        """
             +++
             type = "requirement"
             id = "core-req-0001"
@@ -212,8 +218,7 @@ def write_governance_repo(root: Path) -> None:
             See the governing [decision](../adr/core-adr-0001-demo.md#decision)
             and its [test source](../../../tests/test_demo.py?view=1#L1).
             """
-        ).lstrip(),
-    )
+    ).lstrip()
 
 
 def write_file(path: Path, text: str) -> None:
