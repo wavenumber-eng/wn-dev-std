@@ -342,6 +342,21 @@ def test_docs_links_audit_fails_html_link_to_raw_governance_markdown(tmp_path: P
     assert "must link generated governance pages" in result.detail
 
 
+def test_docs_links_audit_allows_html_link_to_governance_readme(tmp_path: Path) -> None:
+    write_file(
+        tmp_path / "docs" / "core" / "design" / "index.html",
+        '<a href="../requirements/README.md">Requirements</a>\n',
+    )
+    write_file(
+        tmp_path / "docs" / "core" / "requirements" / "README.md",
+        "# Requirement Index\n",
+    )
+
+    result = scope_result(tmp_path, "docs.links")
+
+    assert result.passed
+
+
 def test_docs_domain_audit_fails_when_no_domain_registry_exists(tmp_path: Path) -> None:
     result = scope_result(tmp_path, "docs.domains")
 

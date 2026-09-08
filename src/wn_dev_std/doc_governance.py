@@ -582,6 +582,8 @@ def _validate_generated_governance_link_policy(
 
 
 def _is_raw_governance_source_path(path: Path) -> bool:
+    if path.name.lower() == "readme.md":
+        return False
     parts = {part.lower() for part in path.parts}
     return bool(parts.intersection({"adr", "requirements"}))
 

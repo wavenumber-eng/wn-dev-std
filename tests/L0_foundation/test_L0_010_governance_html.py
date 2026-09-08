@@ -36,6 +36,7 @@ def test_generate_governance_html_writes_pages_with_data_tags(tmp_path: Path) ->
     assert '../plan_log/demo-log.html">demo-log</a>' in plan_text
     assert '<div class="dev-std-gov-log-body">' in plan_text
     assert "Implemented the demo step." in plan_text
+    assert 'href="../../../../tests/test_demo.py">test</a>' in plan_text
     text = req_page.read_text(encoding="utf-8")
     assert 'data-dev-std-gov-type="requirement"' in text
     assert 'data-dev-std-gov-id="core-req-0001"' in text
@@ -65,8 +66,11 @@ def test_generate_governance_html_writes_pages_with_data_tags(tmp_path: Path) ->
     assert 'class="dev-std-gov-evidence-table"' in text
     assert 'class="dev-std-gov-evidence-key dev-std-gov-evidence-key-target">target</th>' in text
     assert 'href="../../../../tests/test_demo.py">tests/test_demo.py::test_demo</a>' in text
+    assert 'href="../adr/core-adr-0001.html">docs/core/adr/core-adr-0001-demo.md</a>' in text
     assert '<div class="dev-std-gov-body">' in text
     assert '<h1 class="dev-std-gov-h dev-std-gov-h1">Demo Requirement</h1>' in text
+    assert 'href="../adr/core-adr-0001.html#decision">decision</a>' in text
+    assert 'href="../../../../tests/test_demo.py?view=1#L1">test source</a>' in text
 
 
 def test_generate_governance_html_fails_noncompliant_catalog(tmp_path: Path) -> None:
@@ -160,7 +164,7 @@ def write_governance_repo(root: Path) -> None:
             created = "2026-07-02T12:00:00-04:00"
             +++
 
-            Implemented the demo step.
+            Implemented the demo step. See the [test](../../tests/test_demo.py).
             """
         ).lstrip(),
     )
@@ -197,9 +201,16 @@ def write_governance_repo(root: Path) -> None:
             [[verification_refs]]
             kind = "local_pytest"
             target = "tests/test_demo.py::test_demo"
+
+            [[verification_refs]]
+            kind = "local_file"
+            target = "docs/core/adr/core-adr-0001-demo.md"
             +++
 
             # Demo Requirement
+
+            See the governing [decision](../adr/core-adr-0001-demo.md#decision)
+            and its [test source](../../../tests/test_demo.py?view=1#L1).
             """
         ).lstrip(),
     )
