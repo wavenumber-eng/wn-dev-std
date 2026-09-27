@@ -1,0 +1,16 @@
+emit:
+  - "@typespec/json-schema"
+  - "@typespec/openapi3"
+
+options:
+  "@typespec/json-schema":
+    emitter-output-dir: "{project-root}/generated/schema"
+    file-type: json
+    seal-object-schemas: true
+  "@typespec/openapi3":
+    emitter-output-dir: "{project-root}/generated/openapi"
+    file-type: json
+    openapi-versions:
+      - "3.1.0"
+
+warn-as-error: true

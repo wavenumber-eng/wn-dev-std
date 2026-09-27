@@ -55,3 +55,11 @@ name = "Python Signoff"
 description = "Run strict AST-based Python hygiene checks"
 concerns = ["signoff"]
 test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L99_006"
+file = "test_L99_006_templates.py"
+name = "Executable Templates"
+description = "Copy, install, audit, and execute signoff for shipped TypeSpec and Lit templates"
+concerns = ["contracts", "release", "signoff"]
+test_case_type = "integration"

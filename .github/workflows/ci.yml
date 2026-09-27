@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
       - name: Sync
-        run: uv sync --all-extras --python 3.14
+        run: uv sync --all-extras --python 3.14 --locked
       - name: Run dev-std governance audit
         run: uv run --python 3.14 dev-std audit .
 
@@ -30,8 +30,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.18.0
+      - name: Pin npm
+        run: npm install --global npm@11.16.0
+      - name: Verify Node toolchain
+        run: node --version && npm --version
       - name: Sync
-        run: uv sync --all-extras --python 3.14
+        run: uv sync --all-extras --python 3.14 --locked
       - name: Run Rack signoff
         run: uv run --python 3.14 rack run --all
       - name: Build package
@@ -43,5 +50,7 @@ jobs:
         run: |
           $wheel = Get-ChildItem dist -Filter "*.whl" | Select-Object -First 1
           uv tool install --python 3.14 --force $wheel.FullName
+          $installedCli = (Get-Command wn-dev-std).Source
           wn-dev-std --version
           wn-dev-std standard
+          uv run --python 3.14 python tests/support_scripts/installed_wheel_template_smoke.py dist $installedCli

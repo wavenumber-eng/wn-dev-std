@@ -1,0 +1,32 @@
+[[artifacts]]
+id = "lit-template-wavenumber-backgrounds"
+kind = "public_reference_asset"
+paths = ["docs/templates/web/lit-activity/public/backgrounds/**"]
+tracked = "required"
+produced_by = "approved snapshots copied from install/assets/branding/backgrounds"
+included_in_release = "wn-dev-std wheel and sdist template resources"
+retention = "committed versioned snapshots; Install remains the editable authority"
+
+[[artifacts.verification_refs]]
+kind = "local_file"
+target = "docs/templates/web/lit-activity/public/backgrounds/manifest.json"
+rationale = "The public authorization flag and SHA-256 checksums cover every copied background."
+
+[[artifacts]]
+id = "lit-template-jetbrains-mono"
+kind = "public_reference_asset"
+paths = ["docs/templates/web/lit-activity/public/fonts/**"]
+tracked = "required"
+produced_by = "pinned JetBrains Mono v2.304 public release snapshot"
+included_in_release = "wn-dev-std wheel and sdist template resources"
+retention = "committed OFL-1.1 font, license, source, and checksum snapshot"
+
+[[artifacts.verification_refs]]
+kind = "local_file"
+target = "docs/templates/web/lit-activity/public/fonts/manifest.json"
+rationale = "The font manifest records the upstream tag, license, and SHA-256 checksums."
+
+[[artifacts.verification_refs]]
+kind = "local_file"
+target = "docs/templates/web/lit-activity/public/fonts/OFL.txt"
+rationale = "The redistributed font includes the complete SIL Open Font License 1.1 text."

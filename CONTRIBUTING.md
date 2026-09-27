@@ -15,6 +15,23 @@ Thank you for contributing to `wn-dev-std`.
    uv run twine check dist/*
    ```
 
+   If a shipped executable template changed, also run its local signoff for a
+   fast, direct result before the full Rack suite:
+
+   ```bash
+   cd docs/templates/typespec-contract
+   npm ci
+   npm run signoff
+
+   cd ../web/lit-activity
+   npm ci
+   npm run signoff
+   ```
+
+   Run `npm run dev` from the Lit template for interactive UI review. See
+   [`docs/build.html`](docs/build.html) for template ownership, packaging, and
+   clean-copy validation details.
+
 4. Open a pull request.
 
 ## PR Merge Policy
@@ -36,6 +53,8 @@ Standards changes should update all affected surfaces:
 - `README.md` when user-facing behavior changes
 - `CHANGELOG.md`
 - `docs/releases/<YYYY-MM-DD>.md` for release-facing changes
+- executable references, their local guides, and nested signoff when the
+  standard has a shipped template
 
 ## Exceptions
 

@@ -175,7 +175,22 @@
       the host-side Rust profile, <code>--profile rust-firmware</code> renders
       the embedded Rust firmware profile, and
       <code>--profile zephyr-firmware</code> renders the Zephyr firmware
-      profile.
+      profile. Cross-cutting capabilities are selected independently with
+      <code>--capability</code>: <code>typespec-contracts</code>,
+      <code>activity-application</code>, <code>backend-integration</code>, or
+      <code>lit-web-application</code>.
+    </p>
+  </section>
+
+  <section data-command="template">
+    <h2>template</h2>
+    <p>
+      Lists and copies templates shipped with the installed standard version.
+      <code>template list</code> reports the independent TypeSpec contract
+      package and Lit activity web application references. <code>template copy
+      &lt;name&gt; &lt;destination&gt;</code> creates a project-owned copy and refuses to
+      overwrite an existing destination. Copied projects must rename sample
+      identities and review their <code>dev-std.toml</code> declarations.
     </p>
   </section>
 

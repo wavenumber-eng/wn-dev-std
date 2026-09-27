@@ -1,0 +1,12 @@
+{
+  "source": "Wavenumber standard branding background set",
+  "approved_for_public_reference": true,
+  "files": {
+    "bg0.jpg": "sha256:ed7ae1e431604539cfe7bc71bef328e8d3cf3b05ee056f88661e40b9f653867d",
+    "bg1.jpg": "sha256:37a5467322fffd87b69b0371175b05535e681ec73d8c460dd3c7a7d237e64861",
+    "bg2.jpg": "sha256:5ab0225d44ecad96ad55e24e43c6cfc26606ccdab98ee8db27032272e3d128ff",
+    "bg3.jpg": "sha256:4213dc32c589eb7c51eccbb7b7ef6a6cced4bb243e7edf5000458cdb8e6a0e9a",
+    "bg4.jpg": "sha256:256fe4c5227166b6abede14a11bbdd8e4565044da2cd6f8b2512f3fc7413376a",
+    "bg5.jpg": "sha256:b0ce4ce2004cb328b094ae9546de7be2a0ad95edd4738d03d9718e3a54be8199"
+  }
+}

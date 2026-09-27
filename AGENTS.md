@@ -15,6 +15,17 @@ uv sync --all-extras
 Do not hand-edit `uv.lock`. Update it with `uv lock` and verify it with
 `uv lock --check`.
 
+The repository also ships two executable, independently locked Node templates:
+
+- `docs/templates/typespec-contract/`
+- `docs/templates/web/lit-activity/`
+
+When changing either template, run `npm ci` and `npm run signoff` from that
+template's directory. Use `npm run dev` in the Lit template for interactive
+review. Do not create a root Node project or commit `node_modules/`, template
+`dist/`, caches, or coverage output. Update template lockfiles with npm rather
+than editing them by hand.
+
 ## Test And Signoff
 
 Run the full local signoff before release-facing changes:
@@ -43,6 +54,9 @@ uv run rack run L99_signoff
 - HTML design docs must declare `data-doc-status` as `draft`, `proposal`,
   `accepted`, or `superseded`; release signoff must review any draft/proposal
   docs before treating them as contract evidence.
+- The shipped TypeSpec and Lit projects are executable, copy-owned references,
+  not shared runtimes. Keep their implementation, local guides, configuration,
+  lockfiles, audits, and source design contracts aligned.
 - C++ profile templates live under `docs/templates/cpp/`; keep them aligned
   with `docs/design/cpp-standard.html` and the checker policy.
 

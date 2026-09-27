@@ -34,6 +34,14 @@ policy from source layout:
 - [JSON Contract Standard](docs/design/json-contract-standard.html): JSON
   object identity, schema-labeled files, JSON Schema artifacts, and Pydantic
   usage.
+- [TypeSpec Contract Standard](docs/design/typespec-contract-standard.html):
+  independent contract authority, projections, compatibility, and conformance.
+- [Activity Application Standard](docs/design/activity-application-standard.html):
+  platform-neutral typed workflows, lifecycle, state, and registration.
+- [Backend Client Standard](docs/design/backend-client-standard.html): centralized
+  transports, semantic clients, HTTP, SSE, WebSockets, and polling.
+- [Web Application Standard](docs/design/web-application-standard.html): preferred
+  Lit shell, design language, theme, and background model.
 - [Architecture](docs/architecture.html): Rack, strata, and release signoff
   model.
 
@@ -71,6 +79,11 @@ uv sync --all-extras
 uv run dev-std audit .
 uv run rack run --all
 ```
+
+The repository also contains independently runnable TypeSpec and Lit reference
+projects. Maintainers changing either template must run its local
+`npm run signoff`; the complete commands, live Vite workflow, packaging model,
+and release checks are in [Build Documentation](docs/build.html).
 
 The installed command is `dev-std`. The older `wn-dev-std` command remains as a
 compatibility alias for existing repositories and CI jobs.
@@ -119,6 +132,8 @@ dev-std governance.
   release metadata working together.
 - Explain the quality model behind Rack orchestration and release signoff.
 - Serve as the base vocabulary for future C/C++/C#/JS/Rust/Zephyr standards.
+- Start contract-bearing and workflow-oriented applications from executable,
+  version-matched TypeSpec and Lit activity templates.
 
 ## CLI Examples
 
@@ -144,6 +159,18 @@ dev-std standard --profile python-ts-app
 dev-std standard --profile rust-app
 dev-std standard --profile rust-firmware
 dev-std standard --profile zephyr-firmware
+dev-std standard --capability typespec-contracts
+dev-std standard --capability activity-application
+dev-std standard --capability backend-integration
+dev-std standard --capability lit-web-application
+```
+
+List or copy the project-owned references shipped with the installed version:
+
+```bash
+dev-std template list
+dev-std template copy typespec-contract ./contracts
+dev-std template copy lit-activity-web ./frontend
 ```
 
 Run the repository audit checks against the current repo:
@@ -156,13 +183,15 @@ dev-std audit . --scope docs.plans
 dev-std audit . --scope docs.cli
 dev-std audit . --scope docs.test_strategy
 dev-std audit . --scope tests
+dev-std audit . --scope contracts
+dev-std audit . --scope application
 dev-std audit . --check-upstream-version
 ```
 
 Configured repositories must declare the standard version they target:
 
 ```toml
-standard_version = "2026.9.8"
+standard_version = "2026.9.27"
 profile = "python-package"
 
 [tests]
@@ -175,7 +204,7 @@ default and still runs the unfiltered config-version check. Passing a targeted
 scope set is partial governance adoption, not full profile conformance:
 
 ```toml
-standard_version = "2026.9.8"
+standard_version = "2026.9.27"
 profile = "zephyr-firmware"
 enabled_scopes = ["docs.plans"]
 ```
@@ -184,7 +213,7 @@ Workspace roots aggregate explicitly registered package/application policy
 boundaries. Members are policy boundaries, not every build target:
 
 ```toml
-standard_version = "2026.9.8"
+standard_version = "2026.9.27"
 kind = "workspace"
 
 [workspace]
@@ -213,7 +242,7 @@ should use the same shape with a first `governance` stage and later jobs using
 `standard_version`:
 
 ```bash
-uvx --from wn-dev-std==2026.9.8 dev-std audit .
+uvx --from wn-dev-std==2026.9.27 dev-std audit .
 ```
 
 The `check` command is a compatibility alias for `audit`:
@@ -339,6 +368,52 @@ Mixed-mode packages add:
 - installed-wheel smoke tests that prove the bundled executable is used
 - separate CI lanes for Python, native, platform wheels, WASM, and release
   validation
+
+## TypeSpec Contract Authority
+
+TypeSpec is an independent, cross-cutting capability rather than a web or
+language-pair profile. New Wavenumber-owned contracts that cross a process or
+language boundary require a TypeSpec authority unless a reviewed exception
+identifies an upstream authority, unsupported/lossy construct, and review
+trigger. This includes HTTP and event APIs, configuration files, command
+envelopes, persisted interchange objects, worker protocols, and native/local
+service boundaries.
+
+Generated JSON Schema, OpenAPI, Python, Rust, TypeScript, or other artifacts are
+projections, not competing definitions. Projects generate only the projections
+their consumers use, pin compiler and emitter versions, keep generated files
+read-only, check freshness, and prove required projections with real consumer
+evidence. TypeSpec owns structure; handwritten domain code owns behavior,
+effects, transactions, and non-structural invariants.
+
+Declare contract units under `[contracts]` and audit them independently with
+`dev-std audit . --scope contracts`. The copy-owned reference is
+`docs/templates/typespec-contract/` or `dev-std template copy
+typespec-contract <destination>`.
+
+## Activity-Oriented Applications
+
+The preferred workflow model is a small platform-neutral
+`Activity<Input, Output>` stack: `push` retains a caller and passes typed input,
+`pop` returns a typed result, cancellation is distinct from success, and root
+switching has no return path. Activities own frame-local state and resources,
+register only at a composition root, communicate through public definitions and
+results, and never reach into sibling implementations, stores, views, or DOM.
+This concept applies to web, native desktop, terminal, and other hosts.
+
+For new TypeScript applications that need reusable stateful components, Lit is
+the preferred—not mandatory—web component choice. The canonical web reference
+adds centralized backend clients, browser adapters, shell profiles, a swappable
+token/theme module, JetBrains Mono, and approved Wavenumber rotating
+backgrounds. Raw network construction stays in transports; raw design values
+stay in governed theme primitives. Declare `[web_application]` and use
+`dev-std audit . --scope application` for strict greenfield enforcement.
+
+The executable reference is `docs/templates/web/lit-activity/` or
+`dev-std template copy lit-activity-web <destination>`. Its guides explain the
+activity lifecycle, state ownership, adding an activity, backend protocols,
+shell profiles, host navigation, theming, and asset provenance without
+requiring prior study of ALX.
 
 ## JavaScript Web Baseline
 
@@ -664,6 +739,10 @@ helpers are intentionally left for a later tool pass.
 - [Documentation Standard](docs/design/documentation-standard.html)
 - [Artifact And Vendor Governance](docs/design/artifact-vendor-governance.html)
 - [JSON Contract Standard](docs/design/json-contract-standard.html)
+- [TypeSpec Contract Standard](docs/design/typespec-contract-standard.html)
+- [Activity Application Standard](docs/design/activity-application-standard.html)
+- [Backend Client Standard](docs/design/backend-client-standard.html)
+- [Web Application Standard](docs/design/web-application-standard.html)
 - [Build Documentation](docs/build.html)
 - [Test Strategy](docs/test-strategy.html)
 - [Python Standard Design](docs/design/python-standard.html)
@@ -672,7 +751,7 @@ helpers are intentionally left for a later tool pass.
 - [JavaScript Web App Standard](docs/design/javascript-standard.html)
 - [TypeScript Standard](docs/design/typescript-standard.html)
 - [Rust Standard](docs/design/rust-standard.html)
-- [Release Notes](docs/releases/2026-09-08.md)
+- [Release Notes](docs/releases/2026-09-27.md)
 
 ## License
 

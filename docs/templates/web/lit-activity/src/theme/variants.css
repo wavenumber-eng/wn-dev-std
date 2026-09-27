@@ -1,0 +1,13 @@
+:root[data-theme="high-contrast"] {
+  color-scheme: light;
+  --surface-canvas: var(--primitive-color-paper);
+  --surface-window: var(--primitive-color-paper-panel);
+  --surface-panel: var(--primitive-color-paper-panel);
+  --surface-control: var(--primitive-color-paper);
+  --surface-scrim: var(--primitive-color-paper-scrim);
+  --border-default: var(--primitive-color-ink);
+  --text-primary: var(--primitive-color-ink);
+  --text-muted: var(--primitive-color-border);
+  --action-primary: var(--primitive-color-teal);
+  --action-primary-hover: var(--primitive-color-teal-hover);
+}

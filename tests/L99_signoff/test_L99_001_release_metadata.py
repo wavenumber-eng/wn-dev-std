@@ -65,6 +65,11 @@ def test_release_workflow_uses_github_release_published() -> None:
     assert "environment: pypi" in workflow
     assert "id-token: write" in workflow
     assert "uv publish --trusted-publishing always" in workflow
+    assert "installed_wheel_template_smoke.py" in workflow
+    assert "$installedCli" in workflow
+    assert workflow.index("installed_wheel_template_smoke.py") < workflow.index(
+        "uv publish --trusted-publishing always"
+    )
     assert "pypa/gh-action-pypi-publish" not in workflow
     assert "--python 3.14" in workflow
 

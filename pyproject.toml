@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "wn-dev-std"
-version = "2026.9.8"
+version = "2026.9.27"
 description = "Development standards reference package and conformance checks."
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
@@ -66,7 +66,7 @@ dev-std = "wn_dev_std.cli.main:main"
 wn-dev-std = "wn_dev_std.cli.main:main"
 
 [tool.wn_dev_std]
-standard_version = "2026.9.8"
+standard_version = "2026.9.27"
 profile = "python-package"
 distribution = "pypi"
 languages = ["python"]
@@ -92,6 +92,18 @@ max_depth = 1
 [tool.uv]
 package = true
 
+[tool.hatch.build]
+exclude = [
+    "**/.cache/**",
+    "**/.pytest_cache/**",
+    "**/.ruff_cache/**",
+    "**/.venv/**",
+    "**/__pycache__/**",
+    "**/coverage/**",
+    "**/dist/**",
+    "**/node_modules/**",
+]
+
 [tool.hatch.build.targets.sdist]
 include = [
     ".github/**",
@@ -102,6 +114,7 @@ include = [
     "LICENSE",
     "README.md",
     "SECURITY.md",
+    "build_hooks/**",
     "docs/**",
     "pyproject.toml",
     "src/wn_dev_std/**",
@@ -113,7 +126,14 @@ exclude = [
     "rack_results/**",
     "tests/rack_results/**",
     "tests/**/output/**",
+    "**/.cache/**",
+    "**/.pytest_cache/**",
+    "**/.ruff_cache/**",
+    "**/.venv/**",
     "**/__pycache__/**",
+    "**/coverage/**",
+    "**/dist/**",
+    "**/node_modules/**",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -122,18 +142,22 @@ packages = ["src/wn_dev_std"]
 [tool.hatch.build.targets.wheel.force-include]
 "docs/contracts/command_manifest.a0.schema.json" = "wn_dev_std/contracts/command_manifest.a0.schema.json"
 
+[tool.hatch.build.hooks.custom]
+path = "build_hooks/template_resources.py"
+
 [tool.hatch.version]
 path = "src/wn_dev_std/_version.py"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
 
 [tool.pyright]
 include = [
+    "build_hooks/template_safety.py",
     "src/wn_dev_std",
     "tests/L0_foundation",
     "tests/L99_signoff",

@@ -1,0 +1,37 @@
+{
+  "name": "@example/typespec-contract",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@11.16.0",
+  "engines": {
+    "node": ">=22.22.2"
+  },
+  "scripts": {
+    "generate:typespec": "tsp compile contracts/main.tsp --config tspconfig.yaml",
+    "generate:typescript": "openapi-typescript generated/openapi/openapi.json -o generated/typescript/api.d.ts",
+    "generate:artifacts": "node scripts/clean-generated.mjs && npm run generate:typespec && npm run generate:typescript",
+    "generate": "npm run generate:artifacts && node scripts/generated-manifest.mjs",
+    "check:typespec": "tsp compile contracts/main.tsp --config tspconfig.yaml --no-emit",
+    "check:generated": "node scripts/generated-manifest.mjs --check",
+    "verify:generated": "npm run check:generated && npm run generate:artifacts && npm run check:generated",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test:node": "node --test tests/node/*.test.mjs",
+    "test:python": "uv run python tests/python/conformance.py",
+    "test": "npm run test:node && npm run test:python",
+    "audit:dependencies": "npm audit --audit-level=high",
+    "signoff": "npm run verify:generated && npm run typecheck && npm test && npm run audit:dependencies"
+  },
+  "devDependencies": {
+    "@typespec/compiler": "1.16.0",
+    "@typespec/http": "1.16.0",
+    "@typespec/json-schema": "1.16.0",
+    "@typespec/openapi3": "1.16.0",
+    "ajv": "8.20.0",
+    "openapi-typescript": "7.13.0",
+    "typescript": "5.9.3"
+  },
+  "overrides": {
+    "undici": "7.29.0"
+  }
+}

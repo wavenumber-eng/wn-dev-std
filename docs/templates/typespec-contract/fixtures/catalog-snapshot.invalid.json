@@ -1,0 +1,11 @@
+{
+  "type": "catalog.snapshot",
+  "version": "v1",
+  "revision": "seven",
+  "items": [
+    {
+      "id": "",
+      "name": "Broken item"
+    }
+  ]
+}

@@ -8,12 +8,17 @@ from textwrap import dedent
 from config_fixtures import standard_config, standard_pyproject_tool_config
 
 from wn_dev_std import (
+    CapabilityName,
     PythonStandard,
     StrictRule,
     __version__,
+    default_activity_application_standard,
+    default_backend_integration_standard,
+    default_capability,
     default_cpp_standard,
     default_csharp_standard,
     default_javascript_web_standard,
+    default_lit_web_application_standard,
     default_mixed_mode_standard,
     default_python_standard,
     default_python_ts_standard,
@@ -21,10 +26,15 @@ from wn_dev_std import (
     default_rust_firmware_standard,
     default_standard,
     default_typescript_web_standard,
+    default_typespec_contract_standard,
     default_zephyr_standard,
+    render_activity_application_standard,
+    render_backend_integration_standard,
+    render_capability,
     render_cpp_standard,
     render_csharp_standard,
     render_javascript_web_standard,
+    render_lit_web_application_standard,
     render_mixed_mode_standard,
     render_python_standard,
     render_python_ts_standard,
@@ -32,6 +42,7 @@ from wn_dev_std import (
     render_rust_firmware_standard,
     render_standard,
     render_typescript_web_standard,
+    render_typespec_contract_standard,
     render_zephyr_standard,
 )
 from wn_dev_std.checks import run_basic_checks
@@ -49,6 +60,46 @@ def test_default_python_standard_contains_strict_rules() -> None:
     assert isinstance(standard, PythonStandard)
     assert any(rule.key == "typing" and rule.value == "pyright strict" for rule in standard.rules)
     assert "AGENTS.md" in standard.required_files
+
+
+def test_default_typespec_contract_standard_is_cross_cutting() -> None:
+    capability: CapabilityName = "typespec-contracts"
+    standard = default_capability(capability)
+    assert standard == default_typespec_contract_standard()
+    assert standard.name == "typespec-contracts"
+    assert not standard.required_files
+    assert any(rule.key == "authority" and "TypeSpec" in rule.value for rule in standard.rules)
+    assert any(rule.key == "scope" and "cross-cutting" in rule.value for rule in standard.rules)
+    assert "docs/design/typespec-contract-standard.html" in standard.required_docs
+
+
+def test_default_activity_application_standard_is_platform_neutral() -> None:
+    standard = default_activity_application_standard()
+    assert standard == default_capability("activity-application")
+    assert standard.name == "activity-application"
+    assert not standard.required_files
+    assert any(rule.key == "activity.portability" for rule in standard.rules)
+    assert any(rule.key == "activity.isolation" for rule in standard.rules)
+    assert any(rule.key == "web.lit" and "preferred" in rule.value for rule in standard.rules)
+
+
+def test_default_backend_integration_standard_is_activity_independent() -> None:
+    standard = default_backend_integration_standard()
+    assert standard == default_capability("backend-integration")
+    assert standard.name == "backend-integration"
+    assert any(rule.key == "client.layers" for rule in standard.rules)
+    assert any(rule.key == "transport.websocket" for rule in standard.rules)
+    assert any(rule.key == "loopback.security" for rule in standard.rules)
+
+
+def test_default_lit_web_application_standard_is_preferred_not_universal() -> None:
+    standard = default_lit_web_application_standard()
+
+    assert standard == default_capability("lit-web-application")
+    assert standard.name == "lit-web-application"
+    assert any(rule.key == "web.lit" and "preferred" in rule.value for rule in standard.rules)
+    assert any(rule.key == "web.html" for rule in standard.rules)
+    assert any(rule.key == "web.theme" for rule in standard.rules)
 
 
 def test_default_mixed_mode_standard_contains_native_and_wasm_rules() -> None:
@@ -217,6 +268,38 @@ def test_render_python_standard_json_round_trips() -> None:
     rendered = render_python_standard("json")
     parsed = json.loads(rendered)
     assert parsed["name"] == "python-package"
+    assert parsed["version"] == __version__
+
+
+def test_render_typespec_contract_standard_json_round_trips() -> None:
+    rendered = render_typespec_contract_standard("json")
+    assert rendered == render_capability("typespec-contracts", "json")
+    parsed = json.loads(rendered)
+    assert parsed["name"] == "typespec-contracts"
+    assert parsed["version"] == __version__
+
+
+def test_render_activity_application_standard_json_round_trips() -> None:
+    rendered = render_activity_application_standard("json")
+    assert rendered == render_capability("activity-application", "json")
+    parsed = json.loads(rendered)
+    assert parsed["name"] == "activity-application"
+    assert parsed["version"] == __version__
+
+
+def test_render_backend_integration_standard_json_round_trips() -> None:
+    rendered = render_backend_integration_standard("json")
+    assert rendered == render_capability("backend-integration", "json")
+    parsed = json.loads(rendered)
+    assert parsed["name"] == "backend-integration"
+    assert parsed["version"] == __version__
+
+
+def test_render_lit_web_application_standard_json_round_trips() -> None:
+    rendered = render_lit_web_application_standard("json")
+    assert rendered == render_capability("lit-web-application", "json")
+    parsed = json.loads(rendered)
+    assert parsed["name"] == "lit-web-application"
     assert parsed["version"] == __version__
 
 

@@ -7,19 +7,72 @@
 <body data-doc="build" data-doc-status="accepted">
   <h1>Build</h1>
 
-  <h2>Tools And Setup</h2>
+  <h2>Repository Build Shape</h2>
+  <p>
+    This repository has one Python package at the root and two independently
+    runnable, copy-owned reference projects under <code>docs/templates/</code>.
+    The root package is built with uv and Hatchling. The TypeSpec contract and
+    Lit activity references are pinned npm projects and are packaged as clean,
+    version-matched resources in the wheel.
+  </p>
+
+  <h2>Required Tools And Setup</h2>
   <p>
     This package is a Python package built with <code>uv</code>, Hatchling,
     Ruff, Pyright, pytest, and the local Python hygiene signoff script. Install
-    development dependencies with <code>uv sync --group dev</code>.
+    all development dependencies and verify the committed lock with:
+  </p>
+  <pre><code>uv sync --all-extras
+uv lock --check</code></pre>
+  <p>
+    Node.js and the npm version declared by each template's
+    <code>packageManager</code> field are additionally required when changing
+    either shipped template or running complete release signoff. There is no
+    root Node project: run npm commands inside the applicable template.
   </p>
 
-  <h2>Commands And Invocation</h2>
-  <pre><code>uv run pytest
-uv run ruff check .
-uv run pyright
-uv run python tests/support_scripts/py_signoff.py
-uv run dev-std audit .</code></pre>
+  <h2>Fast Python Development Loop</h2>
+  <pre><code>uv run rack run L0_foundation
+uv run rack run L99_signoff</code></pre>
+  <p>
+    The individual Rack strata are useful during focused work. Before a
+    release-facing change is reviewed, run the complete signoff sequence below.
+  </p>
+
+  <h2>TypeSpec Reference Development</h2>
+  <pre><code>cd docs/templates/typespec-contract
+npm ci
+npm run signoff</code></pre>
+  <p>
+    The signoff command compiles TypeSpec, regenerates and freshness-checks
+    projections, type-checks the TypeScript consumer, runs Node and Python
+    conformance tests, and audits dependencies. TypeSpec source is authoritative;
+    generated JSON Schema, OpenAPI, and TypeScript output must not be hand-edited.
+  </p>
+
+  <h2>Lit Activity Reference Development</h2>
+  <pre><code>cd docs/templates/web/lit-activity
+npm ci
+npm run dev</code></pre>
+  <p>
+    Open the URL printed by Vite for the live reference. Use
+    <code>npm run signoff</code> before review; it runs strict TypeScript,
+    Biome plus architecture-boundary linting, Vitest, the production Vite
+    build, and the dependency audit. The Vite <code>dist/</code> directory is
+    transient and is not included in the source tree or packaged template.
+  </p>
+
+  <h2>Full Repository Signoff</h2>
+  <pre><code>uv run dev-std audit .
+uv run rack run --all
+uv run python -m build
+uv run twine check dist/*</code></pre>
+  <p>
+    The release-facing Rack suite copies both templates into clean temporary
+    directories, installs their pinned dependencies, audits their declared
+    capabilities, and runs their complete signoff scripts. This proves the
+    examples work without relying on local template working directories.
+  </p>
 
   <h2>Outputs And Artifacts</h2>
   <p>
@@ -28,13 +81,25 @@ uv run dev-std audit .</code></pre>
     <code>docs/generated/</code> is derivative output and should be regenerated
     from the authored Markdown, HTML, and TOML governance sources.
   </p>
+  <p>
+    <code>build_hooks/template_resources.py</code> stages filtered copies of
+    <code>docs/templates/typespec-contract/</code> and
+    <code>docs/templates/web/lit-activity/</code> into the wheel. Working
+    directories such as <code>node_modules/</code>, <code>dist/</code>, caches,
+    coverage, and virtual environments must never enter a distribution. Release
+    builds also fail if a template contains environment files, credential
+    configuration, private keys, or similar sensitive inputs. Release CI
+    inspects the archives and exercises template copying through an installed
+    wheel before publication.
+  </p>
 
   <h2>Validation And Signoff</h2>
   <p>
-    Release signoff runs tests, lint, type checking, Python hygiene, and
-    <code>dev-std audit</code>. The release process is documented separately in
-    <code>docs/setup.html</code> and the release notes under
-    <code>docs/releases/</code>.
+    Release signoff runs governance audits, tests, lint, type checking, Python
+    hygiene, both nested template signoffs, package construction, archive
+    inspection, and installed-wheel template smoke tests. The release process
+    is documented separately in <code>docs/setup.html</code> and the release
+    notes under <code>docs/releases/</code>.
   </p>
 </body>
 </html>

@@ -3,7 +3,8 @@ from __future__ import annotations
 import argparse
 import importlib
 import json
-from collections.abc import Mapping, Sequence
+import tomllib
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import Any, cast
 
@@ -127,6 +128,8 @@ def test_config_schema_matches_runtime_config_surface() -> None:
         "tests",
         "typescript",
         "rust",
+        "contracts",
+        "web_application",
         "documentation",
         "governance",
         "compatibility_pruning",
@@ -194,6 +197,17 @@ def test_config_schema_matches_runtime_config_surface() -> None:
     assert "ambient_toolchain" in rust_exception_properties
     assert "unsafe" in rust_exception_properties
 
+    contract_properties = properties_of(object_mapping(schema_defs["contracts"]))
+    assert set(contract_properties) == {"units"}
+    contract_unit_properties = properties_of(object_mapping(schema_defs["contractUnit"]))
+    assert "authority" in contract_unit_properties
+    assert "projections" in contract_unit_properties
+
+    application_properties = properties_of(object_mapping(schema_defs["webApplication"]))
+    assert "activity_core" in application_properties
+    assert "transport_root" in application_properties
+    assert "design_system" in application_properties
+
     compatibility_properties = properties_of(object_mapping(properties["compatibility_pruning"]))
     for key in (
         "root",
@@ -205,3 +219,20 @@ def test_config_schema_matches_runtime_config_surface() -> None:
         "names",
     ):
         assert key in compatibility_properties
+
+
+def test_shipped_template_configs_match_config_schema() -> None:
+    schema = load_json_mapping(ROOT / "docs" / "contracts" / "wn_dev_std_config.schema.v0.json")
+    validator = Draft202012Validator(schema)
+    validate = cast(
+        Callable[[object], None],
+        getattr(validator, "validate"),  # noqa: B009 - jsonschema exposes an unknown type.
+    )
+
+    for relative_path in (
+        "docs/templates/typespec-contract/dev-std.toml",
+        "docs/templates/web/lit-activity/dev-std.toml",
+    ):
+        path = ROOT / relative_path
+        instance = tomllib.loads(path.read_text(encoding="utf-8"))
+        validate(instance)

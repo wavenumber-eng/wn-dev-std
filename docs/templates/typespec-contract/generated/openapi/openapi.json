@@ -1,0 +1,162 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Example catalog API",
+    "version": "0.0.0"
+  },
+  "tags": [],
+  "paths": {
+    "/api/catalog/v1/commands": {
+      "post": {
+        "operationId": "applyCommand",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Example.Catalog.Contracts.V1.CatalogSnapshot"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Example.Catalog.Contracts.V1.CatalogCommand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/catalog/v1/snapshot": {
+      "get": {
+        "operationId": "readSnapshot",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The request has succeeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Example.Catalog.Contracts.V1.CatalogSnapshot"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Example.Catalog.Contracts.V1.CatalogCommand": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/Example.Catalog.Contracts.V1.UpsertCatalogItem"
+          },
+          {
+            "$ref": "#/components/schemas/Example.Catalog.Contracts.V1.RemoveCatalogItem"
+          }
+        ]
+      },
+      "Example.Catalog.Contracts.V1.CatalogItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Example.Catalog.Contracts.V1.CatalogItemId"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "Example.Catalog.Contracts.V1.CatalogItemId": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "Example.Catalog.Contracts.V1.CatalogSnapshot": {
+        "type": "object",
+        "required": [
+          "type",
+          "version",
+          "revision",
+          "items"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "catalog.snapshot"
+            ]
+          },
+          "version": {
+            "type": "string",
+            "enum": [
+              "v1"
+            ]
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Example.Catalog.Contracts.V1.CatalogItem"
+            }
+          }
+        }
+      },
+      "Example.Catalog.Contracts.V1.RemoveCatalogItem": {
+        "type": "object",
+        "required": [
+          "kind",
+          "item_id"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "remove"
+            ]
+          },
+          "item_id": {
+            "$ref": "#/components/schemas/Example.Catalog.Contracts.V1.CatalogItemId"
+          }
+        }
+      },
+      "Example.Catalog.Contracts.V1.UpsertCatalogItem": {
+        "type": "object",
+        "required": [
+          "kind",
+          "item"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "upsert"
+            ]
+          },
+          "item": {
+            "$ref": "#/components/schemas/Example.Catalog.Contracts.V1.CatalogItem"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Backend Client Standard</title>
+</head>
+<body data-design="backend-client-standard" data-doc-status="accepted">
+  <h1>Backend Client Standard</h1>
+
+  <p>
+    Backend integration uses centralized transports and feature-scoped semantic
+    clients. This is an application-client capability, not an activity or web
+    requirement. Web, native, CLI, worker, and local tools may adopt it.
+  </p>
+
+  <section data-interface="wn_dev_std.default_backend_integration_standard">
+    <h2>default_backend_integration_standard</h2>
+    <p>Returns the centralized backend-client capability rules.</p>
+  </section>
+
+  <section data-interface="wn_dev_std.render_backend_integration_standard">
+    <h2>render_backend_integration_standard</h2>
+    <p>Renders the backend-integration capability as text or JSON.</p>
+  </section>
+
+  <h2>Layering</h2>
+  <ol>
+    <li>Generated contract projections own wire shapes and boundary decoding.</li>
+    <li>Shared transports own URLs, headers, credentials, deadlines, retries, streams, and sockets.</li>
+    <li>Feature clients expose semantic operations in domain language.</li>
+    <li>Stores own feature state and authoritative snapshot application.</li>
+    <li>Workflows compose operations and cancellation.</li>
+    <li>Components render state and report user intent.</li>
+  </ol>
+
+  <h2>Transport Selection</h2>
+  <table>
+    <thead><tr><th>Transport</th><th>Use</th><th>Avoid when</th></tr></thead>
+    <tbody>
+      <tr><td>HTTP</td><td>Finite commands, queries, snapshots, uploads</td><td>Both peers need ongoing messages</td></tr>
+      <tr><td>SSE</td><td>Server progress and event streams with browser reconnection</td><td>The client must send stream messages</td></tr>
+      <tr><td>WebSocket</td><td>Bidirectional or latency-sensitive protocols</td><td>Request/response or one-way events are sufficient</td></tr>
+      <tr><td>Polling</td><td>Simple infrequent status refresh</td><td>Latency or request volume makes it wasteful</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Request Policy</h2>
+  <ul>
+    <li>Normalize transport, protocol, authentication, validation, conflict, and cancellation errors.</li>
+    <li>Every operation has an explicit deadline or documented long-running policy.</li>
+    <li>Callers can cancel work; frame or process shutdown propagates cancellation.</li>
+    <li>Retries belong to the transport or semantic operation that understands idempotency.</li>
+    <li>Mutating retryable operations use an idempotency key or equivalent deduplication contract.</li>
+  </ul>
+
+  <h2>Streaming Policy</h2>
+  <p>
+    A stream defines protocol version, event identity, ordering, correlation,
+    replay or resume token, heartbeat, backpressure behavior, reconnect/backoff,
+    terminal events, cancellation, and authoritative resynchronization. A
+    queryable snapshot is the recovery authority after missed or invalid events.
+  </p>
+
+  <h2>Local Applications</h2>
+  <p>
+    Loopback HTTP does not imply trust. Local web applications document origin
+    allowlists, authentication or capability tokens, CSRF posture, port
+    discovery, protocol versions, process ownership, startup readiness, and
+    shutdown behavior. Native IPC may implement the same semantic-client
+    interface without leaking its transport into workflows.
+  </p>
+
+  <h2>Audit Boundary</h2>
+  <p>
+    Dev-std validates declared transport, feature, source, and signoff paths.
+    Project lint validates forbidden raw transport construction and dependency
+    direction. Tests exercise normalized failures, cancellation, retries,
+    reconnect, resynchronization, and protocol-version mismatch.
+  </p>
+
+  <h2>Executable Evidence</h2>
+  <p>
+    The canonical implementation evidence lives in
+    <code>docs/templates/web/lit-activity/src/transport/</code> and the
+    feature-scoped project client. It demonstrates a replaceable demo/HTTP
+    transport boundary without allowing activities or views to construct raw
+    network requests. Clean-copy validation and maintainer commands are
+    documented in <a href="../build.html">Build Documentation</a>.
+  </p>
+</body>
+</html>

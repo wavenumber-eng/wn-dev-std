@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Lit Web Application Standard</title>
+</head>
+<body data-design="web-application-standard" data-doc-status="accepted">
+  <h1>Lit Web Application Standard</h1>
+
+  <p>
+    TypeScript is the greenfield browser default. Lit is the preferred, but not
+    mandatory, authoring library when reusable stateful custom elements,
+    lifecycle, templating, or stable component contracts are warranted.
+    Ordinary controls begin with semantic HTML.
+  </p>
+
+  <section data-interface="wn_dev_std.default_lit_web_application_standard">
+    <h2>default_lit_web_application_standard</h2>
+    <p>Returns the preferred Lit web-application capability rules.</p>
+  </section>
+
+  <section data-interface="wn_dev_std.render_lit_web_application_standard">
+    <h2>render_lit_web_application_standard</h2>
+    <p>Renders the Lit web-application capability as text or JSON.</p>
+  </section>
+
+  <h2>Component Policy</h2>
+  <ul>
+    <li>Use semantic HTML controls before wrapping or replacing them.</li>
+    <li>Use Lit for repeated stateful behavior, lifecycle, and component contracts.</li>
+    <li>Document Shadow DOM or light DOM per component family.</li>
+    <li>Keep domain and workflow logic outside rendering classes.</li>
+    <li>Expose typed properties, events, and accessibility states.</li>
+  </ul>
+
+  <h2>Application Shell</h2>
+  <p>
+    The shell owns global navigation, headers, panels, overlays, notifications,
+    backgrounds, focus restoration, and responsive regions. Features select a
+    named profile rather than manipulating those regions. Canonical profiles
+    are workspace, focused, background-only, and bare.
+  </p>
+
+  <h2>Theme Structure</h2>
+  <ol>
+    <li>Primitive tokens hold raw palette, scale, font, radius, shadow, layer, and motion values.</li>
+    <li>Semantic tokens name surfaces, text, accents, borders, focus, status, and interaction roles.</li>
+    <li>Component rules consume semantic appearance roles and governed primitive scales for structural rhythm or dimensions.</li>
+    <li>Layout rules compose shell regions without redefining component appearance.</li>
+    <li>Theme variants replace primitives and semantic mappings without editing features.</li>
+  </ol>
+
+  <h2>Design-Literal Policy</h2>
+  <p>
+    Strict greenfield checks inspect a curated set of design-bearing properties,
+    including foreground and background color, border color and radius, font
+    family and size, shadow, spacing, control dimensions, z-index, and motion
+    duration. Values outside theme roots use semantic custom properties.
+  </p>
+  <p>
+    Token definitions, zero, percentages, unitless values, runtime geometry,
+    data visualization, <code>currentColor</code>, <code>transparent</code>,
+    inheritance, and documented exceptions or migration ratchets remain valid.
+  </p>
+  <p>
+    Ratchet mode is migration-only and requires an existing review document
+    that names its scope, review ownership or cadence, and removal trigger.
+    Inline exceptions require a non-empty rationale adjacent to the affected
+    declaration.
+  </p>
+  <p>
+    The strict canonical profile checks governed <code>.css</code> files and
+    the standard Lit <code>css</code> tagged-template form in TypeScript and
+    TSX. Aliased or dynamically constructed styling requires a project lint
+    extension or reviewed exception because lexical checks cannot prove it.
+  </p>
+
+  <h2>Canonical Theme</h2>
+  <p>
+    The reference uses the approved Wavenumber dark industrial design language:
+    dark layered surfaces, gold accent, compact density, square controls,
+    zero-radius styling, strong panel boundaries, and optional rotating imagery.
+    It also includes a visibly different alternate theme to prove replaceability.
+  </p>
+
+  <h2>Background Service</h2>
+  <p>
+    Background rotation is shell-owned. It preloads the next image, retains a
+    solid-color fallback, crossfades only when motion is allowed, cleans up
+    timers and image work, maintains readable contrast, and can be disabled by
+    shell profile or user preference.
+  </p>
+
+  <h2>Assets And Typography</h2>
+  <p>
+    Approved Wavenumber backgrounds are versioned template snapshots with
+    source, ownership/redistribution authorization, checksums, release
+    inclusion, and update policy. Product logos and the full branding tree are
+    not part of the public template. Stock-licensed assets require explicit
+    raw public-template redistribution rights or must be excluded.
+  </p>
+  <p>
+    JetBrains Mono is the public reference font under SIL Open Font License 1.1
+    with a system-monospace fallback. Berkeley Mono is not redistributed;
+    private products may select it through the typography token.
+  </p>
+  <p>
+    Native controls declare the active light or dark color scheme and use
+    semantic surface and text roles where platform styling permits. Dropdown
+    option popups must remain readable in the default dark theme and in theme
+    variants.
+  </p>
+
+  <h2>Accessibility And Responsive Behavior</h2>
+  <p>
+    Components and the gallery demonstrate keyboard use, visible focus,
+    contrast, disabled states, validation, loading, warnings, errors,
+    notifications, narrow layouts, and reduced motion. Visual consistency does
+    not override semantic control behavior or user preferences.
+  </p>
+
+  <h2>Executable Evidence</h2>
+  <p>
+    <code>docs/templates/web/lit-activity/</code> is the canonical runnable
+    shell and design-language evidence. It includes named shell profiles,
+    centralized theme layers, a component gallery, an alternate theme,
+    JetBrains Mono licensing, background provenance, responsive behavior, and
+    reduced-motion handling. Run it and validate it using the commands in
+    <a href="../build.html">Build Documentation</a>.
+  </p>
+</body>
+</html>

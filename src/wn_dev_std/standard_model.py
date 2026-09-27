@@ -18,8 +18,14 @@ ProfileName = Literal[
     "rust-firmware",
     "zephyr-firmware",
 ]
+CapabilityName = Literal[
+    "typespec-contracts",
+    "activity-application",
+    "backend-integration",
+    "lit-web-application",
+]
 
-STANDARD_VERSION = "2026.9.8"
+STANDARD_VERSION = "2026.9.27"
 
 
 @dataclass(frozen=True, slots=True)

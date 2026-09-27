@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>TypeSpec Contract Authority Standard</title>
+</head>
+<body data-design="typespec-contract-standard" data-doc-status="accepted">
+  <h1>TypeSpec Contract Authority Standard</h1>
+
+  <p>
+    TypeSpec is the central structural authority for new Wavenumber-owned
+    contracts that cross language or process boundaries. This standard is
+    independent of web, GUI, frontend, and application-framework guidance.
+    Backend services, CLIs, configuration packages, native applications,
+    libraries, workers, and data systems can adopt it directly.
+  </p>
+
+  <section data-interface="wn_dev_std.CapabilityName">
+    <h2>CapabilityName</h2>
+    <p>Names a cross-cutting standard capability independently of project profile.</p>
+  </section>
+
+  <section data-interface="wn_dev_std.default_typespec_contract_standard">
+    <h2>default_typespec_contract_standard</h2>
+    <p>Returns the TypeSpec contract-authority capability rules.</p>
+  </section>
+
+  <section data-interface="wn_dev_std.default_capability">
+    <h2>default_capability</h2>
+    <p>Returns a named cross-cutting standard capability.</p>
+  </section>
+
+  <section data-interface="wn_dev_std.render_typespec_contract_standard">
+    <h2>render_typespec_contract_standard</h2>
+    <p>Renders the TypeSpec contract-authority capability as text or JSON.</p>
+  </section>
+
+  <section data-interface="wn_dev_std.render_capability">
+    <h2>render_capability</h2>
+    <p>Renders a named cross-cutting standard capability as text or JSON.</p>
+  </section>
+
+  <h2>Applicability</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Posture</th>
+        <th>Applies when</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Required</td>
+        <td>
+          A new Wavenumber-owned contract crosses a language or process
+          boundary, including APIs, events, worker messages, local services,
+          command envelopes, and shared serialized payloads.
+        </td>
+      </tr>
+      <tr>
+        <td>Strongly recommended</td>
+        <td>
+          A durable root object or configuration format is initially
+          single-language but is persisted, externally consumed, tool-facing,
+          or likely to gain another implementation.
+        </td>
+      </tr>
+      <tr>
+        <td>Optional</td>
+        <td>
+          A private serialized shape has one owner, no durable compatibility
+          promise, and no likely cross-language consumer.
+        </td>
+      </tr>
+      <tr>
+        <td>Not the authority</td>
+        <td>
+          A format is owned upstream, or the concern is implementation
+          behavior, effects, transactions, orchestration, or runtime-only
+          state rather than structural data.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Authority Boundary</h2>
+  <p>
+    TypeSpec owns names, fields, required and optional properties, scalar
+    constraints, unions, discriminators, operation shapes, error envelopes,
+    event payloads, and compatibility-visible evolution. Generated JSON
+    Schema, OpenAPI, Python, Rust, TypeScript, and other outputs are projections
+    of that authority and must not be hand-edited.
+  </p>
+  <p>
+    Handwritten domain code owns behavior that a structural contract cannot
+    faithfully express: validation requiring external state, transactions,
+    effects, identity resolution, scheduling, orchestration, and business
+    methods.
+  </p>
+
+  <h2>Contract Units</h2>
+  <p>
+    TypeSpec governance is a cross-cutting capability, not a primary-language
+    profile. A repository may declare one or more named contract units. The
+    configuration surface has this shape:
+  </p>
+  <pre><code>[contracts]
+[[contracts.units]]
+id = "library-domain"
+authority = "typespec"
+root = "contracts/library-domain"
+entrypoint = "contracts/library-domain/main.tsp"
+config = "contracts/library-domain/tspconfig.yaml"
+compatibility = "versioned"
+toolchain_manifest = "package.json"
+lockfile = "package-lock.json"
+emitter_packages = ["@typespec/json-schema", "@typespec/openapi3"]
+generated_policy = "docs/generated-files.md"
+
+[contracts.units.commands]
+generate = "npm run generate"
+freshness = "npm run check:generated"
+conformance = "npm test"
+
+[[contracts.units.projections]]
+kind = "json-schema"
+output = "generated/schema/library-domain"
+required = true
+support = "supported"
+consumer_evidence = ["tests/node/schema.test.mjs", "tests/python/conformance.py"]
+
+[[contracts.units.projections]]
+kind = "typescript"
+output = "generated/typescript/library-domain"
+required = true
+support = "supported"
+consumer_evidence = ["frontend:typecheck", "frontend:test"]
+</code></pre>
+  <p>
+    The surface represents authority ownership, source/config paths, pinned tooling,
+    outputs, real consumer requirements, regeneration, freshness, conformance,
+    publication, and reviewed exceptions.
+  </p>
+
+  <h2>Toolchain And Generation</h2>
+  <ul>
+    <li>Pin the TypeSpec compiler, libraries, and emitters.</li>
+    <li>Treat compiler warnings as errors in signoff.</li>
+    <li>Provide deterministic generate and freshness-check commands.</li>
+    <li>Keep generated output in declared generated roots.</li>
+    <li>Document source of truth, regeneration, release inclusion, and editing policy.</li>
+    <li>Compile or validate real consumers against every required projection.</li>
+    <li>Do not generate an unused language merely to satisfy a generic checklist.</li>
+  </ul>
+
+  <h2>Projection Support</h2>
+  <p>
+    The standard uses three support states:
+    fully supported and tested, experimental, and extension seam. A projection
+    is fully supported only when its emitter is independently installable,
+    generation is reproducible, and consumer or conformance evidence is part
+    of signoff.
+  </p>
+  <table>
+    <thead><tr><th>Projection</th><th>Reference support</th><th>Evidence</th></tr></thead>
+    <tbody>
+      <tr><td>JSON Schema</td><td>Supported</td><td>Generated by the pinned TypeSpec emitter; consumed by Node and Python conformance tests.</td></tr>
+      <tr><td>OpenAPI</td><td>Supported when HTTP operations exist</td><td>Generated by the pinned TypeSpec emitter and used as the TypeScript input.</td></tr>
+      <tr><td>TypeScript declarations</td><td>Supported</td><td>Generated from OpenAPI and compiled by a real TypeScript consumer.</td></tr>
+      <tr><td>Python source generation</td><td>Extension seam</td><td>The reference validates JSON Schema from Python but does not claim a Python model emitter.</td></tr>
+      <tr><td>Rust source generation</td><td>Extension seam</td><td>No Rust emitter is claimed until an independently pinned generator and consumer test are added.</td></tr>
+    </tbody>
+  </table>
+  <p>
+    The first reference floor is TypeSpec compilation, JSON Schema, one
+    generated language projection consumed by executable code, and shared
+    conformance vectors exercised by a second independent runtime. Python and
+    Rust generation are added only when their emitters meet the same bar.
+  </p>
+
+  <h2>Compatibility</h2>
+  <ul>
+    <li>Durable root payloads carry explicit identity and version posture.</li>
+    <li>Variant families use stable discriminators.</li>
+    <li>Breaking changes require a new version or a documented migration.</li>
+    <li>Deprecation retains enough evidence for active consumers to migrate.</li>
+    <li>Events define identity, ordering, correlation, and replay expectations.</li>
+  </ul>
+
+  <h2>Exceptions</h2>
+  <p>
+    An exception must name the exact contract unit and construct, explain why
+    TypeSpec is not authoritative or why a projection is lossy, identify the
+    temporary authority, and define a review trigger. Upstream ownership is a
+    valid boundary, but it must identify the upstream specification.
+  </p>
+
+  <h2>Audit And Signoff Boundary</h2>
+  <p>
+    Dev-std audit validates declarations, paths, ownership, output placement,
+    pinning posture, documentation, exceptions, and signoff wiring without
+    installing dependencies or running arbitrary commands. Project or Rack
+    signoff executes compilation, generation, freshness, consumer compilation,
+    and conformance tests.
+  </p>
+
+  <h2>Template Distribution</h2>
+  <p>
+    Version-matched templates are packaged resources exposed through
+    <code>dev-std template copy</code> and remain browsable in the corresponding source release
+    tag. A template must be private and copy-owned after adoption; it is not a
+    shared runtime framework.
+  </p>
+
+  <h2>Executable Evidence</h2>
+  <p>
+    <code>docs/templates/typespec-contract/</code> is the canonical runnable
+    evidence for this contract. Its TypeSpec source, generated JSON Schema and
+    OpenAPI, generated TypeScript declarations, and Node/Python conformance
+    tests are exercised from clean copies during release signoff. Maintainer
+    commands are defined in <a href="../build.html">Build Documentation</a>.
+  </p>
+</body>
+</html>

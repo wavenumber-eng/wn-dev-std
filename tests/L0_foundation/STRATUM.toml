@@ -220,3 +220,27 @@ name = "Plan Close"
 description = "Validate guided plan closeout assessment and explicit temporary-file deletion"
 concerns = ["cli", "contracts", "signoff"]
 test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_025"
+file = "test_L0_025_typespec_policy.py"
+name = "TypeSpec Contract Policy"
+description = "Validate cross-cutting TypeSpec contract-unit governance"
+concerns = ["contracts", "signoff"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_026"
+file = "test_L0_026_application_policy.py"
+name = "Activity Web Application Policy"
+description = "Validate opt-in Lit, activity, transport, shell, and design-language governance"
+concerns = ["contracts", "signoff"]
+test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_027"
+file = "test_L0_027_template_commands.py"
+name = "Template Commands"
+description = "Validate version-matched template discovery and non-overwriting copies"
+concerns = ["cli", "contracts"]
+test_case_type = "contract"

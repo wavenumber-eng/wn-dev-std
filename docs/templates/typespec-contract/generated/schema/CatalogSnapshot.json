@@ -1,0 +1,62 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://schemas.example.invalid/catalog/snapshot/v1.json",
+    "type": "object",
+    "properties": {
+        "type": {
+            "type": "string",
+            "const": "catalog.snapshot"
+        },
+        "version": {
+            "type": "string",
+            "const": "v1"
+        },
+        "revision": {
+            "type": "integer"
+        },
+        "items": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/CatalogItem"
+            }
+        }
+    },
+    "required": [
+        "type",
+        "version",
+        "revision",
+        "items"
+    ],
+    "unevaluatedProperties": {
+        "not": {}
+    },
+    "title": "Catalog snapshot v1",
+    "$defs": {
+        "CatalogItem": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/CatalogItemId"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "id",
+                "name"
+            ],
+            "unevaluatedProperties": {
+                "not": {}
+            }
+        },
+        "CatalogItemId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+        }
+    }
+}

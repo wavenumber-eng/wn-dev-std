@@ -65,6 +65,36 @@
     routine development loops do not grow by accident.
   </p>
 
+  <h3>2026.9.27 Contract And Application Additions</h3>
+  <p>
+    The fast foundation lane contains TypeSpec policy tests
+    (<code>L0_025</code>), application-boundary tests (<code>L0_026</code>),
+    and template command tests (<code>L0_027</code>). These tests use temporary
+    repository shapes and do not install Node dependencies. Public capability
+    summaries and CLI inventory extend <code>L0_001</code> and
+    <code>L0_002</code>; config-schema parity and shipped-template config
+    validation extend <code>L99_002</code>.
+  </p>
+  <p>
+    Clean-copy executable validation is intentionally isolated in
+    <code>L99_006</code>. It installs the lockfiles for both shipped templates,
+    audits each copied project, and runs its complete signoff. The observed
+    local runtime was approximately 60 seconds total (about 30 seconds for
+    each template). Keeping this work in <code>L99_signoff</code> preserves the
+    subsecond focused policy loop
+    while making template drift release-blocking.
+  </p>
+  <p>
+    The Lit package lane contains nine Vitest files and 38 tests covering the
+    activity engine and lifecycle edges, browser history, DOM hosting, shell
+    profiles, semantic clients, protocol selection, and background cleanup.
+    The TypeSpec package lane compiles the contract, checks generated
+    freshness, compiles a generated TypeScript consumer, and runs shared
+    Node/Ajv and Python/jsonschema conformance vectors. The final full Rack run
+    observed 113 seconds for <code>L0_foundation</code> and 96 seconds for
+    <code>L99_signoff</code>; the complete run was approximately 217 seconds.
+  </p>
+
   <h2>Local Commands</h2>
   <pre><code>uv run rack run L0_foundation
 uv run rack run L99_signoff
