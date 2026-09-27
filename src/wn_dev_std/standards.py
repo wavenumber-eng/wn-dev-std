@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Callable
 from typing import Literal
 
@@ -16,7 +15,13 @@ from wn_dev_std.rust_standard_profiles import (
 from wn_dev_std.rust_standard_profiles import (
     render_rust_firmware_standard as render_rust_firmware_standard,
 )
-from wn_dev_std.standard_model import STANDARD_VERSION, ProfileName, PythonStandard, StrictRule
+from wn_dev_std.standard_model import (
+    STANDARD_VERSION,
+    ProfileName,
+    PythonStandard,
+    StrictRule,
+)
+from wn_dev_std.standard_rendering import render_standard_data
 from wn_dev_std.typescript_standard_data import (
     PYTHON_TS_REQUIRED_FILES,
     PYTHON_TS_RULE_ITEMS,
@@ -779,21 +784,4 @@ def render_standard(
     output_format: Literal["text", "json"] = "text",
 ) -> str:
     """Render a named standard profile as text or JSON."""
-    standard = default_standard(profile)
-    if output_format == "json":
-        return json.dumps(standard.to_dict(), indent=2, sort_keys=True)
-
-    lines = [
-        f"{standard.name} {standard.version} ({standard.status})",
-        "",
-        "Rules:",
-    ]
-    for rule in standard.rules:
-        lines.append(f"- {rule.key}: {rule.value} ({rule.rationale})")
-    lines.append("")
-    lines.append("Required files:")
-    lines.extend(f"- {path}" for path in standard.required_files)
-    lines.append("")
-    lines.append("Required docs:")
-    lines.extend(f"- {path}" for path in standard.required_docs)
-    return "\n".join(lines)
+    return render_standard_data(default_standard(profile), output_format)

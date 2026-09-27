@@ -1,0 +1,49 @@
+standard_version = "2026.9.27"
+profile = "python-package"
+languages = ["typespec", "typescript", "python"]
+strict = true
+enabled_scopes = ["contracts"]
+
+[contracts]
+[[contracts.units]]
+id = "catalog"
+authority = "typespec"
+root = "contracts"
+entrypoint = "contracts/main.tsp"
+config = "tspconfig.yaml"
+compatibility = "versioned"
+toolchain_manifest = "package.json"
+lockfile = "package-lock.json"
+emitter_packages = [
+  "@typespec/http",
+  "@typespec/json-schema",
+  "@typespec/openapi3",
+  "openapi-typescript",
+]
+generated_policy = "docs/generated-files.md"
+
+[contracts.units.commands]
+generate = "npm run generate"
+freshness = "npm run check:generated"
+conformance = "npm test"
+
+[[contracts.units.projections]]
+kind = "json-schema"
+output = "generated/schema"
+required = true
+support = "supported"
+consumer_evidence = ["tests/node/schema.test.mjs", "tests/python/conformance.py"]
+
+[[contracts.units.projections]]
+kind = "openapi"
+output = "generated/openapi"
+required = true
+support = "supported"
+consumer_evidence = ["generated/typescript/api.d.ts"]
+
+[[contracts.units.projections]]
+kind = "typescript"
+output = "generated/typescript"
+required = true
+support = "supported"
+consumer_evidence = ["src/consumer.ts", "tsconfig.json"]

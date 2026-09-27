@@ -1,0 +1,33 @@
+{
+  "name": "@example/lit-activity-app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@11.16.0",
+  "engines": {
+    "node": ">=22.22.2"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "format": "biome check . --write",
+    "lint": "biome ci . && node scripts/check-boundaries.mjs",
+    "test": "vitest run",
+    "sanitize:assets": "node scripts/jpeg-metadata.mjs public/backgrounds",
+    "audit:assets": "node scripts/jpeg-metadata.mjs --check public/backgrounds",
+    "audit:dependencies": "npm audit --audit-level=high",
+    "signoff": "npm run typecheck && npm run lint && npm test && npm run audit:assets && npm run build && npm run audit:dependencies"
+  },
+  "dependencies": {
+    "lit": "3.3.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.14",
+    "@types/node": "24.19.0",
+    "jsdom": "30.1.1",
+    "typescript": "5.9.3",
+    "vite": "8.3.1",
+    "vitest": "5.0.2"
+  }
+}

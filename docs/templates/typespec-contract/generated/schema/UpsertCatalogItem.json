@@ -1,0 +1,49 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "UpsertCatalogItem.json",
+    "type": "object",
+    "properties": {
+        "kind": {
+            "type": "string",
+            "const": "upsert"
+        },
+        "item": {
+            "$ref": "#/$defs/CatalogItem"
+        }
+    },
+    "required": [
+        "kind",
+        "item"
+    ],
+    "unevaluatedProperties": {
+        "not": {}
+    },
+    "$defs": {
+        "CatalogItem": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "$ref": "#/$defs/CatalogItemId"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "id",
+                "name"
+            ],
+            "unevaluatedProperties": {
+                "not": {}
+            }
+        },
+        "CatalogItemId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+        }
+    }
+}

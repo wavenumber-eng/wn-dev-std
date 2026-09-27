@@ -1,0 +1,21 @@
+:root {
+  color-scheme: dark;
+  --surface-canvas: var(--primitive-color-black);
+  --surface-window: var(--primitive-color-window);
+  --surface-panel: var(--primitive-color-panel);
+  --surface-control: var(--primitive-color-control);
+  --surface-scrim: var(--primitive-color-scrim);
+  --border-default: var(--primitive-color-border);
+  --text-primary: var(--primitive-color-text);
+  --text-muted: var(--primitive-color-text-muted);
+  --action-primary: var(--primitive-color-accent);
+  --action-primary-hover: var(--primitive-color-accent-hover);
+  --status-success: var(--primitive-color-success);
+  --status-error: var(--primitive-color-error);
+  --status-warning: var(--primitive-color-warning);
+  --font-application: var(--primitive-font-family);
+  --radius-control: var(--primitive-radius-control);
+  --radius-panel: var(--primitive-radius-panel);
+  --layer-content: var(--primitive-layer-content);
+  --layer-overlay: var(--primitive-layer-overlay);
+}

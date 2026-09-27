@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>wn-dev-std Architecture</title>
 </head>
-<body data-doc="architecture" data-package="wn_dev_std">
+<body data-doc="architecture" data-package="wn_dev_std" data-doc-status="accepted">
   <h1>Architecture</h1>
   <p>
     <code>wn-dev-std</code> is a small installable Python package and the
@@ -51,6 +51,69 @@
     The Zephyr profile captures west-based
     firmware builds, app-owned source signoff, target toolchain notes, and
     embedded C/C++ complexity gates.
+  </p>
+
+  <h2>Cross-Cutting Capabilities</h2>
+  <p>
+    Project profiles describe a repository's primary implementation shape.
+    Capabilities apply independently when their boundary exists. TypeSpec is
+    the structural authority for new Wavenumber-owned contracts that cross a
+    process or language boundary. The activity model is the preferred
+    platform-neutral workflow architecture where independently registered
+    units accept typed input and return typed results. Backend integration
+    centralizes protocol mechanics behind semantic feature clients. Lit is the
+    preferred, not required, component library for suitable new TypeScript web
+    applications, paired with an application shell and swappable theme module.
+  </p>
+  <p>
+    The accepted source contracts are the
+    <a href="design/typespec-contract-standard.html">TypeSpec Contract</a>,
+    <a href="design/activity-application-standard.html">Activity Application</a>,
+    <a href="design/backend-client-standard.html">Backend Client</a>, and
+    <a href="design/web-application-standard.html">Lit Web Application</a>
+    standards. The browser implementation is evidence for the platform-neutral
+    concepts; it does not make Lit or browser APIs part of the activity kernel.
+  </p>
+
+  <h2>Executable References And Ownership</h2>
+  <ul>
+    <li>
+      <code>docs/templates/typespec-contract/</code> demonstrates a TypeSpec
+      authority with generated projections and multi-runtime conformance.
+    </li>
+    <li>
+      <code>docs/templates/web/lit-activity/</code> demonstrates the activity
+      stack, centralized backend boundary, Lit shell, theme separation, and
+      governed public assets.
+    </li>
+    <li>
+      <code>build_hooks/template_resources.py</code> packages filtered,
+      version-matched copies for <code>dev-std template copy</code>.
+    </li>
+  </ul>
+  <p>
+    These are project starters, not shared application frameworks. A consumer
+    copies a template and owns its resulting code. Template-local configuration
+    and signoff keep their requirements independent from the root Python
+    package while full repository signoff proves both references from clean
+    copies.
+  </p>
+
+  <h2>Self-Application</h2>
+  <p>
+    The root product is a Python governance package and CLI, so it does not
+    declare the web-application capability for its own runtime. It does apply
+    the published model to its shipped examples: contract authority, generated
+    ownership, activity boundaries, centralized transport, design tokens,
+    executable tests, and packaging evidence are all checked in signoff.
+  </p>
+  <p>
+    Existing root CLI and configuration schemas predate the TypeSpec capability
+    and remain governed by the JSON Contract Standard, runtime/schema parity,
+    and compatibility tests. A new root contract family that crosses a language
+    or process boundary must begin with TypeSpec, or record the scoped exception
+    required by the TypeSpec Contract Standard. Extending an existing contract
+    does not silently create a second authority.
   </p>
 
   <h2>Quality Model</h2>

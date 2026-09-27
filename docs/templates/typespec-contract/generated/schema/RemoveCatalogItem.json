@@ -1,0 +1,28 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "RemoveCatalogItem.json",
+    "type": "object",
+    "properties": {
+        "kind": {
+            "type": "string",
+            "const": "remove"
+        },
+        "item_id": {
+            "$ref": "#/$defs/CatalogItemId"
+        }
+    },
+    "required": [
+        "kind",
+        "item_id"
+    ],
+    "unevaluatedProperties": {
+        "not": {}
+    },
+    "$defs": {
+        "CatalogItemId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+        }
+    }
+}

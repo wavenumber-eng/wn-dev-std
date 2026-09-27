@@ -1,0 +1,58 @@
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/JetBrainsMono-Regular.woff2") format("woff2");
+}
+
+:root {
+  --primitive-color-black: #050505;
+  --primitive-color-ink: #0a0a0a;
+  --primitive-color-panel: rgb(10 10 10 / 90%);
+  --primitive-color-window: rgb(10 10 10 / 86%);
+  --primitive-color-border: #282832;
+  --primitive-color-text: #e7dddd;
+  --primitive-color-text-muted: #969696;
+  --primitive-color-accent: #b48700;
+  --primitive-color-accent-hover: #c89d00;
+  --primitive-color-success: #64ff64;
+  --primitive-color-error: #ff6464;
+  --primitive-color-warning: #ffc800;
+  --primitive-color-paper: #edf0e8;
+  --primitive-color-paper-panel: rgb(255 255 255 / 94%);
+  --primitive-color-paper-scrim: rgb(237 240 232 / 72%);
+  --primitive-color-teal: #006b62;
+  --primitive-color-teal-hover: #008a7e;
+  --primitive-color-scrim: rgb(0 0 0 / 28%);
+  --primitive-color-control: rgb(255 255 255 / 4%);
+  --primitive-font-family: "JetBrains Mono", "Cascadia Mono", Consolas, monospace;
+  --primitive-font-size-xs: 0.6875rem;
+  --primitive-font-size-sm: 0.8125rem;
+  --primitive-font-size-md: 1rem;
+  --primitive-font-size-lg: 1.625rem;
+  --primitive-line-compact: 1.25;
+  --primitive-line-body: 1.6;
+  --primitive-letter-label: 0.08em;
+  --primitive-letter-eyebrow: 0.12em;
+  --primitive-space-xs: 0.25rem;
+  --primitive-space-sm: 0.5rem;
+  --primitive-space-md: 0.75rem;
+  --primitive-space-lg: 1rem;
+  --primitive-space-xl: 1.5rem;
+  --primitive-space-2xl: 2.5rem;
+  --primitive-radius-control: 0;
+  --primitive-radius-panel: 0;
+  --primitive-border-thin: 1px;
+  --primitive-border-strong: 2px;
+  --primitive-header-height: 3rem;
+  --primitive-content-width: 52rem;
+  --primitive-field-width: 28rem;
+  --primitive-mark-size: 2rem;
+  --primitive-full: 100%;
+  --primitive-viewport-height: 100vh;
+  --primitive-crossfade: 5s;
+  --primitive-table-cell-width: 12rem;
+  --primitive-layer-content: 1;
+  --primitive-layer-overlay: 2;
+}

@@ -90,6 +90,7 @@ def test_cli_help_lists_public_commands() -> None:
         "plan",
         "requirement",
         "standard",
+        "template",
         "version",
     ):
         assert command in result.stdout
@@ -113,6 +114,7 @@ def test_cli_command_help_starts_for_public_commands() -> None:
         "plan",
         "requirement",
         "standard",
+        "template",
         "version",
     ):
         result = run_cli(command, "--help")

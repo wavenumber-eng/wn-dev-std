@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Activity-Oriented Application Standard</title>
+</head>
+<body data-design="activity-application-standard" data-doc-status="accepted">
+  <h1>Activity-Oriented Application Standard</h1>
+
+  <p>
+    The activity architecture is the preferred reference for Wavenumber
+    applications built from composable, stack-oriented workflows. Its core is
+    platform-neutral. The executable browser reference uses TypeScript and Lit,
+    while native desktop, embedded UI, terminal, and other hosts may implement
+    the same contract through different adapters.
+  </p>
+
+  <section data-interface="wn_dev_std.default_activity_application_standard">
+    <h2>default_activity_application_standard</h2>
+    <p>Returns the platform-neutral activity application capability rules.</p>
+  </section>
+
+  <section data-interface="wn_dev_std.render_activity_application_standard">
+    <h2>render_activity_application_standard</h2>
+    <p>Renders the activity application capability as text or JSON.</p>
+  </section>
+
+  <h2>When To Use It</h2>
+  <p>
+    Use activities when a product has independent workflows that open nested
+    work, return typed results, retain caller state, and compose into larger
+    flows. A static site, simple form, or small component collection does not
+    need activities merely to conform.
+  </p>
+
+  <h2>Mental Model</h2>
+  <p>
+    An activity is an independently registered unit of behavior with typed
+    input, typed completion, owned transient state, and frame-scoped resources.
+    The conceptual contract is <code>Activity&lt;Input, Output&gt;</code> plus
+    a managed lifecycle.
+  </p>
+  <p>
+    The model is loosely inspired by Android activities, intents, results, and
+    the back stack. It does not copy Android manifests, implicit intents,
+    operating-system component ownership, process restoration, or its large
+    lifecycle API.
+  </p>
+
+  <h2>Navigation Semantics</h2>
+  <dl>
+    <dt><code>push</code></dt>
+    <dd>
+      Retains the caller frame, opens a registered child with typed input, and
+      returns a completion that contains a typed result or cancellation.
+    </dd>
+    <dt><code>pop</code></dt>
+    <dd>
+      Successfully completes a non-root frame with typed output and resumes
+      its caller. Popping the root is invalid.
+    </dd>
+    <dt><code>cancel</code></dt>
+    <dd>
+      Completes a non-root frame without a successful result. Cancellation is
+      distinct from an unexpected failure and from a domain-level result.
+    </dd>
+    <dt><code>switch</code></dt>
+    <dd>
+      Replaces a root activity when no caller is waiting for a result. It is
+      invalid on a frame with a waiting caller; that frame must return control
+      explicitly.
+    </dd>
+  </dl>
+
+  <h2>Registration And Dependencies</h2>
+  <ul>
+    <li>Activities publish definitions containing identity and typed boundaries.</li>
+    <li>Activities never self-register.</li>
+    <li>A composition root maps definitions to factories and injects capabilities.</li>
+    <li>A feature may import another activity's public definition.</li>
+    <li>A feature must not import a sibling activity implementation, store, view, or private state.</li>
+    <li>The activity system is not a global service locator.</li>
+  </ul>
+
+  <h2>Lifecycle</h2>
+  <p>
+    Creation, initialization, activation, leave evaluation, deactivation, and
+    disposal are serialized and non-reentrant. Each created frame is disposed
+    exactly once, including when initialization or activation fails.
+  </p>
+  <p>
+    Activity contexts are frame-bound capabilities. Navigation from an
+    inactive or disposed frame cannot mutate a different active frame. Stale
+    navigation rejects; stale change notifications are ignored.
+  </p>
+  <p>
+    A frame owns an abort signal or equivalent cancellation scope. Disposal
+    terminates requests, streams, timers, observers, subscriptions, and other
+    frame-owned work before references are released.
+  </p>
+  <p>
+    Unexpected failures reach a host error boundary after cleanup. Expected
+    validation and domain failures remain typed feature state or typed output;
+    they are not smuggled through unexpected exceptions.
+  </p>
+  <p>
+    Cleanup is best-effort and failure-aggregating: shutdown and failed
+    transitions continue through remaining disposal and recovery hooks before
+    an error is reported.
+  </p>
+
+  <h2>Leave Policy</h2>
+  <p>Activities expose one of four reviewable leave states:</p>
+  <ul>
+    <li><strong>clean</strong>: leaving may proceed immediately;</li>
+    <li><strong>dirty</strong>: the host must ask for discard confirmation;</li>
+    <li><strong>validating or committing</strong>: leaving requires cancellation or completion policy;</li>
+    <li><strong>blocked</strong>: leaving is denied with a user-visible reason.</li>
+  </ul>
+  <p>
+    Browser back/forward, shell navigation, application shutdown, and native
+    window close use the same activity leave decision rather than inventing
+    separate feature-specific rules.
+  </p>
+
+  <h2>State Ownership</h2>
+  <table>
+    <thead>
+      <tr><th>State</th><th>Owner</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Form drafts, selection, validation, local progress</td><td>Activity/frame</td></tr>
+      <tr><td>Reusable state for activities in one feature</td><td>Feature store</td></tr>
+      <tr><td>Header, navigation, panel, overlay, background</td><td>Shell</td></tr>
+      <tr><td>Identity, capabilities, connectivity, preferences</td><td>Application session</td></tr>
+      <tr><td>Saved domain records and authoritative snapshots</td><td>Domain/backend</td></tr>
+    </tbody>
+  </table>
+  <p>
+    State is promoted only when ownership genuinely broadens. A single global
+    store is not the default transport between activities.
+  </p>
+
+  <h2>Centralized Backend Boundary</h2>
+  <p>
+    Raw HTTP, URL, authentication-header, EventSource, and WebSocket mechanics
+    do not belong in activities, stores, or components. Generated contracts own
+    wire shapes; shared transports own protocol mechanics; feature clients own
+    semantic operations; stores own feature state; activities compose
+    workflows; components render state and report intent.
+  </p>
+  <ul>
+    <li>Use HTTP for finite commands and queries.</li>
+    <li>Use SSE for server-to-client progress and event streams.</li>
+    <li>Use WebSockets for genuinely bidirectional or low-latency protocols.</li>
+    <li>Use polling for simple, infrequent, latency-tolerant updates.</li>
+    <li>Pair reconnectable streams with an authoritative snapshot path.</li>
+  </ul>
+  <p>
+    Client policy must cover normalized errors, deadlines, cancellation,
+    retry and idempotency ownership, reconnect and backoff, heartbeat and
+    backpressure, protocol versions, and local-loopback origin,
+    authentication, and CSRF posture.
+  </p>
+
+  <h2>Lit Web Reference</h2>
+  <p>
+    Lit is preferred, not required, when a new TypeScript browser application
+    needs stateful custom elements, lifecycle, templates, and reusable
+    component contracts. Native semantic HTML remains the first choice for
+    ordinary controls. Each project documents its Shadow DOM or light DOM
+    policy.
+  </p>
+  <p>
+    The activity kernel must not import Lit, DOM, browser history, HTTP,
+    application composition, or feature modules. Lit hosting, browser history,
+    and lifecycle integration are adapters around the kernel.
+  </p>
+
+  <h2>Shell And Theme Boundary</h2>
+  <p>
+    Activities select named shell profiles. They do not manipulate headers,
+    navigation, side panels, overlays, or backgrounds directly. The canonical
+    profiles are workspace, focused, background-only, and bare.
+  </p>
+  <p>
+    A reference-only profile preview must retain a recovery affordance when an
+    override hides its own selector or navigation. Production chrome-free
+    profiles do not gain hidden global navigation; their activities must expose
+    an intentional completion or cancellation path.
+  </p>
+  <p>
+    The reference design language uses a dark industrial palette, gold accent,
+    compact density, square controls, zero-radius styling, panels, and rotating
+    backgrounds. All design-bearing values flow through theme primitives and
+    semantic tokens so another theme can replace them without editing feature
+    components.
+  </p>
+  <p>
+    CSS policy must parse and enforce a curated set of design-bearing
+    properties rather than rejecting every numeric literal. Token definitions,
+    zero, percentages, unitless values, runtime geometry, data visualization,
+    <code>currentColor</code>, <code>transparent</code>, inheritance, and
+    reviewed exceptions remain valid.
+  </p>
+
+  <h2>Public Assets And Typography</h2>
+  <p>
+    The approved Wavenumber background snapshots may be copied from
+    <code>install/assets/branding/backgrounds</code>. The public template must
+    record source, Wavenumber ownership and redistribution authorization,
+    checksums, release inclusion, and update policy. The copied files are
+    versioned template snapshots; Install remains the live editable branding
+    authority. A product-use stock license alone is not sufficient for raw
+    redistribution in a reusable public template; those assets must be omitted
+    unless explicit public-template redistribution rights are recorded.
+  </p>
+  <p>
+    Berkeley Mono is licensed for private Wavenumber use and must not be
+    redistributed from this public repository. The public reference uses
+    JetBrains Mono under its open font license with a system-monospace fallback.
+    Private products may substitute Berkeley Mono through the typography theme
+    token without changing component styles.
+  </p>
+
+  <h2>Template Distribution</h2>
+  <p>
+    The Lit activity reference is a private, copy-owned project template rather
+    than a shared runtime framework. Version-matched template resources are
+    obtainable from the installed governance package through
+    <code>dev-std template copy</code> and
+    browsable at the matching source release tag.
+  </p>
+
+  <h2>Executable Evidence</h2>
+  <p>
+    <code>docs/templates/web/lit-activity/</code> is the canonical runnable
+    evidence. Its rendering-independent <code>src/activity/</code> kernel,
+    composition root, isolated feature activities, browser adapters, and host
+    lifecycle tests demonstrate the required dependency direction. Use the
+    live Vite and signoff commands in
+    <a href="../build.html">Build Documentation</a> when reviewing changes.
+  </p>
+</body>
+</html>

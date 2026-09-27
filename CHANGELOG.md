@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026.9.27
+
+- Establish TypeSpec as the independent structural authority for new
+  Wavenumber-owned cross-language and cross-process contracts, with opt-in
+  contract-unit audits and a self-contained generated-projection template.
+- Add platform-neutral activity, centralized backend-client, and preferred Lit
+  application standards with accepted ADRs, traceable requirements, and public
+  capability summaries.
+- Ship a copy-owned Lit activity application demonstrating typed nested
+  workflows, lifecycle/leave state, browser adapters, root switching, shell
+  profiles, centralized transport, swappable themes, JetBrains Mono, and
+  approved Wavenumber rotating backgrounds.
+- Add opt-in application audits for rendering-independent activity kernels,
+  centralized network construction, exact Lit pinning, strict design tokens,
+  declared paths, and signoff commands.
+- Add `dev-std template list` and `template copy` for version-matched TypeSpec
+  and Lit references, including clean-copy executable release validation.
+- Document how this repository applies its own capability guidance and provide
+  complete maintainer build, live frontend, nested signoff, packaging, and
+  installed-wheel validation instructions for both executable references.
+- Keep a reference-only recovery control available while previewing headerless
+  shell profiles, and apply dark/light color-scheme-aware styling to the shell
+  selector and its native option popup.
+- Exclude stock-licensed backgrounds without explicit raw public-template
+  redistribution rights and enforce bundled asset checksums in release signoff.
+
 ## 2026.9.8
 
 - Rewrite local links in generated governance HTML relative to their generated

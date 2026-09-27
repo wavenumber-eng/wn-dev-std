@@ -131,6 +131,22 @@
       ]
     },
     {
+      "path": ["template"],
+      "name": "template",
+      "status": "public",
+      "summary": "List and copy version-matched project templates.",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "template",
+      "verification_refs": [
+        {
+          "kind": "local_pytest",
+          "target": "tests/L99_signoff/test_L99_002_docs_contracts.py::test_command_manifest_matches_cli_and_design_doc",
+          "coverage_mode": "inventory",
+          "rationale": "Verifies the public parser, command manifest, and aggregate CLI design doc remain synchronized."
+        }
+      ]
+    },
+    {
       "path": ["version"],
       "name": "version",
       "status": "public",

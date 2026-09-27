@@ -1,0 +1,210 @@
+body {
+  color: var(--text-primary);
+  background: var(--surface-canvas);
+  font-family: var(--font-application);
+  font-size: var(--primitive-font-size-sm);
+  line-height: var(--primitive-line-body);
+}
+
+button,
+input,
+select {
+  color: inherit;
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: var(--primitive-border-strong) solid var(--action-primary);
+  outline-offset: var(--primitive-border-strong);
+}
+
+.background-layer {
+  background-image: var(--shell-background-image, none);
+  opacity: 0;
+  transition: opacity var(--shell-background-crossfade, var(--primitive-crossfade)) ease-in-out;
+}
+
+.background-layer.active {
+  opacity: 1;
+}
+
+.shell-scrim {
+  background: var(--surface-scrim);
+}
+
+.app-header {
+  border-bottom: var(--primitive-border-thin) solid var(--border-default);
+  background: var(--surface-window);
+}
+
+.profile-label,
+.profile-select {
+  color: var(--text-muted);
+  font-size: var(--primitive-font-size-xs);
+}
+
+.profile-select select {
+  color-scheme: inherit;
+  border: var(--primitive-border-thin) solid var(--border-default);
+  border-radius: var(--radius-control);
+  background: var(--surface-control);
+  color: var(--text-primary);
+  padding: var(--primitive-space-xs);
+}
+
+.profile-select select option {
+  background: var(--surface-window);
+  color: var(--text-primary);
+}
+
+.shell-recovery {
+  border: var(--primitive-border-thin) solid var(--border-default);
+  background: var(--surface-window);
+  color: var(--text-primary);
+}
+
+.brand-mark {
+  background: var(--action-primary);
+  color: var(--surface-canvas);
+  font-weight: 800;
+}
+
+.activity-meta {
+  color: var(--text-muted);
+  font-size: var(--primitive-font-size-xs);
+  letter-spacing: var(--primitive-letter-label);
+}
+
+.panel {
+  border: var(--primitive-border-thin) solid var(--border-default);
+  border-radius: var(--radius-panel);
+  background: var(--surface-panel);
+  padding: var(--primitive-space-2xl);
+}
+
+.flow > * {
+  margin-block: 0;
+}
+
+.flow > * + * {
+  margin-block-start: var(--primitive-space-lg);
+}
+
+h1 {
+  font-size: var(--primitive-font-size-lg);
+  line-height: var(--primitive-line-compact);
+  font-weight: 600;
+}
+
+.eyebrow {
+  color: var(--action-primary);
+  font-size: var(--primitive-font-size-xs);
+  letter-spacing: var(--primitive-letter-eyebrow);
+}
+
+.lede,
+.status,
+.notice {
+  color: var(--text-muted);
+}
+
+.field input {
+  border: var(--primitive-border-thin) solid var(--border-default);
+  border-radius: var(--radius-control);
+  background: var(--surface-control);
+  padding: var(--primitive-space-sm) var(--primitive-space-md);
+}
+
+.choice input {
+  accent-color: var(--action-primary);
+}
+
+.button {
+  min-height: var(--primitive-mark-size);
+  border: var(--primitive-border-thin) solid var(--border-default);
+  border-radius: var(--radius-control);
+  background: var(--surface-control);
+  padding: var(--primitive-space-xs) var(--primitive-space-md);
+  cursor: pointer;
+}
+
+.button:hover:not(:disabled) {
+  border-color: var(--action-primary);
+}
+
+.button.primary {
+  border-color: var(--action-primary);
+  background: var(--action-primary);
+  color: var(--surface-canvas);
+}
+
+.button.primary:hover:not(:disabled) {
+  border-color: var(--action-primary-hover);
+  background: var(--action-primary-hover);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.button.quiet {
+  border-color: transparent;
+}
+
+.success {
+  color: var(--status-success);
+}
+
+.error {
+  color: var(--status-error);
+}
+
+.warning {
+  color: var(--status-warning);
+}
+
+.gallery-group,
+.dialog-example,
+.banner {
+  border: var(--primitive-border-thin) solid var(--border-default);
+  padding: var(--primitive-space-lg);
+}
+
+.gallery-group h2 {
+  margin: 0;
+  font-size: var(--primitive-font-size-md);
+}
+
+.banner {
+  margin: 0;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+caption,
+th,
+td {
+  min-width: var(--primitive-table-cell-width);
+  padding: var(--primitive-space-sm);
+  border: var(--primitive-border-thin) solid var(--border-default);
+  text-align: left;
+}
+
+caption {
+  color: var(--text-muted);
+}
+
+progress {
+  accent-color: var(--action-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .background-layer {
+    transition: none;
+  }
+}

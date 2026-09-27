@@ -20,6 +20,12 @@
       "description": "Supported standard profile name type."
     },
     {
+      "name": "wn_dev_std.CapabilityName",
+      "design_doc": "docs/design/typespec-contract-standard.html",
+      "data_interface": "wn_dev_std.CapabilityName",
+      "description": "Supported cross-cutting standard capability name type."
+    },
+    {
       "name": "wn_dev_std.default_python_standard",
       "design_doc": "docs/design/python-standard.html",
       "data_interface": "wn_dev_std.default_python_standard",
@@ -92,6 +98,36 @@
       "description": "Factory for a named standard profile."
     },
     {
+      "name": "wn_dev_std.default_typespec_contract_standard",
+      "design_doc": "docs/design/typespec-contract-standard.html",
+      "data_interface": "wn_dev_std.default_typespec_contract_standard",
+      "description": "Factory for the independent TypeSpec contract-authority capability."
+    },
+    {
+      "name": "wn_dev_std.default_activity_application_standard",
+      "design_doc": "docs/design/activity-application-standard.html",
+      "data_interface": "wn_dev_std.default_activity_application_standard",
+      "description": "Factory for the platform-neutral activity application capability."
+    },
+    {
+      "name": "wn_dev_std.default_backend_integration_standard",
+      "design_doc": "docs/design/backend-client-standard.html",
+      "data_interface": "wn_dev_std.default_backend_integration_standard",
+      "description": "Factory for the centralized backend-client capability."
+    },
+    {
+      "name": "wn_dev_std.default_lit_web_application_standard",
+      "design_doc": "docs/design/web-application-standard.html",
+      "data_interface": "wn_dev_std.default_lit_web_application_standard",
+      "description": "Factory for the preferred Lit web-application capability."
+    },
+    {
+      "name": "wn_dev_std.default_capability",
+      "design_doc": "docs/design/typespec-contract-standard.html",
+      "data_interface": "wn_dev_std.default_capability",
+      "description": "Factory for a named cross-cutting standard capability."
+    },
+    {
       "name": "wn_dev_std.render_python_standard",
       "design_doc": "docs/design/python-standard.html",
       "data_interface": "wn_dev_std.render_python_standard",
@@ -162,6 +198,36 @@
       "design_doc": "docs/design/python-standard.html",
       "data_interface": "wn_dev_std.render_standard",
       "description": "Render helper for a named standard profile."
+    },
+    {
+      "name": "wn_dev_std.render_typespec_contract_standard",
+      "design_doc": "docs/design/typespec-contract-standard.html",
+      "data_interface": "wn_dev_std.render_typespec_contract_standard",
+      "description": "Render helper for the independent TypeSpec contract-authority capability."
+    },
+    {
+      "name": "wn_dev_std.render_activity_application_standard",
+      "design_doc": "docs/design/activity-application-standard.html",
+      "data_interface": "wn_dev_std.render_activity_application_standard",
+      "description": "Render helper for the platform-neutral activity application capability."
+    },
+    {
+      "name": "wn_dev_std.render_backend_integration_standard",
+      "design_doc": "docs/design/backend-client-standard.html",
+      "data_interface": "wn_dev_std.render_backend_integration_standard",
+      "description": "Render helper for the centralized backend-client capability."
+    },
+    {
+      "name": "wn_dev_std.render_lit_web_application_standard",
+      "design_doc": "docs/design/web-application-standard.html",
+      "data_interface": "wn_dev_std.render_lit_web_application_standard",
+      "description": "Render helper for the preferred Lit web-application capability."
+    },
+    {
+      "name": "wn_dev_std.render_capability",
+      "design_doc": "docs/design/typespec-contract-standard.html",
+      "data_interface": "wn_dev_std.render_capability",
+      "description": "Render helper for a named cross-cutting standard capability."
     }
   ]
 }

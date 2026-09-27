@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "source": {
+    "contracts/main.tsp": "31c4c8d5af0a4c8b297568002640eddeae0cd22216852620c8cfc4a1f8cd88b0",
+    "contracts/models.tsp": "a7cbd353b8c5e4f7c11a9e58d2c0ef05a585081530a787057d1c1190a917326f",
+    "package-lock.json": "ad6b3f431ee16c473aeb670674292ffd8e8a7a71bebecb02286dd4cbf96bafc0",
+    "package.json": "4c64a10745930427c94329d1a3da7b6e1856a0354e9eb6f08c009ea53046e97f",
+    "scripts/clean-generated.mjs": "1165a0d691c74094edbb63bfcf1da76169e46b39cb631eec6fbe9cbcd006da31",
+    "scripts/generated-manifest.mjs": "5ffa09b74765dedb91569d2dc1e3396b44be646bd83d867b675718bb0ab89b10",
+    "tspconfig.yaml": "4910ebde2fefb3a2b30154f74eb143873be1ea14eb2c6f9775f0429979ebc2bd"
+  },
+  "generated": {
+    "generated/openapi/openapi.json": "e34006bcb222852b6cbe0f556065ccfa6d4333b3d53ee206e0afb52c9518d458",
+    "generated/schema/CatalogCommand.json": "927b8f654eea04f344604bad68e531a5ff0f1986eed23fd6bcc01b385973985f",
+    "generated/schema/CatalogSnapshot.json": "75f814e126e45beb74da414e568405ecd7a74cf80d01eee74aa44b0f0fe42405",
+    "generated/schema/RemoveCatalogItem.json": "8c93c9ebb3f6a668f85b0d0e799711394e9cfb84d9d8d18eae6f586121856a48",
+    "generated/schema/UpsertCatalogItem.json": "703628985e77f159fa03cf9f71c5e46b4e93ed2454ed310ffd5920b952ea2662",
+    "generated/typescript/api.d.ts": "d314f4b450aa97219b79b3ca64707c1022d3f12c5af9f22ba3ea80df70311eae"
+  }
+}

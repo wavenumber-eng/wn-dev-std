@@ -32,6 +32,8 @@ AUDIT_SCOPES = (
     "docs.traceability",
     "docs.vendors",
     "tests",
+    "contracts",
+    "application",
     "language",
     "ci",
     "compat",

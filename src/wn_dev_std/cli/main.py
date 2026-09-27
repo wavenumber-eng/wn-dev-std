@@ -17,6 +17,7 @@ from wn_dev_std.cli.commands import (
     plan,
     requirement,
     standard,
+    template,
     version,
 )
 
@@ -112,6 +113,7 @@ def build_parser() -> argparse.ArgumentParser:
     plan.register(subparsers)
     requirement.register(subparsers)
     standard.register(subparsers)
+    template.register(subparsers)
     version.register(subparsers)
     return parser
 

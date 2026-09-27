@@ -71,7 +71,7 @@
     target, runnable, board app, fixture, sample, or demo folder is a separate
     member.
   </p>
-  <pre><code>standard_version = "2026.9.8"
+  <pre><code>standard_version = "2026.9.27"
 kind = "workspace"
 
 [workspace]
@@ -100,7 +100,7 @@ members = ["bom_cruncher", "lib_cruncher", "panel-monkey"]</code></pre>
     <code>enabled_scopes</code>. Repositories with no dev-std config continue to
     use default audit behavior and are not part of the first migration ratchet.
   </p>
-  <pre><code>standard_version = "2026.9.8"
+  <pre><code>standard_version = "2026.9.27"
 kind = "package"
 profile = "zephyr-firmware"
 enabled_scopes = ["docs.plans"]</code></pre>
@@ -110,6 +110,26 @@ enabled_scopes = ["docs.plans"]</code></pre>
     command-line scopes override the config default. Passing audit with a
     targeted scope list is not full profile conformance, and audit output must
     report the configured scopes.
+  </p>
+
+  <h2>Cross-Cutting Capability Audits</h2>
+  <p>
+    The <code>contracts</code> scope is independent of the primary language
+    profile. When a package declares <code>[contracts]</code>, the audit checks
+    each TypeSpec authority unit, contained source/config/output paths, exact
+    compiler and emitter pins, required projection support and consumer
+    evidence, generated-file policy, and signoff command declarations. It does
+    not install Node packages or execute generation; package signoff owns
+    compilation, freshness, consumer compilation, and conformance tests.
+  </p>
+  <p>
+    The <code>application</code> scope is an opt-in capability for the canonical
+    Lit activity reference, not a requirement for every TypeScript project. It
+    checks declared shell, theme, browser, transport, feature, composition, and
+    activity-kernel boundaries; an exact Lit dependency pin; centralized raw
+    network construction; strict or ratcheted design-language policy; and
+    declared build/test/signoff commands. Project lint and executable tests
+    retain ownership of type-aware import rules and runtime lifecycle behavior.
   </p>
 
   <h2>TypeScript Profile Audits</h2>
@@ -580,12 +600,14 @@ docs/domains/&lt;domain&gt;.html</code></pre>
   --scope docs.release \
   --scope docs.traceability \
   --scope docs.links \
-  --scope tests</code></pre>
+  --scope tests \
+  --scope contracts \
+  --scope application</code></pre>
   <p>
     CI should run governance before expensive functional or platform matrices.
     Downstream CI should pin the released PyPI tool version that matches the
     repository's <code>standard_version</code>, for example
-    <code>uvx --from wn-dev-std==2026.9.8 dev-std audit .</code>. Optional
+    <code>uvx --from wn-dev-std==2026.9.27 dev-std audit .</code>. Optional
     upstream freshness checks may warn when a newer PyPI release exists, but
     normal audit must remain deterministic and offline unless that check is
     requested.

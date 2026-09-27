@@ -59,6 +59,13 @@
       "description": "Print a standard profile summary."
     },
     {
+      "name": "template",
+      "module": "wn_dev_std.cli.commands.template",
+      "design_doc": "docs/design/cli.html",
+      "data_command": "template",
+      "description": "List and copy version-matched project templates."
+    },
+    {
       "name": "version",
       "module": "wn_dev_std.cli.commands.version",
       "design_doc": "docs/design/cli.html",

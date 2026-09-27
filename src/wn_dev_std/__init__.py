@@ -1,6 +1,19 @@
 """Development standards reference package."""
 
 from wn_dev_std._version import __version__
+from wn_dev_std.capability_standards import (
+    default_activity_application_standard,
+    default_backend_integration_standard,
+    default_capability,
+    default_lit_web_application_standard,
+    default_typespec_contract_standard,
+    render_activity_application_standard,
+    render_backend_integration_standard,
+    render_capability,
+    render_lit_web_application_standard,
+    render_typespec_contract_standard,
+)
+from wn_dev_std.standard_model import CapabilityName
 from wn_dev_std.standards import (
     ProfileName,
     PythonStandard,
@@ -33,12 +46,17 @@ from wn_dev_std.standards import (
 
 __all__ = [
     "__version__",
+    "CapabilityName",
     "ProfileName",
     "PythonStandard",
     "StrictRule",
+    "default_activity_application_standard",
+    "default_backend_integration_standard",
+    "default_capability",
     "default_csharp_standard",
     "default_cpp_standard",
     "default_javascript_web_standard",
+    "default_lit_web_application_standard",
     "default_mixed_mode_standard",
     "default_python_js_standard",
     "default_python_standard",
@@ -47,10 +65,15 @@ __all__ = [
     "default_rust_firmware_standard",
     "default_standard",
     "default_typescript_web_standard",
+    "default_typespec_contract_standard",
     "default_zephyr_standard",
     "render_csharp_standard",
+    "render_activity_application_standard",
+    "render_backend_integration_standard",
     "render_cpp_standard",
+    "render_capability",
     "render_javascript_web_standard",
+    "render_lit_web_application_standard",
     "render_mixed_mode_standard",
     "render_python_js_standard",
     "render_python_standard",
@@ -59,5 +82,6 @@ __all__ = [
     "render_rust_firmware_standard",
     "render_standard",
     "render_typescript_web_standard",
+    "render_typespec_contract_standard",
     "render_zephyr_standard",
 ]

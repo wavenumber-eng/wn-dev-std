@@ -1,0 +1,12 @@
+{
+  "type": "catalog.snapshot",
+  "version": "v1",
+  "revision": 7,
+  "items": [
+    {
+      "id": "r-001",
+      "name": "Precision resistor",
+      "description": "10 kOhm, 1 percent"
+    }
+  ]
+}

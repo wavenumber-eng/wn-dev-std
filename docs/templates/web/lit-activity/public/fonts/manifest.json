@@ -1,0 +1,10 @@
+{
+  "family": "JetBrains Mono",
+  "version": "2.304",
+  "license": "SIL Open Font License 1.1",
+  "source": "https://github.com/JetBrains/JetBrainsMono/tree/v2.304",
+  "files": {
+    "JetBrainsMono-Regular.woff2": "sha256:a9cb1cd82332b23a47e3a1239d25d13c86d16c4220695e34b243effa999f45f2",
+    "OFL.txt": "sha256:60d55f23c6ce05a81099a762cb67ca2c9b6ea251c7912720998b4c89ebfd4faa"
+  }
+}

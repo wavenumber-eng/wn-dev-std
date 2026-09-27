@@ -1,0 +1,34 @@
+standard_version = "2026.9.27"
+profile = "typescript-web-app"
+languages = ["typescript"]
+strict = true
+enabled_scopes = ["language", "application"]
+
+[typescript]
+config = "tsconfig.json"
+
+[web_application]
+framework = "lit"
+architecture = "activity"
+activity_core = "src/activity"
+composition_root = "src/application/create-application.ts"
+feature_root = "src/features"
+transport_root = "src/transport"
+shell_root = "src/shell"
+theme_root = "src/theme"
+browser_root = "src/browser"
+source_roots = ["src"]
+dom_policy = "documented-mixed"
+
+[web_application.design_system]
+mode = "strict"
+style_roots = ["src"]
+token_files = ["src/theme/primitives.css"]
+exception_refs = []
+
+[web_application.commands]
+boundaries = "npm run lint"
+typecheck = "npm run typecheck"
+test = "npm test"
+build = "npm run build"
+signoff = "npm run signoff"

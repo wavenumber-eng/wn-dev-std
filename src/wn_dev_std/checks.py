@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import cast
 from xml.etree import ElementTree
 
+from wn_dev_std.application_policy import check_application_policy
 from wn_dev_std.audit_config import (
     AuditMode,
     config_kind,
@@ -54,6 +55,7 @@ from wn_dev_std.test_governance import (
     has_test_governance_config,
 )
 from wn_dev_std.typescript_policy import check_typescript_policy
+from wn_dev_std.typespec_policy import check_typespec_policy
 from wn_dev_std.web_policy import check_web_policy
 
 JAVASCRIPT_STANDARD_DOC_PATHS = (
@@ -120,6 +122,8 @@ def _run_selected_audit_checks(
         _python_package_checks(resolved_root, resolved_pyproject, profile, requested_scopes)
     )
     checks.extend(_language_checks(resolved_root, profile, requested_scopes))
+    checks.extend(_contract_checks(resolved_root, resolved_config, requested_scopes))
+    checks.extend(_application_checks(resolved_root, resolved_config, requested_scopes))
     checks.extend(_compat_checks(resolved_root, resolved_config, requested_scopes))
     checks.extend(_ci_checks(resolved_root, resolved_config, requested_scopes))
     checks.extend(_test_suite_checks(resolved_root, resolved_config, requested_scopes))
@@ -150,6 +154,26 @@ def _language_checks(
     if not scope_is_selected("language", requested_scopes):
         return []
     return _scoped_results(_profile_specific_checks(root, profile), "language")
+
+
+def _contract_checks(
+    root: Path,
+    config: Mapping[str, object] | None,
+    requested_scopes: Sequence[str],
+) -> list[CheckResult]:
+    if not scope_is_selected("contracts", requested_scopes):
+        return []
+    return list(check_typespec_policy(root, config))
+
+
+def _application_checks(
+    root: Path,
+    config: Mapping[str, object] | None,
+    requested_scopes: Sequence[str],
+) -> list[CheckResult]:
+    if not scope_is_selected("application", requested_scopes):
+        return []
+    return list(check_application_policy(root, config))
 
 
 def _compat_checks(
