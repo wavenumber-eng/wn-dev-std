@@ -60,6 +60,8 @@ def test_copy_owned_templates_pass_clean_signoff(
             check=False,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         assert result.returncode != 0
         assert "generated outputs are stale" in result.stdout + result.stderr
@@ -134,7 +136,15 @@ def test_repository_docs_cover_template_maintenance_and_self_application() -> No
 
 
 def run_command(command: tuple[str, ...], cwd: Path) -> None:
-    result = subprocess.run(command, cwd=cwd, check=False, capture_output=True, text=True)
+    result = subprocess.run(
+        command,
+        cwd=cwd,
+        check=False,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
     assert result.returncode == 0, result.stdout + result.stderr
 
 
