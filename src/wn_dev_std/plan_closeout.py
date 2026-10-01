@@ -90,8 +90,8 @@ def _is_readiness_failure(failure: str, plan_path: str) -> bool:
 
 def _plan_state_blockers(plan: PlanRecord) -> list[str]:
     blockers: list[str] = []
-    if plan.status != "active":
-        blockers.append(f"plan status must be active; currently {plan.status}")
+    if plan.status not in {"active", "pending"}:
+        blockers.append(f"plan status must be active or pending; currently {plan.status}")
     unfinished_steps = [step.step_id for step in plan.steps if step.status != "done"]
     if unfinished_steps:
         blockers.append("steps not done: " + ", ".join(unfinished_steps))

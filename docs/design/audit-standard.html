@@ -71,7 +71,7 @@
     target, runnable, board app, fixture, sample, or demo folder is a separate
     member.
   </p>
-  <pre><code>standard_version = "2026.9.27"
+  <pre><code>standard_version = "2026.10.1"
 kind = "workspace"
 
 [workspace]
@@ -100,7 +100,7 @@ members = ["bom_cruncher", "lib_cruncher", "panel-monkey"]</code></pre>
     <code>enabled_scopes</code>. Repositories with no dev-std config continue to
     use default audit behavior and are not part of the first migration ratchet.
   </p>
-  <pre><code>standard_version = "2026.9.27"
+  <pre><code>standard_version = "2026.10.1"
 kind = "package"
 profile = "zephyr-firmware"
 enabled_scopes = ["docs.plans"]</code></pre>
@@ -411,9 +411,11 @@ status = "pending"</code></pre>
     impact audit, update durable artifacts, complete external review, remove
     the temporary plan and logs from the active plan root, and rerun
     <code>dev-std audit . --scope docs.plans</code> to prove no active-work
-    residue remains. <code>dev-std plan close &lt;plan-id&gt;</code> reports the
-    remaining work and exact finish command; add <code>--delete</code> only after
-    confirming the durable records contain the lasting outcomes.
+    residue remains. <code>dev-std plan close &lt;plan-id&gt;</code> accepts a
+    completed active or pending plan and reports the remaining work and exact
+    finish command. A blocked plan must first be resolved or deliberately
+    returned to pending. Add <code>--delete</code> only after confirming the
+    durable records contain the lasting outcomes.
   </p>
 
   <h2>ADR And Requirement Audits</h2>
@@ -607,7 +609,7 @@ docs/domains/&lt;domain&gt;.html</code></pre>
     CI should run governance before expensive functional or platform matrices.
     Downstream CI should pin the released PyPI tool version that matches the
     repository's <code>standard_version</code>, for example
-    <code>uvx --from wn-dev-std==2026.9.27 dev-std audit .</code>. Optional
+    <code>uvx --from wn-dev-std==2026.10.1 dev-std audit .</code>. Optional
     upstream freshness checks may warn when a newer PyPI release exists, but
     normal audit must remain deterministic and offline unless that check is
     requested.

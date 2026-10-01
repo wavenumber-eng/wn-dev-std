@@ -765,7 +765,7 @@ wheels = [
 
 [[package]]
 name = "wn-dev-std"
-version = "2026.9.27"
+version = "2026.10.1"
 source = { editable = "." }
 dependencies = [
     { name = "jsonschema" },

@@ -1,4 +1,4 @@
-standard_version = "2026.9.27"
+standard_version = "2026.10.1"
 profile = "typescript-web-app"
 languages = ["typescript"]
 strict = true
