@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026.10.1
+
+- Allow fully completed pending plans to pass the canonical
+  `dev-std plan close` workflow without a direct frontmatter edit.
+- Continue to block closeout for plans whose status is `blocked`, while
+  preserving the existing step, exit-criterion, dependency, and explicit
+  deletion checks.
+- Refresh the TypeSpec reference template's transitive `undici` override to
+  7.30.0 after the release audit identified new high-severity advisories.
+
 ## 2026.9.27
 
 - Establish TypeSpec as the independent structural authority for new

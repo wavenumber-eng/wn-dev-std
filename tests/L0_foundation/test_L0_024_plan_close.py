@@ -66,6 +66,44 @@ def test_plan_close_delete_removes_only_plan_and_attached_logs(tmp_path: Path) -
     assert audit.returncode == 0
 
 
+def test_plan_close_delete_accepts_completed_pending_plan(tmp_path: Path) -> None:
+    write_plan_config(tmp_path)
+    write_plan(
+        tmp_path,
+        "pcb-a0",
+        ready=True,
+        status="pending",
+        final_step_status="pending",
+    )
+
+    step = run_cli(
+        tmp_path,
+        "plan",
+        "step",
+        "status",
+        "pcb-a0",
+        "external-review",
+        "done",
+    )
+    result = run_cli(tmp_path, "plan", "close", "pcb-a0", "--delete")
+
+    assert step.returncode == 0
+    assert result.returncode == 0
+    assert "Plan pcb-a0 is ready for closeout" in result.stdout
+    assert not plan_path(tmp_path, "pcb-a0").exists()
+
+
+def test_plan_close_blocks_completed_blocked_plan(tmp_path: Path) -> None:
+    write_plan_config(tmp_path)
+    write_plan(tmp_path, "pcb-a0", ready=True, status="blocked")
+
+    result = run_cli(tmp_path, "plan", "close", "pcb-a0", "--delete")
+
+    assert result.returncode == 1
+    assert "plan status must be active or pending; currently blocked" in result.stdout
+    assert plan_path(tmp_path, "pcb-a0").exists()
+
+
 def test_plan_close_blocks_deletion_when_another_plan_depends_on_it(tmp_path: Path) -> None:
     write_plan_config(tmp_path)
     write_plan(tmp_path, "pcb-a0", ready=True)
@@ -101,8 +139,17 @@ def write_plan_config(root: Path) -> None:
     )
 
 
-def write_plan(root: Path, plan_id: str, *, ready: bool, depends_on: str | None = None) -> None:
+def write_plan(
+    root: Path,
+    plan_id: str,
+    *,
+    ready: bool,
+    depends_on: str | None = None,
+    status: str = "active",
+    final_step_status: str | None = None,
+) -> None:
     step_status = "done" if ready else "pending"
+    external_review_status = final_step_status or step_status
     criterion_status = "met" if ready else "pending"
     dependency = f'depends_on = ["{depends_on}"]\n' if depends_on else ""
     write_file(
@@ -110,7 +157,7 @@ def write_plan(root: Path, plan_id: str, *, ready: bool, depends_on: str | None 
         f"""+++
 type = "plan"
 id = "{plan_id}"
-status = "active"
+status = "{status}"
 created = "2026-09-06"
 {dependency}
 [[steps]]
@@ -133,7 +180,7 @@ depends_on = ["work"]
 [[steps]]
 id = "external-review"
 title = "Obtain independent external review"
-status = "{step_status}"
+status = "{external_review_status}"
 depends_on = ["work", "design-doc-intent-audit", "test-runtime-impact-audit"]
 
 [[exit_criteria]]
