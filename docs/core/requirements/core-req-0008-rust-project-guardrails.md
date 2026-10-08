@@ -20,6 +20,10 @@ target = "src/wn_dev_std/rust_policy.py"
 
 [[implementation_refs]]
 kind = "local_file"
+target = "src/wn_dev_std/rust_format_policy.py"
+
+[[implementation_refs]]
+kind = "local_file"
 target = "src/wn_dev_std/rust_hygiene.py"
 
 [[implementation_refs]]
@@ -88,6 +92,10 @@ target = "tests/L0_foundation/test_L0_021_rust_policy.py::test_rust_app_profile_
 
 [[verification_refs]]
 kind = "local_pytest"
+target = "tests/L0_foundation/test_L0_028_rust_owned_format.py::test_nested_application_formats_only_its_root_with_external_path_dependencies"
+
+[[verification_refs]]
+kind = "local_pytest"
 target = "tests/L0_foundation/test_L0_021_rust_policy.py::test_rust_profile_accepts_polyglot_src_rs_root"
 
 [[verification_refs]]
@@ -144,8 +152,14 @@ and JavaScript implement the same contracts. The audit must inspect only the
 configured Rust root for owned Rust source and must not treat sibling language
 roots as Rust-owned implementation.
 
-All Rust profiles must declare signoff coverage for `cargo fmt --all --
---check`, `cargo check`, `cargo clippy`, `cargo test`, and
+All Rust profiles must declare formatting coverage for every owned crate.
+The canonical lane is `cargo fmt --all -- --check`. An explicitly self-owned
+single-package root may instead use `cargo fmt --package ROOT_NAME -- --check`
+or `-p ROOT_NAME` when the exact root identity and absence of other owned crates
+are proven. Internal dependency/override paths, additional Cargo manifests,
+ambiguous workspace scope and unsupported command text refuse that alternative.
+Multi-crate and virtual workspaces retain the full lane. All profiles must also
+declare `cargo check`, `cargo clippy`, `cargo test`, and
 `RUSTDOCFLAGS="-D warnings" cargo doc`. Cargo commands in CI must use
 deterministic locked dependency resolution, typically through `--locked`.
 Rack must also expose `dev-std audit . --scope language` as a failing Rust

@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
 
+from wn_dev_std.rust_format_policy import has_format_lane
+
 
 @dataclass(frozen=True, slots=True)
 class CommandRequirement:
@@ -19,7 +21,6 @@ class CommandRequirement:
 
 
 HOST_COMMANDS = (
-    CommandRequirement("cargo fmt --all -- --check", ("cargo fmt", "--all", "-- --check")),
     CommandRequirement("cargo check --locked", ("cargo check", "--locked")),
     CommandRequirement(
         "cargo clippy --locked -- -D warnings",
@@ -65,6 +66,8 @@ def check_rust_command_surface(
         required.extend(FIRMWARE_COMMANDS)
 
     missing = [item.label for item in required if not _has_command_markers(commands, item)]
+    if not has_format_lane(root, commands):
+        missing.insert(0, "cargo fmt --all -- --check or a proven single-package formatter lane")
     if profile == "rust-firmware" and not _has_runner_command(commands, runner):
         missing.append("hardware runner command")
     if missing:
@@ -80,7 +83,7 @@ def _rack_commands(path: Path) -> tuple[str, ...] | str:
     _collect_command_values(data, commands)
     if not commands:
         return "tests/rack.toml must declare command entries"
-    return tuple(_normalized_text(command) for command in commands)
+    return tuple(commands)
 
 
 def _load_toml_mapping(path: Path, label: str) -> Mapping[str, object] | str:
@@ -105,6 +108,7 @@ def _collect_command_values(value: object, commands: list[str]) -> None:
 
 
 def _has_runner_command(commands: Sequence[str], runner: str | None) -> bool:
+    commands = tuple(_normalized_text(command) for command in commands)
     if any(marker in command for marker in RUNNER_MARKERS for command in commands):
         return True
     if runner is None:
@@ -127,6 +131,7 @@ def _has_command_markers(commands: Sequence[str], requirement: CommandRequiremen
 
 
 def _command_matches_requirement(command: str, requirement: CommandRequirement) -> bool:
+    command = _normalized_text(command)
     return all(marker in command for marker in requirement.markers) and not any(
         marker in command for marker in requirement.excluded_markers
     )

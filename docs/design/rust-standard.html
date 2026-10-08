@@ -97,6 +97,38 @@ config = "rust-hygiene.toml"</code></pre>
 ambient_toolchain = "docs/design/rust-toolchain-exception.html"
 unsafe = "docs/design/unsafe-boundary.html"</code></pre>
 
+  <h2>Formatting Ownership</h2>
+  <p>
+    The canonical full lane remains <code>cargo fmt --all -- --check</code>.
+    Cargo includes local path dependencies with <code>--all</code>, even when
+    they belong to separately governed sibling packages. An isolated
+    single-package root may instead declare
+    <code>cargo fmt --package ROOT_NAME -- --check</code> or the equivalent
+    <code>-p ROOT_NAME</code> spelling to check all of its owned Rust.
+  </p>
+  <p>
+    The alternative requires a literal root package name matching the selector
+    and an explicit self-owned <code>[workspace]</code> with absent or empty
+    members, default-members and exclude lists. Package workspace redirects,
+    additional root-local Cargo manifests and internal path dependencies
+    refuse this alternative; this includes optional, dev, build, target and
+    inherited workspace dependencies and patch/replace path overrides.
+    External sibling manifests are not read. Symlinked root manifests,
+    nonregular manifests and ambiguous source-directory links refuse the
+    single-package alternative.
+    Bounded manifest reads, dependency traversal and filesystem inventory
+    refuse ambiguous, excessively nested or unreadable scope.
+    Normal transient build/cache directories are pruned from inventory, but a
+    declared internal path dependency cannot hide there.
+  </p>
+  <p>
+    The formatter command must be a real, exact Cargo invocation. Wrong or
+    duplicate selectors, alternate manifests, extra suppression arguments,
+    shell prefixes and command-like strings do not prove a formatting lane.
+    Multi-crate and virtual workspaces retain the full formatting requirement.
+    Compilation, Clippy, hygiene, tests and rustdoc gates are unchanged.
+  </p>
+
   <h2>Structural Hygiene</h2>
   <p>
     Greenfield <code>rust-app</code> and <code>rust-firmware</code> projects use

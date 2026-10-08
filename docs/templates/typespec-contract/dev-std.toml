@@ -1,4 +1,4 @@
-standard_version = "2026.10.1"
+standard_version = "2026.10.8"
 profile = "python-package"
 languages = ["typespec", "typescript", "python"]
 strict = true
