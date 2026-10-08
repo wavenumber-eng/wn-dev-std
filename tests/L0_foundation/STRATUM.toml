@@ -244,3 +244,11 @@ name = "Template Commands"
 description = "Validate version-matched template discovery and non-overwriting copies"
 concerns = ["cli", "contracts"]
 test_case_type = "contract"
+
+[[subtests]]
+id = "L0_028"
+file = "test_L0_028_rust_owned_format.py"
+name = "Owned Rust Format Scope"
+description = "Validate exact format commands and single-package versus owned-workspace boundaries"
+concerns = ["contracts", "signoff"]
+test_case_type = "audit_meta"

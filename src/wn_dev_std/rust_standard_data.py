@@ -20,8 +20,8 @@ RUST_APP_RULE_ITEMS = (
     ),
     (
         "format",
-        "cargo fmt --all -- --check",
-        "Use the standard formatter before source review.",
+        "cargo fmt --all -- --check, or a proven single-package selector",
+        "Format all owned crates; isolated single packages may omit sibling dependencies.",
     ),
     (
         "static-analysis",

@@ -25,7 +25,7 @@ CapabilityName = Literal[
     "lit-web-application",
 ]
 
-STANDARD_VERSION = "2026.10.1"
+STANDARD_VERSION = "2026.10.8"
 
 
 @dataclass(frozen=True, slots=True)

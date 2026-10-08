@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026.10.8
+
+- Accept an exact owned-package Cargo formatting lane for explicitly isolated
+  single-package Rust roots, preserving full formatting for other workspaces.
+- Refuse ambiguous workspace scopes, internal dependency/override paths,
+  additional manifests, misleading command text and unprovable filesystem or
+  input-resource boundaries.
+- Keep compilation, Clippy, strict hygiene, test and rustdoc gates unchanged.
+- Refresh the Lit template's locked source-map-js dependency to patched 1.2.2
+  so full release signoff clears GHSA-68fv-2mgg-jv7q.
+
 ## 2026.10.1
 
 - Allow fully completed pending plans to pass the canonical
