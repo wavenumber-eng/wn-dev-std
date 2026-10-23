@@ -11,7 +11,7 @@ Thank you for contributing to `wn-dev-std`.
    ```bash
    uv sync --all-extras
    uv run rack run --all
-   uv run python -m build
+   uv run python -m build --installer uv
    uv run twine check dist/*
    ```
 

@@ -202,6 +202,10 @@
       Reports the package version, Python version, and major dependency
       versions. <code>--check-upstream</code> checks PyPI for a newer
       released <code>wn-dev-std</code> version and reports only a warning.
+      The request verifies TLS with Certifi &gt;=2026.10.19 explicitly; system
+      roots and <code>SSL_CERT_FILE</code>/<code>SSL_CERT_DIR</code> overrides
+      are excluded. Private-CA proxies need direct PyPI access for this
+      optional check. TLS failures remain warnings and do not disable verification.
     </p>
   </section>
 </body>

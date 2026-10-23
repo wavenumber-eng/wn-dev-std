@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import http.client
 import json
+import ssl
 import urllib.error
 import urllib.request
 from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import cast
+
+import certifi
 
 
 @dataclass(frozen=True, slots=True)
@@ -74,7 +77,8 @@ def latest_pypi_version(package: str, *, timeout_seconds: float = 3.0) -> str:
             "User-Agent": "wn-dev-std",
         },
     )
-    with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
+    context = ssl.create_default_context(cafile=certifi.where())
+    with urllib.request.urlopen(request, timeout=timeout_seconds, context=context) as response:
         payload: object = json.load(response)
     if not isinstance(payload, dict):
         raise json.JSONDecodeError("expected JSON object", "", 0)

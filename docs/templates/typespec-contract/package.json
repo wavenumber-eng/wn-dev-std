@@ -5,9 +5,10 @@
   "type": "module",
   "packageManager": "npm@11.16.0",
   "engines": {
-    "node": ">=22.22.2"
+    "node": "^22.23.4 || ^24.22.1 || ^26.12.1"
   },
   "scripts": {
+    "preinstall": "node scripts/check-node.mjs",
     "generate:typespec": "tsp compile contracts/main.tsp --config tspconfig.yaml",
     "generate:typescript": "openapi-typescript generated/openapi/openapi.json -o generated/typescript/api.d.ts",
     "generate:artifacts": "node scripts/clean-generated.mjs && npm run generate:typespec && npm run generate:typescript",

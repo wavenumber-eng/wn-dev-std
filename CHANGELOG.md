@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026.10.22
+
+- Use Certifi 2026.10.19 or newer for the optional PyPI freshness check,
+  excluding inherited system roots and certificate environment overrides.
+- Require uv 0.13.4 or newer, build isolated environments with uv, and refresh
+  Linux CI certificates before dependency installation.
+- Pin CI to Node 24.22.1 and ship patched Node engine floors and install guards
+  in both executable templates.
+
 ## 2026.10.8
 
 - Accept an exact owned-package Cargo formatting lane for explicitly isolated

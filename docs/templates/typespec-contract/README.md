@@ -9,6 +9,10 @@ Create a version-matched copy with
 
 ## Start here
 
+Use Node 24.22.1 (CI reference), or patched Node 22.23.4+ / 26.12.1+
+on those release lines, with npm 11.16.0. The install guard rejects older
+CA bundles. Python commands require uv 0.13.4 or newer.
+
 1. Run `npm ci` and `uv sync`.
 2. Run `npm run signoff` to compile TypeSpec, generate JSON Schema, OpenAPI, and
    TypeScript declarations, check freshness, and run Node and Python

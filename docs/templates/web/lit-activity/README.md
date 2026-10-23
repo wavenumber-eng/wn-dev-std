@@ -18,6 +18,10 @@ examples. Each piece is intentionally small enough to copy and change.
 
 ## Start here
 
+Use Node 24.22.1 (CI reference), or patched Node 22.23.4+ / 26.12.1+
+on those release lines, with npm 11.16.0. The install guard rejects older
+CA bundles. Python commands require uv 0.13.4 or newer.
+
 1. Run `npm ci`.
 2. Run `npm run dev` and open the printed local URL.
 3. Read `docs/architecture.md` and `docs/activity-model.md`.
