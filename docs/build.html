@@ -18,6 +18,13 @@
 
   <h2>Required Tools And Setup</h2>
   <p>
+    Security prerequisites: uv &gt;=0.13.4 and Node 24.22.1 (CI reference),
+    or patched 22.23.4+ / 26.12.1+ on those release lines. Update operating-system
+    CA certificates before network installs. Any separately used pip must be
+    &gt;=26.2.2; isolated builds use uv to avoid an older seeded pip bundle.
+    Package installation does not update host trust stores or existing template copies.
+  </p>
+  <p>
     This package is a Python package built with <code>uv</code>, Hatchling,
     Ruff, Pyright, pytest, and the local Python hygiene signoff script. Install
     all development dependencies and verify the committed lock with:
@@ -65,7 +72,7 @@ npm run dev</code></pre>
   <h2>Full Repository Signoff</h2>
   <pre><code>uv run dev-std audit .
 uv run rack run --all
-uv run python -m build
+uv run python -m build --installer uv
 uv run twine check dist/*</code></pre>
   <p>
     The release-facing Rack suite copies both templates into clean temporary

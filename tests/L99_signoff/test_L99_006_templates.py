@@ -17,6 +17,24 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 @pytest.mark.parametrize(
+    "relative_source",
+    ("docs/templates/typespec-contract", "docs/templates/web/lit-activity"),
+)
+def test_template_node_guard_rejects_affected_releases(relative_source: str) -> None:
+    node = shutil.which("node")
+    assert node is not None
+    guard = (ROOT / relative_source / "scripts" / "check-node.mjs").as_uri()
+    probe = (
+        f'import {{ isSupportedNode }} from "{guard}";'
+        'for (const v of ["22.23.3", "24.18.0", "24.22.0", "26.12.0", "23.0.0"]) {'
+        "if (isSupportedNode(v)) throw new Error(`accepted affected Node ${v}`); }"
+        'for (const v of ["22.23.4", "24.22.1", "26.12.1"]) {'
+        "if (!isSupportedNode(v)) throw new Error(`rejected fixed Node ${v}`); }"
+    )
+    run_command((node, "--input-type=module", "--eval", probe), ROOT)
+
+
+@pytest.mark.parametrize(
     ("relative_source", "scope"),
     (
         ("docs/templates/typespec-contract", "contracts"),

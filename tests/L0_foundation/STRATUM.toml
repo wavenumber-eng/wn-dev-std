@@ -252,3 +252,11 @@ name = "Owned Rust Format Scope"
 description = "Validate exact format commands and single-package versus owned-workspace boundaries"
 concerns = ["contracts", "signoff"]
 test_case_type = "audit_meta"
+
+[[subtests]]
+id = "L0_029"
+file = "test_L0_029_upstream_tls.py"
+name = "Upstream TLS Trust"
+description = "Verify patched roots, host trust isolation, and certificate failure behavior"
+concerns = ["cli", "signoff"]
+test_case_type = "contract"
