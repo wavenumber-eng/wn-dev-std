@@ -20,8 +20,8 @@ RUST_APP_RULE_ITEMS = (
     ),
     (
         "format",
-        "cargo fmt --all -- --check, or a proven single-package selector",
-        "Format all owned crates; isolated single packages may omit sibling dependencies.",
+        "cargo fmt --all -- --check, or proven complete owned-package selectors",
+        "Format every owned crate; proven explicit selectors may omit sibling dependencies.",
     ),
     (
         "static-analysis",

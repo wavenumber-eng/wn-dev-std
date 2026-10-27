@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026.10.26
+
+- Accept one exact Cargo formatter command selecting every package in a proven
+  named-root workspace with literal in-root members. Preserve isolated package
+  coverage, full-all fallback, ownership boundaries and all non-format gates.
+- Refuse omitted or foreign packages, duplicate selectors or members, workspace
+  redirects, hidden internal dependency targets and unreadable or linked scope.
+- Read only direct external Cargo package identities within fixed count/byte
+  budgets, rejecting redirects that could hide automatic workspace members.
+- Refresh the Lit template Vite/Vitest patch releases and both templates'
+  vulnerable Undici/fast-uri resolutions so dependency audits remain enabled.
+
 ## 2026.10.22
 
 - Use Certifi 2026.10.19 or newer for the optional PyPI freshness check,

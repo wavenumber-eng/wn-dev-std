@@ -765,7 +765,7 @@ wheels = [
 
 [[package]]
 name = "wn-dev-std"
-version = "2026.10.22"
+version = "2026.10.26"
 source = { editable = "." }
 dependencies = [
     { name = "certifi" },

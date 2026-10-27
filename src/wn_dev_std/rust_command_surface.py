@@ -67,7 +67,9 @@ def check_rust_command_surface(
 
     missing = [item.label for item in required if not _has_command_markers(commands, item)]
     if not has_format_lane(root, commands):
-        missing.insert(0, "cargo fmt --all -- --check or a proven single-package formatter lane")
+        missing.insert(
+            0, "cargo fmt --all -- --check or a proven complete owned-package formatter lane"
+        )
     if profile == "rust-firmware" and not _has_runner_command(commands, runner):
         missing.append("hardware runner command")
     if missing:

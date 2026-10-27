@@ -101,21 +101,31 @@ unsafe = "docs/design/unsafe-boundary.html"</code></pre>
   <p>
     The canonical full lane remains <code>cargo fmt --all -- --check</code>.
     Cargo includes local path dependencies with <code>--all</code>, even when
-    they belong to separately governed sibling packages. An isolated
-    single-package root may instead declare
-    <code>cargo fmt --package ROOT_NAME -- --check</code> or the equivalent
-    <code>-p ROOT_NAME</code> spelling to check all of its owned Rust.
+    they belong to separately governed sibling packages. A named root package
+    with an explicit self-owned workspace may instead select every owned
+    package exactly once in one invocation, for example
+    <code>cargo fmt --package ROOT_NAME --package MEMBER_NAME -- --check</code>.
+    The equivalent <code>-p</code> spelling and either selector order are accepted.
+    A workspace with no members selects only its root package.
   </p>
   <p>
-    The alternative requires a literal root package name matching the selector
-    and an explicit self-owned <code>[workspace]</code> with absent or empty
-    members, default-members and exclude lists. Package workspace redirects,
-    additional root-local Cargo manifests and internal path dependencies
-    refuse this alternative; this includes optional, dev, build, target and
-    inherited workspace dependencies and patch/replace path overrides.
-    External sibling manifests are not read. Symlinked root manifests,
-    nonregular manifests and ambiguous source-directory links refuse the
-    single-package alternative.
+    The alternative requires literal, unique package names and literal in-root
+    <code>[workspace].members</code>, with absent or empty default-members and
+    exclude lists. The selectors must cover the root and every declared member.
+    Package workspace redirects, nested workspaces, glob members, duplicate
+    names or member paths, and undeclared root-local Cargo manifests refuse
+    this alternative. Internal dependency and override paths must resolve to
+    those declared packages, relative to the declaring manifest; this includes
+    optional, dev, build, target and inherited workspace dependencies and
+    patch/replace path overrides. Direct external dependencies receive only an
+    identity read of their Cargo manifest, rejecting workspace redirects back
+    into the owned root. Their dependencies are not traversed. The identity
+    check deduplicates paths and allows at most 256 external manifests,
+    4 MiB aggregate source and 1 MiB per manifest. Missing, malformed or
+    uncertain identity refuses the alternative. This applies to both isolated
+    single-package and complete workspace selectors.
+    Symlinked or nonregular manifests and ambiguous source-directory links
+    refuse the owned-package alternative.
     Bounded manifest reads, dependency traversal and filesystem inventory
     refuse ambiguous, excessively nested or unreadable scope.
     Normal transient build/cache directories are pruned from inventory, but a
@@ -125,7 +135,8 @@ unsafe = "docs/design/unsafe-boundary.html"</code></pre>
     The formatter command must be a real, exact Cargo invocation. Wrong or
     duplicate selectors, alternate manifests, extra suppression arguments,
     shell prefixes and command-like strings do not prove a formatting lane.
-    Multi-crate and virtual workspaces retain the full formatting requirement.
+    Virtual workspaces and scopes without this complete proof retain the full
+    formatting requirement.
     Compilation, Clippy, hygiene, tests and rustdoc gates are unchanged.
   </p>
 
