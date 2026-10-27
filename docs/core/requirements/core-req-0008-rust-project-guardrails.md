@@ -96,6 +96,18 @@ target = "tests/L0_foundation/test_L0_028_rust_owned_format.py::test_nested_appl
 
 [[verification_refs]]
 kind = "local_pytest"
+target = "tests/L0_foundation/test_L0_028_rust_owned_format.py::test_literal_workspace_accepts_complete_owned_selection"
+
+[[verification_refs]]
+kind = "local_pytest"
+target = "tests/L0_foundation/test_L0_028_rust_owned_format.py::test_workspace_proof_reads_only_direct_external_identity"
+
+[[verification_refs]]
+kind = "local_pytest"
+target = "tests/L0_foundation/test_L0_028_rust_owned_format.py::test_external_workspace_redirect_cannot_hide_automatic_members"
+
+[[verification_refs]]
+kind = "local_pytest"
 target = "tests/L0_foundation/test_L0_021_rust_policy.py::test_rust_profile_accepts_polyglot_src_rs_root"
 
 [[verification_refs]]
@@ -153,12 +165,21 @@ configured Rust root for owned Rust source and must not treat sibling language
 roots as Rust-owned implementation.
 
 All Rust profiles must declare formatting coverage for every owned crate.
-The canonical lane is `cargo fmt --all -- --check`. An explicitly self-owned
-single-package root may instead use `cargo fmt --package ROOT_NAME -- --check`
-or `-p ROOT_NAME` when the exact root identity and absence of other owned crates
-are proven. Internal dependency/override paths, additional Cargo manifests,
-ambiguous workspace scope and unsupported command text refuse that alternative.
-Multi-crate and virtual workspaces retain the full lane. All profiles must also
+The canonical lane is `cargo fmt --all -- --check`. A named root package with an
+explicit self-owned workspace may instead use one exact Cargo invocation with
+`--package NAME` or `-p NAME` for the root and each literal in-root member,
+selecting each unique package exactly once. All internal dependency and override
+paths must resolve to these declared packages relative to their declaring
+manifest. Undeclared Cargo manifests, workspace redirects, glob members,
+duplicate names or paths, nonempty excludes/default-members, ambiguous or
+unreadable scope and unsupported command text refuse that alternative. Direct
+external path dependencies require a bounded, identity-only Cargo manifest read
+to prove they do not redirect workspace membership into the owned root. Their
+dependencies are not traversed. At most 256 distinct external manifests and
+4 MiB aggregate source are read, with a 1 MiB per-manifest limit; linked,
+missing, malformed or uncertain identities refuse the alternative. These rules
+also apply to isolated single-package selection. Virtual workspaces retain the full lane.
+All profiles must also
 declare `cargo check`, `cargo clippy`, `cargo test`, and
 `RUSTDOCFLAGS="-D warnings" cargo doc`. Cargo commands in CI must use
 deterministic locked dependency resolution, typically through `--locked`.

@@ -77,6 +77,21 @@ Cargo, rustfmt, Clippy, rustdoc, rustup, and Rack are the default tooling
 surface. Stable Rust is the default channel. Nightly is exception-only and must
 be pinned with rationale and a review trigger.
 
+Formatting may select the complete owned package set instead of using
+`cargo fmt --all -- --check`, which also traverses separately governed local
+dependencies. This alternative requires a named root and an explicit workspace
+with literal in-root members, unique package names and one exact invocation
+selecting every owned package once. Bounded manifest and filesystem inspection
+must prove there are no undeclared internal packages or dependency targets.
+Direct external path dependencies receive only a bounded Cargo manifest identity
+read to reject workspace redirects into the owned root; their dependencies are
+never traversed. This closes a preexisting isolated-package gap where an external
+redirect could introduce an otherwise hidden internal member. The identity proof
+deduplicates paths and caps reads at 256 external manifests, 4 MiB aggregate and
+1 MiB each, refusing linked or uncertain input. Redirects, glob members, nonempty
+excludes/default-members, unreadable scope and virtual roots retain the full
+lane. This changes formatter coverage proof only, not the other Rust gates.
+
 Tree-sitter Rust is the approved structural parser. Dev-std pins the policy at
 seven parameters, 100 production-function lines, 150 test-function lines, 1000
 owned-file lines, cyclomatic complexity 10, and nesting depth 4. Clippy retains

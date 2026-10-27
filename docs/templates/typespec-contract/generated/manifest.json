@@ -3,8 +3,8 @@
   "source": {
     "contracts/main.tsp": "31c4c8d5af0a4c8b297568002640eddeae0cd22216852620c8cfc4a1f8cd88b0",
     "contracts/models.tsp": "a7cbd353b8c5e4f7c11a9e58d2c0ef05a585081530a787057d1c1190a917326f",
-    "package-lock.json": "b54293df1a77205ddadc2e448eefd38f280a6ced538f2c1786c27c9095fab5c0",
-    "package.json": "fcf425a805a7a7d93364fd5bd33c9849e11f0fd73e0b39007c6e8b93c305aee3",
+    "package-lock.json": "f77049495476bec75302a8966965dd452273e30ab92fd3d9fcad6bc7b21059a5",
+    "package.json": "7ae050cc01f64974b96b2bb70ad6cbc8fa233f5a0b093c34ddd623f3d9eceae7",
     "scripts/clean-generated.mjs": "1165a0d691c74094edbb63bfcf1da76169e46b39cb631eec6fbe9cbcd006da31",
     "scripts/generated-manifest.mjs": "5ffa09b74765dedb91569d2dc1e3396b44be646bd83d867b675718bb0ab89b10",
     "tspconfig.yaml": "4910ebde2fefb3a2b30154f74eb143873be1ea14eb2c6f9775f0429979ebc2bd"

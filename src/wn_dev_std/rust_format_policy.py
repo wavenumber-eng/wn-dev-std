@@ -1,4 +1,4 @@
-"""Ownership proof for the bounded single-package Cargo formatter lane."""
+"""Ownership proof for bounded, completely selected Cargo formatter lanes."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import cast
 
 from wn_dev_std.rust_cargo_workspace import mapping_value
+from wn_dev_std.rust_format_external import separate_external_packages
 
 MAX_MANIFEST_BYTES = 1024 * 1024
 MAX_INVENTORY_ENTRIES = 20_000
@@ -38,12 +39,13 @@ DEPENDENCY_TABLES = {
 
 
 def has_format_lane(root: Path, commands: Sequence[str]) -> bool:
-    """Accept the full lane, or an exactly selected and proven single package."""
+    """Accept the full lane, or exact selection of every proven owned package."""
     for command in commands:
         arguments = _arguments(command)
         if arguments == ["cargo", "fmt", "--all", "--", "--check"]:
             return True
-        if _is_owned_selector(arguments) and _is_single_package(root, arguments[3]):
+        selectors = _owned_selectors(arguments)
+        if selectors and _is_owned_workspace(root, selectors):
             return True
     return False
 
@@ -55,22 +57,41 @@ def _arguments(command: str) -> list[str]:
         return []
 
 
-def _is_owned_selector(arguments: list[str]) -> bool:
-    return (
-        len(arguments) == 6
-        and arguments[:2] == ["cargo", "fmt"]
-        and arguments[2] in {"--package", "-p"}
-        and arguments[4:] == ["--", "--check"]
-    )
+def _owned_selectors(arguments: list[str]) -> list[str]:
+    if arguments[:2] != ["cargo", "fmt"] or arguments[-2:] != ["--", "--check"]:
+        return []
+    pairs = arguments[2:-2]
+    if not pairs or len(pairs) % 2:
+        return []
+    if any(flag not in {"--package", "-p"} for flag in pairs[::2]):
+        return []
+    names = pairs[1::2]
+    return names if len(set(names)) == len(names) else []
 
 
-def _is_single_package(root: Path, selector: str) -> bool:
+def _is_owned_workspace(root: Path, selectors: list[str]) -> bool:
+    try:
+        if _is_link(root):
+            return False
+        root = root.resolve()
+    except (OSError, ValueError):
+        return False
     manifest = _manifest(root / "Cargo.toml")
-    if manifest is None or not _root_identity_matches(manifest, selector):
+    if manifest is None:
         return False
-    if not _self_workspace(manifest):
+    packages = _owned_packages(root, manifest)
+    if packages is None or set(selectors) != {name for name, _ in packages.values()}:
         return False
-    return _external_dependency_paths_only(root, manifest) and _no_extra_manifest(root)
+    return _owned_dependencies(root, packages) and _no_extra_manifest(root, set(packages))
+
+
+def _owned_dependencies(root: Path, packages: dict[Path, tuple[str, Mapping[str, object]]]) -> bool:
+    owned = set(packages)
+    external: set[Path] = set()
+    return all(
+        _declared_dependency_paths_only(root, path, cargo, owned, external)
+        for path, (_, cargo) in packages.items()
+    ) and separate_external_packages(root, external)
 
 
 def _manifest(path: Path) -> Mapping[str, object] | None:
@@ -86,36 +107,121 @@ def _manifest(path: Path) -> Mapping[str, object] | None:
         return None
 
 
-def _root_identity_matches(manifest: Mapping[str, object], selector: str) -> bool:
+def _package_name(manifest: Mapping[str, object]) -> str | None:
     package = mapping_value(manifest, "package")
-    return (
-        package is not None
-        and package.get("name") == selector
-        and bool(selector)
-        and "workspace" not in package
-    )
+    if package is None or "workspace" in package:
+        return None
+    name = package.get("name")
+    if not isinstance(name, str) or not name:
+        return None
+    return name if all(character.isalnum() or character in "-_" for character in name) else None
 
 
-def _self_workspace(manifest: Mapping[str, object]) -> bool:
+def _owned_packages(
+    root: Path, manifest: Mapping[str, object]
+) -> dict[Path, tuple[str, Mapping[str, object]]] | None:
+    name = _package_name(manifest)
+    members = _workspace_members(manifest)
+    if name is None or members is None:
+        return None
+    packages = {root: (name, manifest)}
+    names = {name}
+    for member in members:
+        selected = _member_package(root, member)
+        if selected is None:
+            return None
+        path, member_name, cargo = selected
+        if path in packages or member_name in names:
+            return None
+        names.add(member_name)
+        packages[path] = (member_name, cargo)
+    return packages
+
+
+def _member_package(root: Path, member: object) -> tuple[Path, str, Mapping[str, object]] | None:
+    path = _member_path(root, member)
+    if path is None:
+        return None
+    cargo = _manifest(path / "Cargo.toml")
+    if cargo is None or "workspace" in cargo:
+        return None
+    name = _package_name(cargo)
+    return (path, name, cargo) if name is not None else None
+
+
+def _workspace_members(manifest: Mapping[str, object]) -> list[object] | None:
     workspace = mapping_value(manifest, "workspace")
-    return workspace is not None and all(
-        workspace.get(key, []) == [] for key in ("members", "default-members", "exclude")
+    if workspace is None:
+        return None
+    if any(workspace.get(key, []) != [] for key in ("default-members", "exclude")):
+        return None
+    members = workspace.get("members", [])
+    if not isinstance(members, list):
+        return None
+    declared = cast(list[object], members)
+    return declared if len(declared) <= MAX_INVENTORY_ENTRIES else None
+
+
+def _member_path(root: Path, raw: object) -> Path | None:
+    relative = _literal_member(raw)
+    if relative is None:
+        return None
+    path = root / relative
+    if path == root:
+        return None
+    return path if _unlinked_member(root, path) else None
+
+
+def _literal_member(raw: object) -> Path | None:
+    if not isinstance(raw, str) or not raw or any(char in raw for char in "*?[]\\:\0"):
+        return None
+    relative = Path(raw)
+    if relative.is_absolute() or ".." in relative.parts:
+        return None
+    return relative
+
+
+def _unlinked_member(root: Path, path: Path) -> bool:
+    try:
+        if path.resolve() != path or not path.is_relative_to(root):
+            return False
+        for parent in (path, *path.parents):
+            if parent == root:
+                break
+            if _is_link(parent):
+                return False
+    except (OSError, ValueError):
+        return False
+    return True
+
+
+def _declared_dependency_paths_only(
+    root: Path,
+    owner: Path,
+    manifest: Mapping[str, object],
+    packages: set[Path],
+    external: set[Path],
+) -> bool:
+    return all(
+        _declared_dependency(root, owner, value, packages, external)
+        for value in _dependency_paths(manifest)
     )
 
 
-def _external_dependency_paths_only(root: Path, manifest: Mapping[str, object]) -> bool:
-    for value in _dependency_paths(manifest):
-        if not isinstance(value, str) or not value:
-            return False
-        try:
-            path = root / value
-            lexical = Path(os.path.abspath(path))
-            if lexical.is_relative_to(root.resolve()) or path.resolve().is_relative_to(
-                root.resolve()
-            ):
-                return False
-        except (OSError, ValueError):
-            return False
+def _declared_dependency(
+    root: Path, owner: Path, value: object, packages: set[Path], external: set[Path]
+) -> bool:
+    if not isinstance(value, str) or not value:
+        return False
+    try:
+        path = owner / value
+        lexical = Path(os.path.abspath(path))
+        resolved = path.resolve()
+        if lexical.is_relative_to(root) or resolved.is_relative_to(root):
+            return lexical in packages and resolved in packages
+        external.add(lexical)
+    except (OSError, ValueError):
+        return False
     return True
 
 
@@ -185,9 +291,10 @@ def _is_link(path: Path) -> bool:
     return path.is_symlink() or path.is_junction()
 
 
-def _no_extra_manifest(root: Path) -> bool:
+def _no_extra_manifest(root: Path, packages: set[Path]) -> bool:
     unreadable: list[OSError] = []
     visited = 0
+    found: set[Path] = set()
     for directory, children, files in os.walk(root, onerror=unreadable.append):
         children[:] = [name for name in children if name not in TRANSIENT_DIRECTORIES]
         if any(_is_link(Path(directory) / name) for name in children):
@@ -195,6 +302,9 @@ def _no_extra_manifest(root: Path) -> bool:
         visited += len(children) + len(files)
         if visited > MAX_INVENTORY_ENTRIES:
             return False
-        if Path(directory) != root and any(name.casefold() == "cargo.toml" for name in files):
-            return False
-    return not unreadable
+        manifests = [name for name in files if name.casefold() == "cargo.toml"]
+        if manifests:
+            if len(manifests) != 1 or Path(directory) not in packages:
+                return False
+            found.add(Path(directory))
+    return not unreadable and found == packages

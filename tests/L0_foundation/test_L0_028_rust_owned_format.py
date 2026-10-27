@@ -19,7 +19,7 @@ from test_L0_021_rust_policy import (
     write_workspace_member_manifest,
 )
 
-from wn_dev_std import rust_format_policy
+from wn_dev_std import rust_format_external, rust_format_policy
 
 
 @pytest.mark.parametrize(
@@ -393,6 +393,322 @@ def test_patch_table_budget_precedes_path_materialization(
         rust_format_policy, "_patch_paths", side_effect=AssertionError("paths materialized")
     ):
         assert not rust_format_policy.has_format_lane(tmp_path, owned)
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "cargo fmt --package root --package app -- --check",
+        "cargo fmt -p app -p root -- --check",
+        "cargo fmt --package app -p root -- --check",
+    ],
+)
+def test_literal_workspace_accepts_complete_owned_selection(tmp_path: Path, command: str) -> None:
+    write_minimal_rust_project(tmp_path, cargo_toml=hybrid_workspace_manifest())
+    write_workspace_member_manifest(tmp_path, inherit_metadata=True, inherit_lints=True)
+    set_format_command(tmp_path, command)
+
+    assert_format_result(tmp_path, passed=True)
+
+
+@pytest.mark.parametrize(
+    "selectors",
+    [
+        "-p root",
+        "-p app",
+        "-p root -p app -p foreign",
+        "-p root -p app -p app",
+        "-p root -p root -p app",
+        "-p root -p 'app*'",
+        "-p root -p app --all",
+        "-p root -p app --manifest-path Cargo.toml",
+    ],
+)
+def test_workspace_selectors_must_cover_each_package_once(tmp_path: Path, selectors: str) -> None:
+    write_minimal_rust_project(tmp_path, cargo_toml=hybrid_workspace_manifest())
+    write_workspace_member_manifest(tmp_path, inherit_metadata=True, inherit_lints=True)
+
+    assert not rust_format_policy.has_format_lane(tmp_path, [f"cargo fmt {selectors} -- --check"])
+    assert rust_format_policy.has_format_lane(tmp_path, ["cargo fmt --all -- --check"])
+
+
+def test_declared_internal_dependencies_are_resolved_from_each_member(tmp_path: Path) -> None:
+    root_manifest = hybrid_workspace_manifest().replace(
+        '["crates/app"]', '["crates/app", "crates/helper"]'
+    )
+    root_manifest += '\n[dependencies]\napp = { path = "crates/app" }\n'
+    write_minimal_rust_project(tmp_path, cargo_toml=root_manifest)
+    write_workspace_member_manifest(tmp_path, inherit_metadata=True, inherit_lints=True)
+    member = tmp_path / "crates" / "app" / "Cargo.toml"
+    write_file(member, member.read_text() + '\n[dependencies]\nhelper = { path = "../helper" }\n')
+    write_file(
+        tmp_path / "crates" / "helper" / "Cargo.toml",
+        cargo_manifest().replace('name = "example"', 'name = "helper"'),
+    )
+    commands = ["cargo fmt -p root -p helper -p app -- --check"]
+
+    assert rust_format_policy.has_format_lane(tmp_path, commands)
+    write_file(member, member.read_text().replace("../helper", "../../target/hidden"))
+    write_file(tmp_path / "target" / "hidden" / "Cargo.toml", cargo_manifest())
+    assert not rust_format_policy.has_format_lane(tmp_path, commands)
+
+
+@pytest.mark.parametrize(
+    "members",
+    [
+        '["crates/app", "crates/app"]',
+        '["crates/app", "crates/./app"]',
+        '["crates/*"]',
+        '["../app"]',
+        '["crates/app", "target/hidden"]',
+    ],
+)
+def test_workspace_members_require_literal_unique_inventory(tmp_path: Path, members: str) -> None:
+    manifest = hybrid_workspace_manifest().replace('["crates/app"]', members)
+    write_minimal_rust_project(tmp_path, cargo_toml=manifest)
+    write_workspace_member_manifest(tmp_path, inherit_metadata=True, inherit_lints=True)
+    selectors = "-p root -p app"
+    if "target/hidden" in members:
+        selectors += " -p hidden"
+        write_file(
+            tmp_path / "target" / "hidden" / "Cargo.toml",
+            cargo_manifest().replace('name = "example"', 'name = "hidden"'),
+        )
+
+    assert not rust_format_policy.has_format_lane(tmp_path, [f"cargo fmt {selectors} -- --check"])
+
+
+@pytest.mark.parametrize("member_name", ["root", "app"])
+def test_duplicate_workspace_package_names_refuse_selection(
+    tmp_path: Path, member_name: str
+) -> None:
+    manifest = hybrid_workspace_manifest().replace(
+        '["crates/app"]', '["crates/app", "crates/other"]'
+    )
+    write_minimal_rust_project(tmp_path, cargo_toml=manifest)
+    write_workspace_member_manifest(tmp_path, inherit_metadata=True, inherit_lints=True)
+    write_file(
+        tmp_path / "crates" / "other" / "Cargo.toml",
+        cargo_manifest().replace('name = "example"', f'name = "{member_name}"'),
+    )
+
+    assert not rust_format_policy.has_format_lane(tmp_path, ["cargo fmt -p root -p app -- --check"])
+
+
+@pytest.mark.parametrize("redirect", ["\n[workspace]\n", "\n"])
+def test_member_cannot_redirect_workspace_ownership(tmp_path: Path, redirect: str) -> None:
+    write_minimal_rust_project(tmp_path, cargo_toml=hybrid_workspace_manifest())
+    write_workspace_member_manifest(tmp_path, inherit_metadata=True, inherit_lints=True)
+    member = tmp_path / "crates" / "app" / "Cargo.toml"
+    source = member.read_text()
+    if redirect == "\n":
+        source = source.replace("[package]", '[package]\nworkspace = "../../outside"')
+    write_file(member, source + redirect)
+
+    assert not rust_format_policy.has_format_lane(tmp_path, ["cargo fmt -p root -p app -- --check"])
+
+
+def test_workspace_proof_reads_only_direct_external_identity(tmp_path: Path) -> None:
+    root = (tmp_path / "app").resolve()
+    external = (tmp_path / "external" / "Cargo.toml").resolve()
+    write_minimal_rust_project(root, cargo_toml=hybrid_workspace_manifest())
+    write_workspace_member_manifest(root, inherit_metadata=True, inherit_lints=True)
+    member = root / "crates" / "app" / "Cargo.toml"
+    write_file(
+        member, member.read_text() + '\n[dependencies]\nexternal = { path = "../../../external" }\n'
+    )
+    write_file(
+        external,
+        '[package]\nname="external"\nversion="0.1.0"\n'
+        '[dependencies]\nhidden={path="../app/target/hidden"}\n',
+    )
+    write_file(root / "target" / "hidden" / "Cargo.toml", "Not valid TOML.\n")
+    original_open = Path.open
+
+    def owned_open(path: Path, *args: object, **kwargs: object) -> object:
+        assert path == external or path.resolve().is_relative_to(root.resolve()), path
+        assert "hidden" not in path.parts, f"transitive read: {path}"
+        return original_open(path, *args, **kwargs)  # type: ignore[arg-type]
+
+    with patch.object(Path, "open", owned_open):
+        assert rust_format_policy.has_format_lane(root, ["cargo fmt -p root -p app -- --check"])
+
+
+@pytest.mark.parametrize("workspace", [False, True])
+def test_external_workspace_redirect_cannot_hide_automatic_members(
+    tmp_path: Path, workspace: bool
+) -> None:
+    root, external, command = external_fixture(tmp_path, workspace=workspace)
+    write_file(
+        external,
+        '[package]\nname="external"\nversion="0.1.0"\nworkspace="../app"\n'
+        '[dependencies]\nhidden={path="../app/target/hidden"}\n',
+    )
+    write_file(root / "target" / "hidden" / "Cargo.toml", cargo_manifest())
+
+    assert not rust_format_policy.has_format_lane(root, [command])
+    assert rust_format_policy.has_format_lane(root, ["cargo fmt --all -- --check"])
+
+
+@pytest.mark.parametrize("identity", ["", "[workspace]\n", '[package]\nworkspace="../separate"\n'])
+def test_separate_external_workspace_identities_are_accepted(tmp_path: Path, identity: str) -> None:
+    root, external, command = external_fixture(tmp_path)
+    base = '[package]\nname="external"\nversion="0.1.0"\n'
+    source = base + identity
+    if identity.startswith("[package]"):
+        source = base + 'workspace="../separate"\n'
+    write_file(external, source)
+    write_file(tmp_path / "separate" / "Cargo.toml", "[workspace]\nmembers=[]\n")
+
+    assert rust_format_policy.has_format_lane(root, [command])
+
+
+@pytest.mark.parametrize(
+    "identity",
+    [
+        "invalid TOML",
+        "[workspace]\n",
+        '[package]\nname=""\n',
+        '[package]\nname="external"\nworkspace=5\n',
+        '[package]\nname="external"\nworkspace=""\n',
+    ],
+)
+def test_uncertain_external_identity_refuses_selectors(tmp_path: Path, identity: str) -> None:
+    root, external, command = external_fixture(tmp_path)
+    write_file(external, identity)
+
+    assert not rust_format_policy.has_format_lane(root, [command])
+
+
+@pytest.mark.parametrize("kind", ["missing", "directory", "denied"])
+def test_unreadable_external_identity_refuses_selectors(tmp_path: Path, kind: str) -> None:
+    root, external, command = external_fixture(tmp_path)
+    if kind == "missing":
+        external.unlink()
+    elif kind == "directory":
+        external.unlink()
+        external.mkdir()
+    original_open = Path.open
+
+    def external_open(path: Path, *args: object, **kwargs: object) -> object:
+        if kind == "denied" and path == external:
+            raise PermissionError("external identity unreadable")
+        return original_open(path, *args, **kwargs)  # type: ignore[arg-type]
+
+    with patch.object(Path, "open", external_open):
+        assert not rust_format_policy.has_format_lane(root, [command])
+
+
+@pytest.mark.parametrize(
+    "budget", ["MAX_EXTERNAL_MANIFESTS", "MAX_EXTERNAL_MANIFEST_BYTES", "MAX_MANIFEST_BYTES"]
+)
+def test_external_identity_budgets_refuse_unproven_scope(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, budget: str
+) -> None:
+    root, _external, command = external_fixture(tmp_path)
+    assert rust_format_policy.has_format_lane(root, [command])
+    monkeypatch.setattr(rust_format_external, budget, 0)
+
+    assert not rust_format_policy.has_format_lane(root, [command])
+    assert rust_format_policy.has_format_lane(root, ["cargo fmt --all -- --check"])
+
+
+def test_direct_external_identity_is_read_once_across_owned_members(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root, external, command = external_fixture(tmp_path)
+    member = root / "crates" / "app" / "Cargo.toml"
+    write_file(
+        member, member.read_text() + '\n[dependencies]\nexternal={path="../../../external"}\n'
+    )
+    monkeypatch.setattr(rust_format_external, "MAX_EXTERNAL_MANIFESTS", 1)
+    original_open = Path.open
+    opened: list[Path] = []
+
+    def identity_open(path: Path, *args: object, **kwargs: object) -> object:
+        if path == external:
+            opened.append(path)
+        return original_open(path, *args, **kwargs)  # type: ignore[arg-type]
+
+    with patch.object(Path, "open", identity_open):
+        assert rust_format_policy.has_format_lane(root, [command])
+    assert opened == [external]
+
+
+def test_external_identity_aggregate_budget_spans_distinct_packages(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root, external, command = external_fixture(tmp_path)
+    write_file(tmp_path / "other" / "Cargo.toml", external.read_text().replace("external", "other"))
+    manifest = root / "Cargo.toml"
+    write_file(manifest, manifest.read_text() + 'other={path="../other"}\n')
+    assert rust_format_policy.has_format_lane(root, [command])
+    monkeypatch.setattr(
+        rust_format_external, "MAX_EXTERNAL_MANIFEST_BYTES", external.stat().st_size
+    )
+
+    assert not rust_format_policy.has_format_lane(root, [command])
+
+
+def test_external_identity_growth_is_bounded_at_read_boundary(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root, external, command = external_fixture(tmp_path)
+    limit = 128
+    monkeypatch.setattr(rust_format_external, "MAX_MANIFEST_BYTES", limit)
+    source = external.read_bytes() + b" " * (limit + 1)
+    original_open = Path.open
+    reads: list[int | None] = []
+
+    class GrowingFile(io.BytesIO):
+        def read(self, size: int | None = -1) -> bytes:
+            reads.append(size)
+            return super().read(size)
+
+    def identity_open(path: Path, *args: object, **kwargs: object) -> object:
+        if path == external:
+            return GrowingFile(source)
+        return original_open(path, *args, **kwargs)  # type: ignore[arg-type]
+
+    with patch.object(Path, "open", identity_open):
+        assert not rust_format_policy.has_format_lane(root, [command])
+    assert reads and all(size is not None and 0 <= size <= limit + 1 for size in reads)
+
+
+def test_linked_external_manifest_refuses_before_content_read(tmp_path: Path) -> None:
+    root, external, command = external_fixture(tmp_path)
+    target = tmp_path / "identity.toml"
+    external.replace(target)
+    create_symlink(external, target, directory=False)
+
+    assert not rust_format_policy.has_format_lane(root, [command])
+
+
+def external_fixture(tmp_path: Path, *, workspace: bool = True) -> tuple[Path, Path, str]:
+    root = (tmp_path / "app").resolve()
+    manifest = hybrid_workspace_manifest() if workspace else cargo_manifest() + "\n[workspace]\n"
+    write_minimal_rust_project(
+        root, cargo_toml=manifest + '\n[dependencies]\nexternal={path="../external"}\n'
+    )
+    if workspace:
+        write_workspace_member_manifest(root, inherit_metadata=True, inherit_lints=True)
+    external = (tmp_path / "external" / "Cargo.toml").resolve()
+    write_file(external, '[package]\nname="external"\nversion="0.1.0"\n')
+    command = (
+        "cargo fmt -p root -p app -- --check" if workspace else "cargo fmt -p example -- --check"
+    )
+    return root, external, command
+
+
+def test_member_manifest_link_refuses_complete_selection(tmp_path: Path) -> None:
+    write_minimal_rust_project(tmp_path, cargo_toml=hybrid_workspace_manifest())
+    target = tmp_path / "member.toml"
+    write_file(target, cargo_manifest().replace('name = "example"', 'name = "app"'))
+    member = tmp_path / "crates" / "app" / "Cargo.toml"
+    member.parent.mkdir(parents=True)
+    create_symlink(member, target, directory=False)
+
+    assert not rust_format_policy.has_format_lane(tmp_path, ["cargo fmt -p root -p app -- --check"])
 
 
 def create_symlink(link: Path, target: Path, *, directory: bool) -> None:
