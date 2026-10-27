@@ -24,7 +24,7 @@ depends_on = ["work"]
 [[steps]]
 id = "external-review"
 title = "Obtain independent external review"
-status = "active"
+status = "done"
 depends_on = ["work", "design-doc-intent-audit", "test-runtime-impact-audit"]
 
 [[exit_criteria]]
@@ -45,7 +45,7 @@ status = "met"
 [[exit_criteria]]
 id = "external-review"
 title = "Independent external review is complete"
-status = "pending"
+status = "met"
 
 [[exit_criteria]]
 id = "public-delivery"
@@ -65,7 +65,7 @@ status = "done"
 [[steps]]
 id = "public-delivery"
 title = "Run approved public release CI/packaging and publication"
-status = "pending"
+status = "active"
 +++
 
 # Release bounded formatting coverage for explicitly owned Rust workspaces
