@@ -74,7 +74,7 @@ def _is_owned_workspace(root: Path, selectors: list[str]) -> bool:
         if _is_link(root):
             return False
         root = root.resolve()
-    except (OSError, ValueError):
+    except (OSError, ValueError, RuntimeError):
         return False
     manifest = _manifest(root / "Cargo.toml")
     if manifest is None:
@@ -103,7 +103,7 @@ def _manifest(path: Path) -> Mapping[str, object] | None:
         if len(source) > MAX_MANIFEST_BYTES:
             return None
         return tomllib.loads(source.decode("utf-8"))
-    except (OSError, ValueError, RecursionError):
+    except (OSError, ValueError, RecursionError, RuntimeError):
         return None
 
 
@@ -190,7 +190,7 @@ def _unlinked_member(root: Path, path: Path) -> bool:
                 break
             if _is_link(parent):
                 return False
-    except (OSError, ValueError):
+    except (OSError, ValueError, RuntimeError):
         return False
     return True
 
@@ -220,7 +220,7 @@ def _declared_dependency(
         if lexical.is_relative_to(root) or resolved.is_relative_to(root):
             return lexical in packages and resolved in packages
         external.add(lexical)
-    except (OSError, ValueError):
+    except (OSError, ValueError, RuntimeError):
         return False
     return True
 

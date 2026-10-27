@@ -40,7 +40,7 @@ def _identity_source(path: Path, limit: int) -> bytes | None:
         with manifest.open("rb") as handle:
             source = handle.read(limit + 1)
         return source if len(source) <= limit else None
-    except (OSError, ValueError):
+    except (OSError, ValueError, RuntimeError):
         return None
 
 
@@ -58,7 +58,7 @@ def _separate_identity(root: Path, path: Path, source: bytes) -> bool:
             return False
         redirect = package.get("workspace")
         return redirect is None or _separate_redirect(root, path, redirect)
-    except (OSError, ValueError, RecursionError):
+    except (OSError, ValueError, RecursionError, RuntimeError):
         return False
 
 

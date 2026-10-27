@@ -684,6 +684,22 @@ def test_linked_external_manifest_refuses_before_content_read(tmp_path: Path) ->
     assert not rust_format_policy.has_format_lane(root, [command])
 
 
+@pytest.mark.parametrize("scope", ["root", "external"])
+def test_python312_resolve_loop_refuses_uncertain_identity(tmp_path: Path, scope: str) -> None:
+    root, external, command = external_fixture(tmp_path)
+    target = root if scope == "root" else external.parent
+    original_resolve = Path.resolve
+
+    def loop_resolve(path: Path, *args: object, **kwargs: object) -> Path:
+        if path == target:
+            raise RuntimeError("Symlink loop (Python 3.12)")
+        return original_resolve(path, *args, **kwargs)  # type: ignore[arg-type]
+
+    with patch.object(Path, "resolve", loop_resolve):
+        assert not rust_format_policy.has_format_lane(root, [command])
+        assert rust_format_policy.has_format_lane(root, ["cargo fmt --all -- --check"])
+
+
 def external_fixture(tmp_path: Path, *, workspace: bool = True) -> tuple[Path, Path, str]:
     root = (tmp_path / "app").resolve()
     manifest = hybrid_workspace_manifest() if workspace else cargo_manifest() + "\n[workspace]\n"
